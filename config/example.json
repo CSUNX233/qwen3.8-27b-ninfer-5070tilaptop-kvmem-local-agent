@@ -11,5 +11,6 @@
   "RecentTokens": 19456,
   "SinkTokens": 12288,
   "RetrieveTokens": 3840,
-  "ReasoningEffort": "xhigh"
+  "ReasoningEffort": "xhigh",
+  "ToolGroundedExecution": true
 }

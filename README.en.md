@@ -14,10 +14,13 @@ A Windows source distribution and deployment kit maintained by **CSUNX233**, bui
 - Two fixed short-task A/B runs measured roughly 65–85 token/s and a +2.44% aggregate decode gain for the card-specific launch scheduling. Results are workload dependent; prefill/TTFT did not universally improve.
 - A synthetic 84,925-token tool continuation reused 84,873 tokens: 52 newly evaluated tokens, 813.5 ms prefill and 1,234 ms TTFT. Repetitive-text draft throughput is not advertised as normal Agent throughput.
 - Optional DeepSeek Harness web UI, local search/fetch, lazy Edge browser tools and CPU-only vision encoding. Web search needs Internet access, but no paid search API key.
+- Static tool-grounded execution guidance for the local Agent: inspect, implement and test once the next useful action is clear, retaining xhigh and necessary deep reasoning. No reasoning cap, sampling change or extra model request; [configuration and limits](integrations/README.md).
 
 Validated hardware: RTX 5070 Ti Laptop 12GB, 46 SMs, i7-14650HX, 32GB RAM, Windows x64, driver 617.14. Prebuilt target: sm120a, CUDA 13.0.48, MSVC 14.44.35207. Other hardware requires independent qualification.
 
 Hybrid integrated/discrete graphics is recommended: let the iGPU render the desktop and browser, preserving discrete VRAM for inference. The launcher does not change the system graphics mode. Systems without hybrid graphics can also try it after closing unnecessary GPU workloads and reserving sufficient VRAM. Other RTX 50-series GPUs with 12GB or more VRAM are welcome to try this preset; they have not all been tested. Non-50-series GPUs require a source build for their CUDA architecture. Contributions with build instructions, configurations and measured results are welcome.
+
+> **Strongly recommended: disable CUDA system-memory fallback for NInfer.** In NVIDIA Control Panel → Manage 3D settings → Program Settings, add this checkout's `runtime/engine/ninfer-serve.exe` and set **CUDA - Sysmem Fallback Policy → Prefer No Sysmem Fallback**. Keep Global Settings unchanged. Driver fallback to RAM can severely slow inference. This does not disable the engine-managed **7 GiB Host KV**, which should remain enabled, or create more VRAM; insufficient VRAM can still cause allocation failures. [Setup details](docs/INSTALL.md#cuda-系统内存回退强烈建议禁用).
 
 Download this repository, prepare a v3 `.ninfer` artifact with MTP following [MODELS.md](docs/MODELS.md), and install Node.js 24+, the x64 VC++ runtime and a CUDA 13 compatible NVIDIA driver:
 

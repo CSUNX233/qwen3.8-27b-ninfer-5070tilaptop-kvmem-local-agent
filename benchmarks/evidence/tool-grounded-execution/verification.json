@@ -1,0 +1,92 @@
+{
+  "date": "2026-10-15",
+  "component": "dsh static tool-grounded execution guidance",
+  "dsh_version": "0.1.5-rc.3",
+  "plugin_sha256": "49c35b9376ab76bb2799eb87012a669f798c49d41b472e333e631d15a58dcd12",
+  "fixture": "Implement parse_duration(text) in a seeded Python stub, then run python -m unittest -v. Integer h/m/s components, flexible order/case, surrounding/between-component whitespace, no whitespace inside a component, no duplicate units; malformed inputs raise ValueError and non-strings raise TypeError.",
+  "acceptance_tests_sha256": "ee2c6c1a8178e03feba8b55d5693c46f58842210bf33d48fc21e2ef590260d65",
+  "acceptance_tests_unchanged": true,
+  "production_settings_unchanged": true,
+  "registry_checks": {
+    "passed": true,
+    "checks": [
+      "web preset",
+      "headless local route",
+      "other presets/providers excluded",
+      "identical text on repeated steps",
+      "dispose and reload"
+    ]
+  },
+  "baseline_policy_inactive": {
+    "policy_actually_sent": false,
+    "request_configs": [
+      {
+        "provider": "ninfer-local",
+        "model": "qwen3.8-27b-gsq-rco-iq3-xxs",
+        "reasoningEffort": "xhigh",
+        "maxTokens": 73728
+      }
+    ],
+    "first_tool_seconds": 11.016,
+    "first_write_seconds": 31.874,
+    "tool_calls": 10,
+    "tool_sequence": [
+      "glob",
+      "read",
+      "read",
+      "write",
+      "pwsh",
+      "edit",
+      "read",
+      "edit",
+      "edit",
+      "pwsh"
+    ],
+    "total_seconds": 63.074,
+    "total_output_tokens": 3714,
+    "reasoning_characters": 7383,
+    "end_reason": {
+      "kind": "completed"
+    },
+    "acceptance_test_methods_passed": 7
+  },
+  "enabled_policy": {
+    "policy_actually_sent": true,
+    "request_configs": [
+      {
+        "provider": "ninfer-local",
+        "model": "qwen3.8-27b-gsq-rco-iq3-xxs",
+        "reasoningEffort": "xhigh",
+        "maxTokens": 73728
+      }
+    ],
+    "first_tool_seconds": 11.031,
+    "first_write_seconds": 45.283,
+    "tool_calls": 5,
+    "tool_sequence": [
+      "glob",
+      "read",
+      "read",
+      "write",
+      "pwsh"
+    ],
+    "total_seconds": 53.747,
+    "total_output_tokens": 3256,
+    "reasoning_characters": 7632,
+    "end_reason": {
+      "kind": "completed"
+    },
+    "acceptance_test_methods_passed": 7,
+    "policy_occurrences": [
+      1
+    ]
+  },
+  "added_prompt_tokens_count_only": 272,
+  "limitations": [
+    "One exploratory development task per condition, stochastic sampling and cache/startup timing differ; this does not establish general quality equivalence or a reliable speedup.",
+    "The initial headless run lacked a preset header and did not receive the policy. It is reported as the inactive baseline; the enabled run followed a provider-recognition correction.",
+    "First write was later with the policy. Reasoning character count is not a measure of reasoning quality.",
+    "Static prompt guidance does not guarantee convergence or prevent all loops. No reasoning cap, stream interruption, sampling change or extra model request is added.",
+    "This sanitized summary omits private sessions, local configuration, original logs and absolute machine paths. It is not a raw-session reproduction package."
+  ]
+}
