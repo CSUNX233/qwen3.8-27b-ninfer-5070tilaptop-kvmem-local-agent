@@ -1,3 +1,4 @@
+// Modified in the CSUNX233 RTX 5070 Ti Laptop distribution. See ../docs/MODIFICATIONS.md.
 // KVMem retrieval scoring, device side. See ops/kvmem/kvmem_retrieve.h for the contract, for the
 // reference provenance of Eq.10 (implementation_notes.md:549-588, kernels_cuda.cu:5340-5435), and
 // for why the mean is formed HERE from an F32 sum plus a token count.
@@ -156,7 +157,7 @@ __global__ void kvmem_retrieve_scores_kernel(float* __restrict__ score,
                                              int n_layers, int n_query_tokens, int n_heads,
                                              int n_kv_heads, int head_dim, int q_layer_stride,
                                              int q_token_begin, int n_blocks, int kbar_layer_stride,
-                                             int incl_lo, int incl_hi, float scale, float head_w) {
+                                             int incl_lo, int incl_hi, float scale, float head_w, const float* counts_f32) {
     const int lt = static_cast<int>(blockIdx.x);
     const int l  = lt / n_query_tokens;
     const int t  = lt % n_query_tokens;
@@ -205,9 +206,13 @@ __global__ void kvmem_retrieve_scores_kernel(float* __restrict__ score,
             const float* krow = kbar_l + (static_cast<long long>(b) * n_kv_heads + kvh) * head_dim;
             // The mean is formed here: sum / count, folded into the logit scale. A null count array
             // means the operand is already a mean (count == 1).
-            const float invc  = block_tokens != nullptr
-                                    ? 1.0f / static_cast<float>(block_tokens[b])
-                                    : 1.0f;
+            const float count = counts_f32 ? counts_f32[b] :
+                                (block_tokens ? static_cast<float>(block_tokens[b]) : 1.0f);
+            if (!(count > 0.0f)) {
+                if (kOneDot) { s_logits[b - incl_lo] = -CUDART_INF_F; }
+                continue;
+            }
+            const float invc = 1.0f / count;
             const float logit = (scale * invc) * dot_q_sum<QT>(qr, krow, head_dim);
             if (kOneDot) { s_logits[b - incl_lo] = logit; }
             // Online softmax: keep the running max and rescale the running sum. The first finite
@@ -273,9 +278,10 @@ __global__ void kvmem_retrieve_scores_kernel(float* __restrict__ score,
     // the store is coalesced across the block dimension. head_w carries the mean over layers AND over
     // heads, which is what turns the grid-wide sum into Eq.10's "sum_m mean_l mean_h".
     for (int b = incl_lo + tid; b < incl_hi; b += kRetrieveThreads) {
-        const float invc      = block_tokens != nullptr
-                                    ? 1.0f / static_cast<float>(block_tokens[b])
-                                    : 1.0f;
+        const float count = counts_f32 ? counts_f32[b] :
+                            (block_tokens ? static_cast<float>(block_tokens[b]) : 1.0f);
+        if (!(count > 0.0f)) { continue; }
+        const float invc = 1.0f / count;
         const float logit_w   = scale * invc;
         float       local     = 0.0f;
         for (int qh = 0; qh < n_heads; ++qh) {
@@ -351,13 +357,13 @@ cudaError_t launch_kvmem_retrieve_scores(const KvMemRetrieveConfig& config, floa
                 score, static_cast<const __nv_bfloat16*>(q), kbar_sum, block_tokens, config.n_layers,
                 config.n_query_tokens, config.n_heads, config.n_kv_heads, config.head_dim,
                 config.q_layer_stride, config.q_token_begin, config.n_blocks,
-                config.kbar_layer_stride, incl_lo, incl_hi, scale, head_w);
+                config.kbar_layer_stride, incl_lo, incl_hi, scale, head_w, config.f32_block_counts);
         } else {
             kvmem_retrieve_scores_kernel<__nv_bfloat16, false><<<grid, kRetrieveThreads, shmem, stream>>>(
                 score, static_cast<const __nv_bfloat16*>(q), kbar_sum, block_tokens, config.n_layers,
                 config.n_query_tokens, config.n_heads, config.n_kv_heads, config.head_dim,
                 config.q_layer_stride, config.q_token_begin, config.n_blocks,
-                config.kbar_layer_stride, incl_lo, incl_hi, scale, head_w);
+                config.kbar_layer_stride, incl_lo, incl_hi, scale, head_w, config.f32_block_counts);
         }
     } else if (config.dtype == KvMemRetrieveDtype::F16) {
         if (one_dot) {
@@ -365,13 +371,13 @@ cudaError_t launch_kvmem_retrieve_scores(const KvMemRetrieveConfig& config, floa
                 score, static_cast<const __half*>(q), kbar_sum, block_tokens, config.n_layers,
                 config.n_query_tokens, config.n_heads, config.n_kv_heads, config.head_dim,
                 config.q_layer_stride, config.q_token_begin, config.n_blocks,
-                config.kbar_layer_stride, incl_lo, incl_hi, scale, head_w);
+                config.kbar_layer_stride, incl_lo, incl_hi, scale, head_w, config.f32_block_counts);
         } else {
             kvmem_retrieve_scores_kernel<__half, false><<<grid, kRetrieveThreads, shmem, stream>>>(
                 score, static_cast<const __half*>(q), kbar_sum, block_tokens, config.n_layers,
                 config.n_query_tokens, config.n_heads, config.n_kv_heads, config.head_dim,
                 config.q_layer_stride, config.q_token_begin, config.n_blocks,
-                config.kbar_layer_stride, incl_lo, incl_hi, scale, head_w);
+                config.kbar_layer_stride, incl_lo, incl_hi, scale, head_w, config.f32_block_counts);
         }
     } else {
         if (one_dot) {
@@ -379,13 +385,13 @@ cudaError_t launch_kvmem_retrieve_scores(const KvMemRetrieveConfig& config, floa
                 score, static_cast<const float*>(q), kbar_sum, block_tokens, config.n_layers,
                 config.n_query_tokens, config.n_heads, config.n_kv_heads, config.head_dim,
                 config.q_layer_stride, config.q_token_begin, config.n_blocks,
-                config.kbar_layer_stride, incl_lo, incl_hi, scale, head_w);
+                config.kbar_layer_stride, incl_lo, incl_hi, scale, head_w, config.f32_block_counts);
         } else {
             kvmem_retrieve_scores_kernel<float, false><<<grid, kRetrieveThreads, shmem, stream>>>(
                 score, static_cast<const float*>(q), kbar_sum, block_tokens, config.n_layers,
                 config.n_query_tokens, config.n_heads, config.n_kv_heads, config.head_dim,
                 config.q_layer_stride, config.q_token_begin, config.n_blocks,
-                config.kbar_layer_stride, incl_lo, incl_hi, scale, head_w);
+                config.kbar_layer_stride, incl_lo, incl_hi, scale, head_w, config.f32_block_counts);
         }
     }
     return cudaGetLastError();

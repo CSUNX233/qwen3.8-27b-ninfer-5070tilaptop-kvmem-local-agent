@@ -1,3 +1,4 @@
+// Modified in the CSUNX233 RTX 5070 Ti Laptop distribution. See ../docs/MODIFICATIONS.md.
 // KVMem mean-K index accumulation, device side. See ops/kvmem/mean_k_index.h for the contract.
 //
 // WHY THE ACCESS PATTERN IS STRIDED, AND WHY THAT IS FINE
@@ -174,6 +175,41 @@ cudaError_t launch_mean_k_accumulate(const void* staging, void* index, std::int3
         static_cast<const __nv_bfloat16*>(staging), static_cast<float*>(index), n_layers,
         layer_index, first_block, full_blocks, tail_fill, heads, head_dim, kv_size, block_tokens,
         layer_stride, blocks_per_layer, index_layer_stride);
+    return cudaGetLastError();
+}
+
+namespace {
+__global__ void mean_k_tokens(const __nv_bfloat16* src, float* index, int layer, int begin,
+    int tokens, int heads, int dim, int blocks, int stride) {
+    const int b = begin / 64 + blockIdx.x;
+    const int lo = max(begin, b * 64), hi = min(begin + tokens, (b + 1) * 64);
+    const int head = blockIdx.y;
+    float* sums = index + static_cast<size_t>(layer) * stride;
+    for (int d = threadIdx.x; d < dim; d += blockDim.x) {
+        float sum = 0.0f;
+        for (int t = lo; t < hi; ++t) {
+            sum += __bfloat162float(src[(static_cast<size_t>(t - begin) * heads + head) * dim + d]);
+        }
+        sums[(static_cast<size_t>(b) * heads + head) * dim + d] += sum;
+    }
+    if (head == 0 && threadIdx.x == 0) {
+        sums[static_cast<size_t>(blocks) * heads * dim + b] += static_cast<float>(hi - lo);
+    }
+}
+}
+cudaError_t launch_mean_k_accumulate_tokens(const void* staging, void* index,
+    int layer, int token_base, int tokens, int heads, int head_dim, int source_stride,
+    int blocks_per_layer, int index_layer_stride, cudaStream_t stream) {
+    (void)source_stride;
+    if (tokens <= 0) { return cudaSuccess; }
+    if (!staging || !index || layer < 0 || token_base < 0 || heads <= 0 || head_dim <= 0 ||
+        (static_cast<int64_t>(token_base) + tokens + 63) / 64 > blocks_per_layer) {
+        return cudaErrorInvalidValue;
+    }
+    const int n = (token_base % 64 + tokens + 63) / 64;
+    mean_k_tokens<<<dim3(n, heads), 128, 0, stream>>>(
+        static_cast<const __nv_bfloat16*>(staging), static_cast<float*>(index), layer,
+        token_base, tokens, heads, head_dim, blocks_per_layer, index_layer_stride);
     return cudaGetLastError();
 }
 

@@ -106,6 +106,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 namespace ninfer::ops {
 
@@ -132,6 +133,16 @@ enum class MeanKIndexStorage { Device, HostMapped };
     return sums + counts;
 }
 
+// Immutable COW slabs preserve the exact index at each KV checkpoint. Slabs are ordinary RAM;
+// the active workspace keeps its existing device addresses and scoring scratch.
+struct MeanKIndexSnapshot {
+    static constexpr int slab_blocks = 16;
+    int layers = 0, heads = 0, head_dim = 0, capacity_blocks = 0;
+    int blocks_written = 0, tail_fill = 0;
+    std::vector<int> layer_ends;
+    std::vector<std::shared_ptr<const std::vector<float>>> slabs;
+};
+
 // The accumulated index for one sequence: all layers, grown block by block as the prefill advances.
 class MeanKIndex {
 public:
@@ -149,26 +160,20 @@ public:
     MeanKIndex& operator=(MeanKIndex&&)      = delete;
     ~MeanKIndex();
 
-    // Append one chunk. `store` is the harvest holding the round to consume; only the layers it
-    // reports as harvested are read, and only `round_width` tokens of each. `first_block` is the
-    // logical block number this chunk starts at, so the caller owns the mapping from a chunk to its
-    // place in the sequence and this component never has to guess it.
-    //
-    // CALLING TWICE WITH THE SAME `first_block` CONTINUES THAT BLOCK, which is how a partial tail
-    // block gets completed: the sums and the count are added to, never replaced. Nothing has to be
-    // re-read, and the block is usable (as a mean over the tokens it holds SO FAR) at any point.
-    //
-    // Capture-safe: the caller supplies the stream and the buffers already exist, so nothing here
-    // allocates or synchronises. Issued unconditionally by the driver; the switch is read on the
-    // host in the driver, and a null/absent harvest means there is nothing to append.
-    void append_round(const RawKShadowHarvest& store, std::int32_t first_block,
+    [[nodiscard]] std::shared_ptr<const MeanKIndexSnapshot> snapshot(cudaStream_t stream);
+    void restore(const std::shared_ptr<const MeanKIndexSnapshot>& state, cudaStream_t stream);
+
+    // Append harvested BF16 keys at an ABSOLUTE token offset, outside graph capture.
+    // Page splitting uses that offset; replay of an already indexed interval is idempotent.
+    // Checkpoint restoration must precede appending a divergent suffix.
+    void append_round(const RawKShadowHarvest& store, std::int32_t token_base,
                       cudaStream_t stream);
 
     // Same, for a caller that has one layer's staging in hand (the unit-test path, and the shape a
     // future per-layer consumer wants). `layer_index` is the FULL-ATTENTION index (0..layers-1),
     // never the global layer number (text_context.h:341-342).
     void append_layer(const Tensor& raw_key, std::int32_t layer_index, std::int32_t round_width,
-                      std::int32_t first_block, cudaStream_t stream);
+                      std::int32_t token_base, cudaStream_t stream);
 
     // Zero the whole index. REQUIRED before the first append (arena memory is not guaranteed zero) and
     // before any reuse of a live index for a different sequence. Returns the memset status instead of
@@ -232,7 +237,7 @@ private:
     // not the round width), while `index_layer_stride` is the F32 element count of one layer's
     // destination region (sums + counts).
     void append_one(const void* raw_key_bf16, std::int32_t layer_index, std::int32_t round_width,
-                    std::int32_t first_block, std::int32_t source_layer_stride,
+                    std::int32_t token_base, std::int32_t source_layer_stride,
                     std::int32_t index_layer_stride, cudaStream_t stream);
 
     std::int32_t layers_          = 0;
@@ -258,6 +263,9 @@ private:
     std::unique_ptr<MappedHostBuffer> host_storage_;
     std::unique_ptr<DeviceBuffer> score_storage_;
     Tensor score_view_;
+    std::vector<int> layer_ends_;
+    std::vector<bool> dirty_slabs_;
+    std::shared_ptr<const MeanKIndexSnapshot> snapshot_;
     struct ScoringState;
     std::unique_ptr<ScoringState> scoring_;
 };
@@ -272,29 +280,10 @@ private:
     return (tokens + block_tokens - 1) / block_tokens;
 }
 
-// The per-sequence index this engine actually drives, installed on first use and kept for the
-// process lifetime. Same shape and same contract as raw_k_shadow_harvest_for(): the caller asks for
-// it every chunk, gets the SAME object back, and gets nullptr when NINFER_TERNARY_KVMEM is off (the
-// default) so the OFF arm allocates nothing and stays bit-for-bit the engine as it is today.
-//
-// WHY A PROCESS-LIFETIME SLOT AND NOT A WORKSPACE TENSOR
-//   Same reason as the harvest: the index outlives every TextContext (which is constructed on the
-//   stack for one schedule recording, text_context.h:29) and a captured graph must never end up
-//   pointing at recycled arena memory. The first call also performs the zero() the class requires
-//   before any append, because arena memory is not guaranteed zero and a non-zero count would let an
-//   unwritten block look indexed.
-//
-// KNOWN LIMITATION, REGISTERED: one index for the whole process means two concurrent sequences share
-//   it. V1 drives a single sequence, so this is correct today; before --max-concurrency > 1 is used
-//   with KVMem on, this must become one index per lane and the arena account must grow by
-//   N x mean_k_index_bytes(layers, blocks, kv_heads, head_dim).
-//
-// `capacity_blocks` is honoured on the FIRST call only, and it fixes the allocation for the process.
-// NINFER_KVMEM_INDEX_HOST=1 selects explicitly mapped pinned system memory.
-// Unset/0 uses device memory. Both routes use the same F32 layout and CUDA kernels;
-// The host route uses two layer-sized scratch regions by default (one with
-// NINFER_KVMEM_INDEX_PREFETCH=0). Only actual scoring passes issue prefetch transfers.
+// Bind a Program-owned workspace before entering its execution path. Standalone Op verifiers
+// use the thread-local fallback; product Programs never share this mutable allocation.
+void mean_k_index_bind(std::unique_ptr<MeanKIndex>* owner) noexcept;
 [[nodiscard]] MeanKIndex* mean_k_index_for(std::int32_t layers, std::int32_t heads,
-                                           std::int32_t head_dim, std::int32_t capacity_blocks);
+                                          std::int32_t head_dim, std::int32_t capacity_blocks);
 
 } // namespace ninfer::ops

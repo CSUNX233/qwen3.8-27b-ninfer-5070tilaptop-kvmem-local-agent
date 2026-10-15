@@ -29,6 +29,10 @@ Generation purpose 的 NInfer Engine 固定运行：
 - 每个 decode round 将全部 decode-ready 请求组成一个紧凑批次。
 
 Text、Vision、prefix reuse、MTP、DFlash/DFlash2、CLI 和 HTTP serving 都通过公共 `ninfer::Engine` 路径。
+
+本发行版的 KVMem 内容检索目前仅支持 `max_concurrency=1` 与 Legacy 上下文缓存；启用内容检索时，Hybrid 或多并发启动会明确报错。索引、raw-K 采集缓冲与评分工作区由 Program 所有，线程绑定只用于把本次执行路由到所属 Program，不拥有跨 Program 的语义状态。采集缓冲是短期工作区，索引和已发布排名则是对应缓存上下文的状态。
+
+Endpoint、rewrite、long-anchor 与 shared-prefix 检查点保存检索索引及排名。索引快照在普通 RAM 中以 16 个逻辑页为片段共享，更新片段使用 COW；恢复后保持活动 GPU 工作区地址稳定。新根上下文重置，复用上下文恢复对应版本，不按请求无条件清空。追加使用绝对 token offset，评分以每层实际覆盖 count 归一化，未覆盖页不参与 softmax；评分版本变化会使 ring 重新选择页面。该机制尚未覆盖 decode 全历史建索引与磁盘/跨进程快照，不将这些能力视为已完成。
 MTP、DFlash 和 DFlash2 是 Program 内部的执行后端，不产生第二套请求调度或结果发布机制。
 Artifact 必须提供 Text；Vision、MTP、DFlash 和 DFlash2 的私有权重与资源可以缺省。
 启动独立选择 Vision，以及 none 或一个 spec 后端，只为所选功能及其共享依赖绑定和准备资源。

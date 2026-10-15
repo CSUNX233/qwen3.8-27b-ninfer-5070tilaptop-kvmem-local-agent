@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-15",
+  "hardware": "RTX 5070 Ti Laptop 12GB",
+  "engine_sha256": "940e68278ae91c60e7ed8e70fc495efec1686fb16b7362f0002d6498e609413d",
+  "scope": "synthetic live-engine tool continuation and read-only index lifecycle audit",
+  "settings": {
+    "reasoning_effort": "xhigh",
+    "request_max_tokens": 4096,
+    "production_max_tokens_unchanged": 73728,
+    "sampling": "production defaults",
+    "device_kv_tokens": 36864,
+    "host_kv_mib": 7168,
+    "engine_binary_changed": false
+  },
+  "requests": [
+    { "stage": "long_cold_tool", "prompt_tokens": 49101, "cached_tokens": 0, "output_tokens": 162, "client_ttft_ms": 63850, "total_ms": 65928, "tool_call_correct": true, "errors": 0 },
+    { "stage": "long_tool_continuation", "prompt_tokens": 49316, "cached_tokens": 49262, "output_tokens": 96, "client_ttft_ms": 284, "total_ms": 1459, "codes_correct": 3, "phase_correct": true, "next_action_correct": true, "semantic_selects": 0, "host_backed_pages_at_adoption": 202, "errors": 0 },
+    { "stage": "repeated_continuation", "prompt_tokens": 49316, "cached_tokens": 49311, "output_tokens": 86, "client_ttft_ms": 134, "total_ms": 1076, "codes_correct": 3, "phase_correct": true, "next_action_correct": true, "semantic_selects": 0, "errors": 0 },
+    { "stage": "short_new_context_tool", "prompt_tokens": 3341, "cached_tokens": 0, "output_tokens": 159, "client_ttft_ms": 3888, "total_ms": 5590, "tool_call_correct": true, "reported_index_blocks": 771, "expected_max_prompt_pages": 53, "errors": 0 },
+    { "stage": "short_tool_continuation", "prompt_tokens": 3547, "cached_tokens": 3499, "output_tokens": 85, "client_ttft_ms": 197, "total_ms": 1074, "codes_correct": 3, "phase_correct": true, "next_action_correct": true, "errors": 0 }
+  ],
+  "live_cancel": { "received_generated_text_before_abort": true, "engine_idle_after_abort": true, "abort_to_idle_ms": 104, "engine_log_status": 499 },
+  "integration_regressions_passed": 9,
+  "conclusions": [
+    "Host-backed adoption and short tool continuation succeeded for this synthetic input above the physical Device pool capacity.",
+    "Index extent from the longer context persisted in an unrelated short request, reproducing a lifecycle gap.",
+    "The source uses a process-global mean-K index, zeroed at installation, with accumulating appends and no continuation binding or restore.",
+    "The test did not demonstrate physical KV page loss or establish which defect caused the original task to replan."
+  ],
+  "limitations": [
+    "One synthetic sequence of five requests, no real browser and no image pixels.",
+    "Outputs were short; this is not a long-generation pressure test or a full 256K qualification.",
+    "Correct output codes do not establish that every requested page was restored or that the index arithmetic is correct.",
+    "No original private task replay, raw user sessions, generated reasoning, credentials or private configuration are included.",
+    "No engine repair or universal quality/performance improvement is claimed."
+  ]
+}

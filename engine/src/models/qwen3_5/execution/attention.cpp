@@ -1,3 +1,4 @@
+// Modified in the CSUNX233 RTX 5070 Ti Laptop distribution. See ../docs/MODIFICATIONS.md.
 #include "models/qwen3_5/execution/attention.h"
 #include "models/qwen3_5/execution/rotation.h"
 
@@ -121,7 +122,7 @@ struct KvmemHook {
 };
 
 KvmemHook& kvmem_hook() {
-    static KvmemHook hook;
+    static thread_local KvmemHook hook;
     return hook;
 }
 

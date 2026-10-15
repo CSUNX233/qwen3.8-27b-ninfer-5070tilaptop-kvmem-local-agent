@@ -1,3 +1,4 @@
+// Modified in the CSUNX233 RTX 5070 Ti Laptop distribution. See ../docs/MODIFICATIONS.md.
 #include "models/qwen3_5/program/speculative/lookup_draft.h"
 #include "models/qwen3_5/program/program_impl.h"
 #include "models/qwen3_5/program/context_work.h"
@@ -241,6 +242,13 @@ void ProgramImpl::start_sequence(std::uint32_t lane, SequenceState& sequence,
     const std::uint32_t prompt_tokens      = staged.prompt_tokens;
     const std::uint32_t base               = staged.base;
     const std::uint32_t initial_mtp_extent = staged.initial_mtp_extent;
+    RetrievalCheckpoint retrieval;
+    if (request_plan.reuse != ReusePath::Root) {
+        retrieval = transaction.has_source
+            ? selected_retrieval(continuation_states[transaction.source_index], request_plan.reuse,
+                                 request_plan.selected_checkpoint)
+            : shared_prefix_states[transaction.shared_source_index].retrieval;
+    }
     request.lifecycle                      = Lifecycle::Empty;
     // The sequence's own token ceiling: the last frontier its Device KV lease may cover, so
     // on-demand growth never leases pages the request cannot reach.
@@ -676,6 +684,11 @@ void ProgramImpl::start_sequence(std::uint32_t lane, SequenceState& sequence,
             throw std::logic_error("request plan has an invalid prefix reuse path");
         }
 
+        restore_retrieval(retrieval);
+        sequence.retrieval = retrieval;
+        sequence.ring_keep.clear();
+        sequence.ring_scored_mapped = 0;
+        sequence.ring_score_generation = 0;
         sequence.endpoint_valid = false;
         if (!preserving_source) { trim_sequence_kv(sequence, base, backend_kv_valid(sequence)); }
         bind_sequence_kv(sequence);

@@ -130,6 +130,7 @@ struct KvMemScoreProbe {
     std::int32_t n_heads         = 0;
     std::int32_t n_kv_heads      = 0;
     std::int32_t head_dim        = 0;
+    std::uint64_t generation = 1;
     bool armed    = false;                 // 本 chunk 正在打分
     bool scored_this_chunk = false;        // 本 chunk 真的累加过（否则 finish 打出来的是全零假日志）
     bool failed   = false;                 // 出过致命几何/分配错 ⇒ 之后一律不打分（但引擎继续跑）
@@ -151,10 +152,19 @@ struct KvMemScoreProbe {
     }
 };
 
+inline thread_local KvMemScoreProbe* bound_score_probe = nullptr;
+inline void kvmem_score_bind(KvMemScoreProbe* probe) noexcept { bound_score_probe = probe; }
 inline KvMemScoreProbe& kvmem_score_probe() {
-    static KvMemScoreProbe probe;
+    if (bound_score_probe) { return *bound_score_probe; }
+    static thread_local KvMemScoreProbe probe;
     return probe;
 }
+
+struct KvMemContextSnapshot {
+    std::shared_ptr<const MeanKIndexSnapshot> index;
+    KvMemPageRanking ranking;
+    std::vector<std::int32_t> kept;
+};
 
 // Read the last published ranking without re-sorting the same scores at every ring mapping update.
 // Empty means the content path has no candidates in this range; Program retains its lexical fallback.
@@ -413,6 +423,7 @@ inline void kvmem_score_accumulate(std::int32_t fidx, const void* q, std::int32_
     if (sums.data == nullptr) { return; }
 
     KvMemRetrieveConfig cfg;
+    cfg.f32_block_counts = static_cast<const float*>(index->layer_counts(fidx).data);
     cfg.n_layers          = 1;                      // 逐层调用
     cfg.n_layers_total    = p.layers_total;         // head_w = 1/(总层数×query 头数)
     cfg.n_query_tokens    = span_tokens;
@@ -515,6 +526,7 @@ inline void kvmem_score_finish(const char* label) noexcept {
     // previous selection intact instead of emptying it.
     p.kept = sel.kept;
     p.page_ranking.update(p.kept, p.score_host, p.n_blocks);
+    ++p.generation;
     p.scored_n_blocks   = p.n_blocks;
     p.scored_last_chunk = true;
 

@@ -1,3 +1,4 @@
+// Modified in the CSUNX233 RTX 5070 Ti Laptop distribution. See ../docs/MODIFICATIONS.md.
 #pragma once
 
 // KVMem retrieval scoring (paper Eq.10): the query-conditioned scorer that RANKS the historical blocks.
@@ -165,6 +166,9 @@ struct KvMemRetrieveMask {
 enum class KvMemRetrieveMaskMode : std::uint8_t { Official = 0, Never = 1, Always = 2 };
 
 struct KvMemRetrieveConfig {
+    // Optional layer-local F32 counts from MeanKIndex's scoring view. Zero means absent:
+    // that page must have zero probability, not a fabricated 64-token mean.
+    const float* f32_block_counts = nullptr;
     // Geometry of THIS CALL.
     std::int32_t n_layers       = 0;  // layers covered by this launch (1 in the live-window mode)
     std::int32_t n_query_tokens = 0;  // M: rows of the marked query span

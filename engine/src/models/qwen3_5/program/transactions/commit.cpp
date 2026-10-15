@@ -1,3 +1,4 @@
+// Modified in the CSUNX233 RTX 5070 Ti Laptop distribution. See ../docs/MODIFICATIONS.md.
 #include "models/qwen3_5/program/program_impl.h"
 #include "models/qwen3_5/program/context_work.h"
 #include "models/qwen3_5/program/context.h"
@@ -680,6 +681,7 @@ bool ProgramImpl::publish_active_continuation(SequenceState& state, RequestContr
         } else if (state_store->role(state.state.read) != StateImageRole::CheckpointImmutable) {
             return false;
         }
+        state.retrieval = capture_retrieval();
         state.endpoint_valid = true;
         refresh_state_views(state);
         text_kv_addresses->set_checkpoint_requirement(state.kv->text, state.execution_frontier);

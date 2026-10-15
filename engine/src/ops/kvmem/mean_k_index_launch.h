@@ -1,3 +1,4 @@
+// Modified in the CSUNX233 RTX 5070 Ti Laptop distribution. See ../docs/MODIFICATIONS.md.
 #pragma once
 
 // Host-safe half of the mean-K accumulation launch. Separate from the .cu on purpose: including a
@@ -65,5 +66,10 @@ namespace ninfer::ops::detail {
                                                   std::int32_t blocks_per_layer,
                                                   std::int32_t index_layer_stride,
                                                   cudaStream_t stream);
+
+// Absolute token interval; splits both the unaligned first page and the final page.
+[[nodiscard]] cudaError_t launch_mean_k_accumulate_tokens(const void* staging, void* index,
+    int layer, int token_base, int tokens, int heads, int head_dim, int source_stride,
+    int blocks_per_layer, int index_layer_stride, cudaStream_t stream);
 
 } // namespace ninfer::ops::detail

@@ -1831,9 +1831,7 @@ void TextContext::kvmem_round_end() {
     // The score readback was queued before prefill's mandatory drain. Queue independent index
     // append now; host selection waits only for the earlier readback event.
     if (index != nullptr) {
-        const std::int32_t round_first_block =
-            static_cast<std::int32_t>(text_kv_base_ / static_cast<std::uint32_t>(kPagedKVPageSize));
-        index->append_round(*harvest, round_first_block, ctx_.stream);
+        index->append_round(*harvest, static_cast<std::int32_t>(text_kv_base_), ctx_.stream);
     }
     ops::detail::kvmem_score_finish("text_prefill_chunk");
     // Clear the process-wide hook state as well: this card is done with the round, and the static in

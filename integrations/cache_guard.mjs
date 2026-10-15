@@ -225,9 +225,25 @@ function guard(messages) {
 }
 
 const server = http.createServer((req, res) => {
+  // Propagate a downstream stop to the engine, including while queued or
+  // waiting for headers. A normal completed response must not be cancelled.
+  let upstreamRequest;
+  let upstreamResponse;
+  let cancelled = false;
+  const cancelUpstream = () => {
+    if (cancelled) return;
+    cancelled = true;
+    upstreamResponse?.destroy();
+    upstreamRequest?.destroy();
+  };
+  req.once('aborted', cancelUpstream);
+  req.once('error', cancelUpstream);
+  res.once('error', cancelUpstream);
+  res.once('close', () => { if (!res.writableFinished) cancelUpstream(); });
   const chunks = [];
   req.on('data', (c) => chunks.push(c));
   req.on('end', () => {
+    if (cancelled || res.destroyed) return;
     const body = Buffer.concat(chunks);
     // LOCAL DIAGNOSTIC (2026-10-10): dump the raw request dsh actually sends.
     // Enabled only when GUARD_DUMP_BODIES points at a file. Never affects forwarding.
@@ -254,14 +270,27 @@ const server = http.createServer((req, res) => {
     delete headers.host;
     headers['content-length'] = String(outBody.length);
     const up = http.request({ hostname: UP.hostname, port: UP.port, method: req.method, path: req.url, headers }, (uRes) => {
+      upstreamResponse = uRes;
+      if (cancelled || res.destroyed) { uRes.destroy(); return; }
+      // After a partial stream, fail the connection instead of appending a
+      // JSON error to an already-open SSE/JSON response or leaving it hanging.
+      uRes.once('aborted', () => { if (!res.destroyed) res.destroy(); });
+      uRes.once('error', () => { if (!res.destroyed) res.destroy(); });
       res.writeHead(uRes.statusCode || 502, uRes.headers);
       uRes.pipe(res);
     });
-    up.on('error', (e) => { log('upstream error: ' + e.message); if (!res.headersSent) res.writeHead(502, { 'content-type': 'application/json' }); res.end(JSON.stringify({ error: { message: 'guard: upstream ' + e.message } })); });
+    upstreamRequest = up;
+    up.on('error', (e) => {
+      if (cancelled || res.destroyed) return;
+      log('upstream error: ' + e.message);
+      if (res.headersSent) { res.destroy(); return; }
+      res.writeHead(502, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ error: { message: 'guard: upstream ' + e.message } }));
+    });
     up.end(outBody);
   });
 });
 server.listen(PORT, '127.0.0.1', () => log(`cache_guard listening on 127.0.0.1:${PORT} -> ${UP.href} (heal=${HEAL} strict=${STRICT} ratio=${STRICT ? 'n/a' : RATIO})`));
 
 // local patch: exported for the offline unit test (win\test_cache_guard_key.mjs).
-export { guard, convKey, commonHead, commonTail, conv };
+export { guard, convKey, commonHead, commonTail, conv, server };

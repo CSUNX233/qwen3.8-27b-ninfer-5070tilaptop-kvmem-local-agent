@@ -352,108 +352,171 @@ cudaError_t MeanKIndex::zero(cudaStream_t stream) {
     if (st != cudaSuccess) { return st; }
     blocks_written_ = 0;
     tail_fill_      = 0;
+    layer_ends_.assign(layers_, 0);
+    dirty_slabs_.assign((capacity_blocks_ + MeanKIndexSnapshot::slab_blocks - 1) /
+                         MeanKIndexSnapshot::slab_blocks, true);
+    snapshot_.reset();
     return cudaSuccess;
 }
 
-void MeanKIndex::append_round(const RawKShadowHarvest& store, std::int32_t first_block,
+void MeanKIndex::append_round(const RawKShadowHarvest& store, std::int32_t token_base,
                               cudaStream_t stream) {
     if (total_bytes_ == 0 || store.layers() != layers_) { return; }
-    for (std::int32_t layer = 0; layer < layers_; ++layer) {
+    for (int layer = 0; layer < layers_; ++layer) {
         const Tensor view = store.staging_for_round(layer);
-        // staging_for_round() returns THIS layer's slice of the packed harvest buffer, so the base
-        // pointer handed to append_one already identifies the source layer, and every call is a
-        // SINGLE-layer launch. The packed buffer's element stride between layers is
-        // heads*head_dim*store.tokens() -- not this round's width -- but that stride is only
-        // consulted by the multi-layer launch shape, which append_one deliberately does not use.
-        append_one(view.data, layer, view.ne[1], first_block, store.tokens(),
+        append_one(view.data, layer, view.ne[1], token_base, store.tokens(),
                    heads_ * head_dim_ * store.tokens(), stream);
     }
 }
 
 void MeanKIndex::append_layer(const Tensor& raw_key, std::int32_t layer_index,
-                              std::int32_t round_width, std::int32_t first_block,
+                              std::int32_t round_width, std::int32_t token_base,
                               cudaStream_t stream) {
     if (total_bytes_ == 0) { return; }
     if (layer_index < 0 || layer_index >= layers_) {
-        throw std::invalid_argument(std::string(kSubject) + ": layer index " +
-                                    std::to_string(layer_index) + " outside [0, " +
-                                    std::to_string(layers_) + ")");
+        throw std::invalid_argument("mean-K layer outside index");
     }
     require_layout(raw_key, heads_ * head_dim_);
-    // This entry point takes ONE layer's keys, so there is no inter-layer stride to honour; the
-    // caller's tensor is self-contained.
-    append_one(raw_key.data, layer_index, round_width, first_block, round_width,
+    append_one(raw_key.data, layer_index, round_width, token_base, round_width,
                heads_ * head_dim_ * round_width, stream);
 }
 
 void MeanKIndex::append_one(const void* raw_key_bf16, std::int32_t layer_index,
-                            std::int32_t round_width, std::int32_t first_block,
+                            std::int32_t round_width, std::int32_t token_base,
                             std::int32_t source_layer_stride, std::int32_t index_layer_stride,
                             cudaStream_t stream) {
-    if (round_width <= 0) { return; }
-    const std::int32_t full_blocks = round_width / kBlockTokens;
-    const std::int32_t tail_fill   = round_width % kBlockTokens;
-    const std::int32_t produced    = full_blocks + (tail_fill > 0 ? 1 : 0);
-    if (produced <= 0) { return; }
-    if (first_block < 0 || first_block + produced > capacity_blocks_) {
-        // Refusing loudly beats writing past the reservation: an overrun here would corrupt the
-        // neighbouring layer's index, which is far harder to see than an exception.
-        throw std::out_of_range(std::string(kSubject) + ": appending " +
-                                std::to_string(produced) + " block(s) at " +
-                                std::to_string(first_block) + " exceeds the reserved capacity " +
-                                std::to_string(capacity_blocks_));
+    if (round_width <= 0 || raw_key_bf16 == nullptr) { return; }
+    cudaStreamCaptureStatus capture;
+    CUDA_CHECK(cudaStreamIsCapturing(stream, &capture));
+    if (capture != cudaStreamCaptureStatusNone) {
+        throw std::logic_error("mean-K absolute append must run outside graph capture");
     }
+    if (token_base < 0 || static_cast<int64_t>(token_base) + round_width >
+                          static_cast<int64_t>(capacity_blocks_) * kBlockTokens) {
+        throw std::out_of_range("mean-K token append exceeds reserved capacity");
+    }
+    if (layer_ends_.empty()) { layer_ends_.assign(layers_, 0); }
+    // A cached suffix may replay an already indexed tail. Its token identity is guaranteed by
+    // the Program checkpoint, so consume only the new interval, once, per layer.
+    const int end = token_base + round_width;
+    const int begin = std::max(token_base, layer_ends_[layer_index]);
+    if (begin >= end) { return; }
     CUDA_CHECK(end_scoring_round(stream));
-    (void)index_layer_stride; // the kernel derives the destination stride from blocks_per_layer
-
-    // THE APPEND ACCUMULATES INTO THE DESTINATION, so the target blocks must already be zero. That is
-    // `zero()`'s job, called once by the driver before the first append; see the header for why the
-    // zeroing is NOT folded in here (a captured decode graph would replay it and wipe the prefill's
-    // sums). A block that is appended to twice -- a partial tail block being completed -- is exactly
-    // the case the sum+count layout exists to support, and it needs no special handling here.
-    //
-    // `1`, not `layers_` -- and that is not a shortcut, it is the fix for a real overrun. raw_key_bf16
-    // already points at the ONE source layer this call is responsible for (append_round hands over
-    // staging_for_round(layer); append_layer validates its own self-contained tensor). Passing layers_
-    // made the kernel walk source layers 0..layers_-1 from that base and write destination layers
-    // layer_index+0..layer_index+layers_-1: it read past the end of the harvest allocation and wrote
-    // past the end of this arena for every layer above the first, silently corrupting the index.
-    // The multi-layer shape still exists and is still tested -- by the standalone verifier
-    // (POS-5 / POS-6), which is the only place that can supply a packed multi-layer base.
-    const cudaError_t launch_status =
-        detail::launch_mean_k_accumulate(raw_key_bf16, flat_.data, 1, layer_index, first_block,
-                                         full_blocks, tail_fill, heads_, head_dim_, heads_ * head_dim_,
-                                         kBlockTokens, source_layer_stride, capacity_blocks_,
-                                         static_cast<std::int32_t>(elements_per_layer_), stream);
-
-    // The status is CHECKED, not discarded. The launcher deliberately returns it instead of asserting
-    // because its two callers want different things from a failure -- but "returns it" only helps if
-    // somebody looks. Discarding it here meant a rejected launch left the index silently short of the
-    // blocks the caller believes were written: the next append would continue from a cursor that
-    // claims more history than the index holds, and the failure would surface much later, as a wrong
-    // answer, with nothing pointing back at the launch. That is the same silent-failure shape this
-    // file already refuses for capacity overruns, so it refuses here too. (Pre-existing C4834.)
-    if (launch_status != cudaSuccess) {
-        throw std::runtime_error(std::string(kSubject) + ": launch failed for layer " +
-                                 std::to_string(layer_index) + ", first_block " +
-                                 std::to_string(first_block) + " (" +
-                                 std::to_string(produced) + " block(s)): " +
-                                 cudaGetErrorName(launch_status));
+    const auto* input = static_cast<const unsigned short*>(raw_key_bf16) +
+                        static_cast<size_t>(begin - token_base) * heads_ * head_dim_;
+    (void)index_layer_stride;
+    CUDA_CHECK(detail::launch_mean_k_accumulate_tokens(input, flat_.data, layer_index,
+        begin, end - begin, heads_, head_dim_, source_layer_stride, capacity_blocks_,
+        static_cast<int>(elements_per_layer_), stream));
+    layer_ends_[layer_index] = end;
+    blocks_written_ = std::max(blocks_written_, (end + kBlockTokens - 1) / kBlockTokens);
+    tail_fill_ = end % kBlockTokens;
+    const int slab_count = (capacity_blocks_ + MeanKIndexSnapshot::slab_blocks - 1) /
+                           MeanKIndexSnapshot::slab_blocks;
+    if (dirty_slabs_.empty()) { dirty_slabs_.assign(slab_count, true); }
+    for (int b = begin / kBlockTokens; b <= (end - 1) / kBlockTokens; ++b) {
+        dirty_slabs_[b / MeanKIndexSnapshot::slab_blocks] = true;
     }
-
-    // max(), not assignment: append_round calls this once per layer with the SAME block range, so an
-    // assignment would be idempotent too -- but a caller that interleaves layers or re-appends a tail
-    // would silently move the cursor BACKWARDS, and the next append would then overwrite blocks it
-    // should have continued.
-    blocks_written_ = std::max(blocks_written_, first_block + produced);
-    // `tail_fill`, the LOCAL computed at the top of this function -- not `tail_fill_`, which is what
-    // this line used to say. `tail_fill_ = tail_fill_;` is a self-assignment: it compiled, it
-    // produced no warning any of the builds surfaced, and it left the member at its previous value
-    // forever, so tail_fill() could only ever report 0 or the value zero() had just written. The
-    // kernel is not affected (it is handed the local directly, :182), which is exactly why the copy
-    // could rot unnoticed: the one consumer of the member is the diagnostic getter.
-    tail_fill_      = tail_fill;
 }
+
+std::shared_ptr<const MeanKIndexSnapshot> MeanKIndex::snapshot(cudaStream_t stream) {
+    CUDA_CHECK(end_scoring_round(stream));
+    CUDA_CHECK(cudaStreamSynchronize(stream)); // freeze writers before reading mapped RAM
+    auto out = std::make_shared<MeanKIndexSnapshot>();
+    out->layers = layers_; out->heads = heads_; out->head_dim = head_dim_;
+    out->capacity_blocks = capacity_blocks_;
+    out->blocks_written = blocks_written_; out->tail_fill = tail_fill_;
+    out->layer_ends = layer_ends_;
+    const int slabs = (blocks_written_ + MeanKIndexSnapshot::slab_blocks - 1) /
+                       MeanKIndexSnapshot::slab_blocks;
+    out->slabs.resize(slabs);
+    const size_t row = static_cast<size_t>(heads_) * head_dim_;
+    for (int slab = 0; slab < slabs; ++slab) {
+        if (snapshot_ && slab < static_cast<int>(snapshot_->slabs.size()) &&
+            !dirty_slabs_[slab]) {
+            out->slabs[slab] = snapshot_->slabs[slab];
+            continue;
+        }
+        const int first = slab * MeanKIndexSnapshot::slab_blocks;
+        const int n = std::min(MeanKIndexSnapshot::slab_blocks, capacity_blocks_ - first);
+        auto data = std::make_shared<std::vector<float>>(static_cast<size_t>(layers_) * n * (row + 1));
+        for (int layer = 0; layer < layers_; ++layer) {
+            float* dst = data->data() + static_cast<size_t>(layer) * n * (row + 1);
+            const float* src = host_storage_ ? static_cast<const float*>(host_storage_->host_data())
+                                            : static_cast<const float*>(flat_.data);
+            src += static_cast<size_t>(layer) * elements_per_layer_;
+            if (host_storage_) {
+                std::memcpy(dst, src + first * row, n * row * sizeof(float));
+                std::memcpy(dst + n * row, src + sums_per_layer_ + first, n * sizeof(float));
+            } else {
+                CUDA_CHECK(cudaMemcpy(dst, src + first * row, n * row * sizeof(float), cudaMemcpyDeviceToHost));
+                CUDA_CHECK(cudaMemcpy(dst + n * row, src + sums_per_layer_ + first, n * sizeof(float), cudaMemcpyDeviceToHost));
+            }
+        }
+        out->slabs[slab] = std::move(data);
+    }
+    dirty_slabs_.assign((capacity_blocks_ + MeanKIndexSnapshot::slab_blocks - 1) /
+                         MeanKIndexSnapshot::slab_blocks, false);
+    snapshot_ = out;
+    return out;
+}
+
+void MeanKIndex::restore(const std::shared_ptr<const MeanKIndexSnapshot>& state, cudaStream_t stream) {
+    if (!state) { CUDA_CHECK(zero(stream)); return; }
+    if (dirty_slabs_.empty()) {
+        dirty_slabs_.assign((capacity_blocks_ + MeanKIndexSnapshot::slab_blocks - 1) /
+                             MeanKIndexSnapshot::slab_blocks, true);
+    }
+    if (state->layers != layers_ || state->heads != heads_ || state->head_dim != head_dim_ ||
+        state->capacity_blocks != capacity_blocks_) {
+        throw std::invalid_argument("mean-K checkpoint geometry differs from workspace");
+    }
+    const bool dirty = std::any_of(dirty_slabs_.begin(), dirty_slabs_.end(), [](bool v) { return v; });
+    if (state == snapshot_ && !dirty) { return; }
+    CUDA_CHECK(end_scoring_round(stream));
+    CUDA_CHECK(cudaStreamSynchronize(stream));
+    const size_t row = static_cast<size_t>(heads_) * head_dim_;
+    const int slabs = (capacity_blocks_ + MeanKIndexSnapshot::slab_blocks - 1) /
+                       MeanKIndexSnapshot::slab_blocks;
+    for (int slab = 0; slab < slabs; ++slab) {
+        const auto saved = slab < static_cast<int>(state->slabs.size()) ? state->slabs[slab] : nullptr;
+        const auto current = snapshot_ && slab < static_cast<int>(snapshot_->slabs.size())
+                               ? snapshot_->slabs[slab] : nullptr;
+        if (saved == current && !dirty_slabs_[slab]) { continue; }
+        const int first = slab * MeanKIndexSnapshot::slab_blocks;
+        const int n = std::min(MeanKIndexSnapshot::slab_blocks, capacity_blocks_ - first);
+        for (int layer = 0; layer < layers_; ++layer) {
+            float* dst = host_storage_ ? static_cast<float*>(host_storage_->host_data())
+                                      : static_cast<float*>(flat_.data);
+            dst += static_cast<size_t>(layer) * elements_per_layer_;
+            const float* src = saved ? saved->data() + static_cast<size_t>(layer) * n * (row + 1) : nullptr;
+            if (host_storage_) {
+                if (src) {
+                    std::memcpy(dst + first * row, src, n * row * sizeof(float));
+                    std::memcpy(dst + sums_per_layer_ + first, src + n * row, n * sizeof(float));
+                } else {
+                    std::memset(dst + first * row, 0, n * row * sizeof(float));
+                    std::memset(dst + sums_per_layer_ + first, 0, n * sizeof(float));
+                }
+            } else if (src) {
+                CUDA_CHECK(cudaMemcpyAsync(dst + first * row, src, n * row * sizeof(float), cudaMemcpyHostToDevice, stream));
+                CUDA_CHECK(cudaMemcpyAsync(dst + sums_per_layer_ + first, src + n * row, n * sizeof(float), cudaMemcpyHostToDevice, stream));
+            } else {
+                CUDA_CHECK(cudaMemsetAsync(dst + first * row, 0, n * row * sizeof(float), stream));
+                CUDA_CHECK(cudaMemsetAsync(dst + sums_per_layer_ + first, 0, n * sizeof(float), stream));
+            }
+        }
+    }
+    blocks_written_ = state->blocks_written; tail_fill_ = state->tail_fill;
+    layer_ends_ = state->layer_ends;
+    dirty_slabs_.assign(slabs, false);
+    snapshot_ = state;
+}
+
+namespace {
+thread_local std::unique_ptr<MeanKIndex>* index_owner = nullptr;
+}
+void mean_k_index_bind(std::unique_ptr<MeanKIndex>* owner) noexcept { index_owner = owner; }
 
 MeanKIndex* mean_k_index_for(std::int32_t layers, std::int32_t heads, std::int32_t head_dim,
                              std::int32_t capacity_blocks) {
@@ -463,7 +526,9 @@ MeanKIndex* mean_k_index_for(std::int32_t layers, std::int32_t heads, std::int32
     if (!detail::kvmem_shadow_enabled()) { return nullptr; }
     if (layers <= 0 || heads <= 0 || head_dim <= 0 || capacity_blocks <= 0) { return nullptr; }
 
-    static MeanKIndex* installed = nullptr;
+    thread_local std::unique_ptr<MeanKIndex> standalone;
+    auto& owner = index_owner ? *index_owner : standalone;
+    MeanKIndex* installed = owner.get();
     if (installed == nullptr) {
         const char* host_env = std::getenv("NINFER_KVMEM_INDEX_HOST");
         const bool host_backed = host_env != nullptr && std::strcmp(host_env, "1") == 0;
@@ -480,6 +545,7 @@ MeanKIndex* mean_k_index_for(std::int32_t layers, std::int32_t heads, std::int32
         installed = new MeanKIndex(layers, heads, head_dim, capacity_blocks,
                                   host_backed ? MeanKIndexStorage::HostMapped
                                               : MeanKIndexStorage::Device, prefetch);
+        owner.reset(installed);
         // REQUIRED before the first append: arena bytes are not guaranteed zero, and the accumulate
         // kernel ADDS into the destination, so an unwritten block would otherwise start from
         // garbage and its count would claim tokens it never saw.
@@ -503,7 +569,7 @@ MeanKIndex* mean_k_index_for(std::int32_t layers, std::int32_t heads, std::int32
         if (zero_status != cudaSuccess) {
             // Fail loudly instead of handing back an index whose counts are noise: a bad count is not
             // detectable downstream, it just moves the ranking.
-            delete installed;
+            owner.reset();
             installed = nullptr;
             throw std::runtime_error(std::string(kSubject) + ": zero() failed: " +
                                      cudaGetErrorName(zero_status));

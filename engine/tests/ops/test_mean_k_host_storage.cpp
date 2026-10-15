@@ -39,14 +39,13 @@ std::vector<std::uint16_t> input(int tokens, int layer, int phase) {
 void oracle_append(std::vector<float>& expected, const std::vector<std::uint16_t>& data,
                    int tokens, int layer, int first) {
     const std::size_t base = static_cast<std::size_t>(layer) * stride;
-    for (int b = 0; b < (tokens + 63) / 64; ++b) {
-        const int n = std::min(64, tokens - b * 64);
+    // Independent token-by-token FP32 oracle; no reuse of the kernel's page grouping.
+    for (int t = 0; t < tokens; ++t) {
+        const int page = (first + t) / 64;
         for (int cell = 0; cell < width; ++cell) {
-            double sum = 0;
-            for (int t = 0; t < n; ++t) { sum += decode(data[(b * 64 + t) * width + cell]); }
-            expected[base + static_cast<std::size_t>(first + b) * width + cell] += static_cast<float>(sum);
+            expected[base + static_cast<size_t>(page) * width + cell] += decode(data[t * width + cell]);
         }
-        expected[base + static_cast<std::size_t>(blocks) * width + first + b] += static_cast<float>(n);
+        expected[base + static_cast<size_t>(blocks) * width + page] += 1.0f;
     }
 }
 
@@ -69,10 +68,8 @@ std::vector<double> score_oracle(const std::vector<float>& expected, const std::
             for (int h = 0; h < query_heads; ++h) {
                 double maximum = -INFINITY;
                 for (int b = 0; b < blocks; ++b) {
-                    // The scorer consumes separately supplied positive page fills.
-                    // Untouched zero-sum pages are represented here as one-token
-                    // zero vectors, so all 4096 page addresses participate.
-                    const float count = std::max(1.0f, expected[base + static_cast<std::size_t>(blocks) * width + b]);
+                    // Only represented tokens contribute to the mean or probability mass.
+                    const float count = expected[base + static_cast<std::size_t>(blocks) * width + b];
                     logits[b] = -INFINITY;
                     if (count <= 0) { continue; }
                     double dot = 0;
@@ -113,6 +110,7 @@ void judge_scores(MeanKIndex& index, const std::vector<float>& expected, cudaStr
     CUDA_CHECK(cudaMemsetAsync(result.p, 0, result.bytes, stream));
     for (int l = 0; l < layers; ++l) {
         KvMemRetrieveConfig cfg;
+        cfg.f32_block_counts = static_cast<const float*>(index.layer_counts(l).data);
         cfg.n_layers = 1; cfg.n_layers_total = layers;
         cfg.n_query_tokens = query_tokens; cfg.n_heads = query_heads;
         cfg.n_kv_heads = heads; cfg.head_dim = dim; cfg.n_blocks = blocks;
@@ -175,27 +173,36 @@ void qualify(MeanKIndexStorage storage, bool prefetch = false) {
         };
         for (int l = 0; l < layers; ++l) {
             append(145, l, 0, 0); // two full blocks and a 17-token tail
-            append(47, l, 2, 1); // complete that tail, retaining earlier terms
-            append(64, l, 2048, 2);
-            append(19, l, blocks - 1, 3); // last legal block, short fill
+            append(47, l, 145, 1); // complete that tail, retaining earlier terms
+            append(64, l, 2048 * 64, 2);
+            append(19, l, (blocks - 1) * 64, 3); // last legal block, short fill
         }
         judge(index, expected, stream);
-        auto data = input(1, layers - 1, 4);
-        raw.copy_from_host(data.data(), data.size() * sizeof(std::uint16_t));
+        const auto context_a = index.snapshot(stream);
+        const auto expected_a = expected;
+        for (int l = 0; l < layers; ++l) { append(1, l, (blocks - 1) * 64 + 19, 4); }
+        const auto context_b = index.snapshot(stream);
+        require(context_a->slabs.front() == context_b->slabs.front(), "unchanged history was copied");
+        require(context_a->slabs.back() != context_b->slabs.back(), "mutated tail aliases checkpoint");
+        const auto expected_b = expected;
+        index.restore(context_a, stream); judge(index, expected_a, stream);
+        // Replay an identical indexed prefix: counts and sums must remain unchanged.
+        auto replay = input(145, 0, 0); raw.copy_from_host(replay.data(), replay.size() * 2);
+        index.append_layer(Tensor(raw.p, DType::BF16, {width, 145}), 0, 145, 0, stream);
+        judge(index, expected_a, stream);
+        CUDA_CHECK(index.zero(stream));
+        std::fill(expected.begin(), expected.end(), 0.0f);
+        // An unrelated short context must have exactly two pages, with an unaligned cross-page append.
+        for (int l = 0; l < layers; ++l) { append(63, l, 0, 7); append(2, l, 63, 8); }
+        require(index.blocks_written() == 2 && index.tail_fill() == 1, "foreign history survived context reset");
+        judge(index, expected, stream);
+        judge_scores(index, expected, stream);
+        index.restore(context_b, stream); expected = expected_b; judge(index, expected, stream);
+        index.restore(context_a, stream); expected = expected_a; judge(index, expected, stream);
+        auto data = input(1, 0, 9); raw.copy_from_host(data.data(), data.size() * 2);
         Tensor one(raw.p, DType::BF16, {width, 1});
-        cudaGraph_t graph; cudaGraphExec_t executable;
-        CUDA_CHECK(cudaStreamBeginCapture(stream, cudaStreamCaptureModeThreadLocal));
-        index.append_layer(one, layers - 1, 1, 2, stream);
-        CUDA_CHECK(cudaStreamEndCapture(stream, &graph));
-        CUDA_CHECK(cudaGraphInstantiate(&executable, graph, 0));
-        for (int replay = 0; replay < 3; ++replay) {
-            CUDA_CHECK(cudaGraphLaunch(executable, stream));
-            oracle_append(expected, data, 1, layers - 1, 2);
-        }
-        judge(index, expected, stream);
-        CUDA_CHECK(cudaGraphExecDestroy(executable)); CUDA_CHECK(cudaGraphDestroy(graph));
         bool rejected = false;
-        try { index.append_layer(one, 0, 1, blocks, stream); } catch (const std::out_of_range&) { rejected = true; }
+        try { index.append_layer(one, 0, 1, blocks * 64, stream); } catch (const std::out_of_range&) { rejected = true; }
         require(rejected, "out-of-capacity write accepted");
         judge_scores(index, expected, stream);
         if (prefetch) { judge_scores(index, expected, stream, false); }
@@ -205,9 +212,44 @@ void qualify(MeanKIndexStorage storage, bool prefetch = false) {
         require(index.blocks_written() == 0 && index.tail_fill() == 0, "reset kept old cursor");
         append(65, 7, 0, 5);
         judge(index, expected, stream);
-        std::printf("storage=%s PASS: full capacity, partial append, graph replay, bounds, reset and reuse\n", index.host_backed() ? "host" : "device");
+        std::printf("storage=%s PASS: full capacity, absolute/partial append, COW snapshots, replay, sparse counts, bounds and reuse\n", index.host_backed() ? "host" : "device");
     }
     CUDA_CHECK(cudaStreamDestroy(stream));
+}
+
+void qualify_program_ownership() {
+#ifdef _WIN32
+    _putenv_s("NINFER_TERNARY_KVMEM", "1");
+    _putenv_s("NINFER_KVMEM_INDEX_HOST", "1");
+#else
+    setenv("NINFER_TERNARY_KVMEM", "1", 1);
+    setenv("NINFER_KVMEM_INDEX_HOST", "1", 1);
+#endif
+    std::unique_ptr<MeanKIndex> a, b;
+    std::unique_ptr<RawKShadowHarvest> harvest_a, harvest_b;
+    mean_k_index_bind(&a); raw_k_shadow_harvest_bind(&harvest_a);
+    auto* index_a = mean_k_index_for(2, heads, dim, 16);
+    auto* staging_a = raw_k_shadow_harvest_for(128, width, 2);
+    auto data = input(63, 0, 5);
+    DeviceBuffer raw(data.size() * 2);
+    raw.copy_from_host(data.data(), data.size() * 2);
+    index_a->append_layer(Tensor(raw.p, DType::BF16, {width, 63}), 0, 63, 0, nullptr);
+    mean_k_index_bind(&b); raw_k_shadow_harvest_bind(&harvest_b);
+    auto* index_b = mean_k_index_for(2, heads, dim, 16);
+    auto* staging_b = raw_k_shadow_harvest_for(128, width, 2);
+    require(index_a != index_b && staging_a != staging_b, "Programs share mutable index/staging");
+    index_b->append_layer(Tensor(raw.p, DType::BF16, {width, 2}), 0, 2, 0, nullptr);
+    CUDA_CHECK(cudaDeviceSynchronize());
+    float count_a = 0, count_b = 0;
+    CUDA_CHECK(cudaMemcpy(&count_a, index_a->layer_counts(0).data, 4, cudaMemcpyDefault));
+    CUDA_CHECK(cudaMemcpy(&count_b, index_b->layer_counts(0).data, 4, cudaMemcpyDefault));
+    require(count_a == 63 && count_b == 2, "another Program changed the first context's counts");
+    mean_k_index_bind(&a); raw_k_shadow_harvest_bind(&harvest_a);
+    require(mean_k_index_for(2, heads, dim, 16) == index_a &&
+            raw_k_shadow_harvest_for(128, width, 2) == staging_a,
+            "switching Programs lost the original workspace");
+    mean_k_index_bind(nullptr); raw_k_shadow_harvest_bind(nullptr);
+    std::puts("PASS: Program workspace isolation and context switching");
 }
 } // namespace
 
@@ -216,6 +258,7 @@ int main() {
         qualify(MeanKIndexStorage::Device);
         qualify(MeanKIndexStorage::HostMapped);
         qualify(MeanKIndexStorage::HostMapped, true);
+        qualify_program_ownership();
         return 0;
     } catch (const std::exception& e) {
         std::fprintf(stderr, "FAIL: %s\n", e.what()); return 1;

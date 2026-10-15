@@ -15,6 +15,13 @@ jobs:
           node-version: '24'
       - name: Validate release metadata and public docs
         run: python scripts/check-release.py
+      - name: Check cache guard streaming and cancellation
+        run: node --test integrations/tests/cache-guard.test.mjs
+      - name: Install pinned dsh dependencies for tool pipeline checks
+        working-directory: integrations/dsh
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Check screenshot continuation through the real dsh pipeline
+        run: node --test integrations/tests/tool-grounded-execution.test.mjs
       - name: Parse PowerShell and JavaScript
         shell: pwsh
         run: |
@@ -24,5 +31,5 @@ jobs:
             $null = [Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$errors)
             if ($errors) { throw ($errors | Out-String) }
           }
-          $js = @(Get-ChildItem -LiteralPath scripts -Filter '*.mjs' -File) + @(Get-ChildItem -LiteralPath integrations -Filter '*.mjs' -File -Recurse)
+          $js = @(git ls-files --cached --others --exclude-standard -- '*.mjs')
           foreach ($file in $js) { node --check $file.FullName; if ($LASTEXITCODE) { throw $file.FullName } }

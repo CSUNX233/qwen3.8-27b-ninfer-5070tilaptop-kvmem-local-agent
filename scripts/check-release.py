@@ -18,7 +18,12 @@ for doc in docs:
         if path and not (doc.parent/path).exists():
             errors.append(f'{doc.relative_to(root)}: missing {path}')
 manifest = json.loads((root/'config/downloads.json').read_text(encoding='utf-8'))
-assert manifest['version'] == '0.1.0'
+assert re.fullmatch(r'\d+\.\d+\.\d+', manifest['version'])
+provenance = json.loads((root/'SOURCE_PROVENANCE.json').read_text(encoding='utf-8'))
+engine = next(a for a in manifest['archives'] if a['id'] == 'engine')
+assert engine['files'][0]['sha256'] == provenance['engine_binary_sha256']
+assert '/v' + manifest['version'] + '/' in engine['url']
+assert provenance['release_source_url'].endswith('/tree/v' + manifest['version'])
 for archive in manifest['archives']:
     assert archive['url'].startswith('https://')
     assert re.fullmatch('[0-9a-f]{64}', archive['sha256'])

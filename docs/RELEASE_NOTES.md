@@ -1,22 +1,34 @@
-# v0.1.0 — RTX 5070 Ti Laptop 12GB · Qwen3.8-27B · KVMem Local Agent
+# v0.1.1 — Qwen3.8-27B / RTX 5070 Ti Laptop 12GB：检索上下文与 Agent 续接修复
 
-首个面向 Windows / RTX 5070 Ti Laptop 12GB 的公开预发布版，维护者 CSUNX233。基于 NInfer-all、NInfer、沈三殊 KVMem 方案及 NInfer2-Share-C 分享包，保留上下游归属与许可证。
+修复长/短会话切换、缓存检查点接管时检索索引可能属于旧上下文的问题，保留已验证的长上下文、量化与推理配置。源码和引擎 ZIP 同步发布；v0.1.0 资产保留原样供对照。
 
-**特别感谢 Bilibili 的 0xFFFF7：本项目使用的基础架构来自他提供的版本，死循环问题也由他解决。**
+**特别感谢 Bilibili [0xFFFF7](https://search.bilibili.com/upuser?keyword=0xFFFF7)：基础架构来自他分享的版本，此前死循环问题也由他解决。** 本发行版由 CSUNX233 继续适配，保留 NInfer、KVMem、Qwen、ISTA-DASLab 和其他上下游的归属。
 
-推荐默认 **xhigh**。维护者反馈 **200K 上下文稳定、未观察到明显降速，重复任务更快**，该日常使用观察与控制测速分别报告。仓库保留了维护者实测约 **7 分钟**生成的鹈鹕骑自行车 HTML 及预览。动态 MTP 也许能进一步提升 decode，**尚未验证，默认未启用**。
+## 改动
 
-**本机 RTX 5070 Ti Laptop 12GB 已明确实测可用。** 推荐独显 + 核显混合模式，桌面与浏览器尽量用核显；无混合模式也可尝试，但需先关闭不必要的 GPU 进程并预留显存。其他 RTX 50 系 12GB 及以上显卡欢迎尝试，非 50 系需按自身架构重新编译；欢迎补齐适配和实测。脚本不自动更改系统显卡模式。
+- 检索索引、评分和采集工作区归 Program 所有，随 endpoint / rewrite / long-anchor / shared-prefix 检查点恢复索引与排名。普通 RAM 的 16 页共享分片以 COW 保存变化，避免每次复制整个索引。
+- 按绝对 token 位置追加，修正跨页与半页处理，跳过已索引前缀的重复累加；评分使用每层真实 count，排除缺失页。评分版本改变时刷新 ring 选择。
+- KVMem 内容检索当前明确要求单并发 + Legacy 缓存；不支持的 Hybrid / 多并发直接报错，避免静默串用状态。
+- 缓存代理透传排队、等待响应和流式传输期间的取消；异常截断不伪造成功结束。文本截图结果后追加当前文件进度提示，引导继续验收，避免把保存路径误当成已看图；不改旧消息或静态系统规则，不强制结束任务。
+- 公开 9 项框架回归与脱敏原生实测，并加入 CI；更新部署手册、版本和哈希、升级步骤及引擎打包工具。
 
-- 公开 C++/CUDA 引擎源码、Host RAM 检索索引、异步检索/预取、长缓存接管修复，以及 46 SM cc1200 指定量化矩阵调度。
-- 256K 配置逻辑容量，36K Device KV、7 GiB Host KV、MTP 3；已验证 110K 输入和 62K+22K 生成后的工具/多轮续接。尚未测试满 256K 整模型稳定性。
-- 固定短任务两轮 A/B：约 65–85 token/s；调度汇总解码吞吐 +2.44%。收益随任务变化；预填充与 TTFT 没有普遍加速证据。
-- 提供固定版本安装、独立配置、启动/关闭、dsh Agent 网页、无付费 API 的搜索/正文提取和按需浏览器工具；可选 CPU 视觉有独立旧阶段实测。
+## 实测与成本
 
-**下载方式：** 下载本版本的 Source code ZIP 并解压，按 [README](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/blob/v0.1.0/README.md) 运行 `setup.ps1 -ModelPath <模型.ninfer>`。安装器会下载此处的引擎 ZIP，并从 NVIDIA/BtbN 下载哈希固定的运行依赖。
+RTX 5070 Ti Laptop 12GB / i7-14650HX / 32GB RAM，Windows，CUDA 13.0.48 / sm120a。保留 xhigh、生产采样、MTP 3、256K 逻辑容量、36K Device KV、7 GiB Host KV 和既有检索预算；未增加 GPU buffer。新增 RAM 索引快照满 256K 约 256.25 MiB / 不相关上下文，共享前缀复用分片，另需原活动索引空间。
 
-引擎 ZIP 只含程序及许可；不是包含模型的一键整包。权重按 [模型文档](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/blob/v0.1.0/docs/MODELS.md) 单独下载/转换。Node.js 24+、x64 VC++ 运行库与兼容 CUDA 13 的 NVIDIA 驱动需先安装。
+- 约 49K 工具续接 TTFT 257 → 248 ms；切换新短会话后回到长会话 234 → 228 ms。3,341-token 新会话不再对旧上下文的 771 页打分，修复后为当前输入对应的 50 / 52 页。
+- 62,346-token 输入后累计正常生成 43,775 tokens，再工具调用和三轮续接，四个验证码全部正确；工具结果只新算 52 tokens、TTFT 915 ms，后续三轮 399 / 411 / 382 ms。重复行夹具的 208–223 tok/s 不代表普通 Agent 速度。
+- 固定短输出逐字相同；短文 66.57 → 67.50 tok/s，代码 86.26 → 84.61 tok/s，综合解码耗时约 +0.31%。49K 冷输入单次 TTFT 59.795 → 61.557 秒（约 +2.95%）。没有统计上成立的整体提速结论，不能承诺零开销。
+- BF16 独立 sum/count oracle、FP64 评分 oracle（最大绝对误差约 3.01e-7）、预取生命周期、1350 项独立 ranking 检查、Context Store、数学/证明/结构化工具及框架检查通过。GPU 占用峰值对照均为 11,124 MiB。
 
-`SHA256SUMS` 核验 Release 归档；引擎文件 SHA-256：`940e68278ae91c60e7ed8e70fc495efec1686fb16b7362f0002d6498e609413d`。更多数据、局限与复现脚本见 [实测报告](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/blob/v0.1.0/docs/BENCHMARKS.md)。
+未重放原私有约 177K 截图任务，不能保证所有重新规划都已解决。decode 生成历史尚未完整建立语义索引、完全缓存问句可能沿用同上下文排名、磁盘/跨进程恢复及满 256K 端到端压力仍需验证。构建为受影响单元增量重编并保留其余原静态库，没有声称干净全量构建或完整上游评测。未采用 ActKV 的有损淘汰。完整 [对照与证据](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/blob/v0.1.1/docs/BENCHMARKS.md#原生检索上下文修复2026-10-15)。
 
-代码 Apache-2.0；dsh 及 vendored 组件保留各自许可；模型和专有运行库另行遵守其条款。此版是单机验证的社区下游发行版，不是上游官方发布，也不承诺所有硬件、任务或网页都能按相同性能工作。
+## 下载 / 升级
+
+下载本版本 Source code ZIP，按 [安装说明](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/blob/v0.1.1/docs/INSTALL.md) 执行 `setup.ps1 -ModelPath "<现有模型.ninfer>"`。已有用户先等待任务结束，用本安装 `stop.cmd` 关闭、更新源码，再重跑安装器；只更新源码不会替换旧 exe。保留自己的配置、模型和会话，不必重新下载模型。
+
+引擎 ZIP 只含程序和许可；安装器从 NVIDIA/BtbN 获取原固定依赖。需要 Windows x64、兼容 CUDA 13 的驱动、x64 VC++ 运行库，dsh 需要 Node.js 24+。推荐核显渲染桌面/浏览器，启动前清理不必要的独显占用，**仅为引擎程序禁用 CUDA 系统内存自动回退**，保留引擎主动管理的 7 GiB Host KV。其他 50 系 12GB 以上可尝试，非 50 系需自行编译架构。
+
+引擎 SHA-256：`34fd593d76bd332c1b8470ce5ffe4fd9e7e9820229558cffd1cf9ddaa386224b`。归档校验值见附件 `SHA256SUMS`。
+
+代码 Apache-2.0，第三方组件、模型与外部依赖分别遵守原许可。本版为单机验证的社区预发布版。推荐 xhigh；动态 MTP 是尚未验证、未启用的后续方向。

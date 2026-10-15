@@ -3,7 +3,7 @@
   "upstream": "https://github.com/iamwavecut/ninfer-all",
   "upstream_base_reported_by_bundle": "v0.11.0-rtx3090; KVMem integration reference 65dbd4f2",
   "original_git_history_available": false,
-  "engine_binary_sha256": "940e68278ae91c60e7ed8e70fc495efec1686fb16b7362f0002d6498e609413d",
+  "engine_binary_sha256": "34fd593d76bd332c1b8470ce5ffe4fd9e7e9820229558cffd1cf9ddaa386224b",
   "copy_count": 2407,
   "locally_recorded_modified_files": [
     "docs/serving.md",
@@ -25,7 +25,19 @@
     "tests/ops/test_kvmem_score_schedule.cpp",
     "tests/ops/test_mean_k_host_storage.cpp",
     "tests/ops/test_mean_k_prefetch.cpp",
-    "tests/ops/tests.cmake"
+    "tests/ops/tests.cmake",
+    "src/models/qwen3_5/execution/attention.cpp",
+    "src/models/qwen3_5/program/prefill.cpp",
+    "src/models/qwen3_5/program/program_impl.cpp",
+    "src/models/qwen3_5/program/program_impl.h",
+    "src/models/qwen3_5/program/transactions/capture.cpp",
+    "src/models/qwen3_5/program/transactions/commit.cpp",
+    "src/ops/kvmem/kvmem_retrieve.h",
+    "src/ops/kvmem/kvmem_retrieve_launch.cu",
+    "src/ops/kvmem/mean_k_index_launch.cu",
+    "src/ops/kvmem/mean_k_index_launch.h",
+    "src/ops/kvmem/raw_k_harvest.cpp",
+    "src/ops/kvmem/raw_k_harvest.h"
   ],
   "excluded": [
     "models/weights",
@@ -41,5 +53,17 @@
     "platform": "Bilibili",
     "contribution": "Provided the foundation distribution downloaded by the maintainer and resolved the reported infinite-loop issue.",
     "source": "Maintainer attribution supplied for this publication; not a claim of sole upstream authorship."
+  },
+  "release_source_url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/tree/v0.1.1",
+  "previous_release": {
+    "tag": "v0.1.0",
+    "engine_sha256": "940e68278ae91c60e7ed8e70fc495efec1686fb16b7362f0002d6498e609413d",
+    "assets_unchanged": true
+  },
+  "retrieval_context_patch": {
+    "engine_sha256": "34fd593d76bd332c1b8470ce5ffe4fd9e7e9820229558cffd1cf9ddaa386224b",
+    "evidence": "benchmarks/evidence/screenshot-kv-audit/native-verification.json",
+    "release_tag": "v0.1.1",
+    "build_scope": "Incremental rebuild of affected translation units; original remaining static libraries retained. Not a clean full build."
   }
 }

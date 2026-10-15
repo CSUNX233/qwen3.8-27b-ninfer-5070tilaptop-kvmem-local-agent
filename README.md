@@ -13,11 +13,17 @@
 
 **本项目所用的基础架构，下载自 Bilibili 的 [0xFFFF7](https://search.bilibili.com/upuser?keyword=0xFFFF7) 提供的版本；此前遇到的死循环问题也是由他解决的。** 感谢他的基础工作、修复与分享。这里继续公开本机后续适配和部署成果，也保留 NInfer、KVMem、Qwen、ISTA-DASLab 及其他上下游贡献者的归属。
 
-> **256K 是配置的逻辑上下文容量。** 已验证约 **110K 输入**，以及 **62K 输入 → 22K 生成 → 工具调用 → 多轮续接**；尚未跑满 256K 整模型压力测试。KVMem 在长历史中选择部分页面参与注意力，不等同于全长稠密注意力。
+> **256K 是配置的逻辑上下文容量。** 已验证约 **110K 输入**，以及 **62K 输入 → 累计约 44K 生成 → 工具调用 → 多轮续接**；尚未跑满 256K 整模型压力测试。KVMem 在长历史中选择部分页面参与注意力，不等同于全长稠密注意力。
 
 **维护者使用实测反馈：200K 上下文依旧稳定，未观察到明显降速，重复任务更快。** 这是日常使用观察；目前没有附带同条件冷/热分项测速日志，和下方可追溯工程基准分别报告。**建议使用 `xhigh` 思考**，启动预设与 dsh 默认均已配置。
 
 > **强烈建议：针对 NInfer 禁用 CUDA 系统内存自动回退。** 在 NVIDIA 控制面板的“管理 3D 设置 → 程序设置”中，添加本项目的 `runtime/engine/ninfer-serve.exe`，将 **CUDA - Sysmem Fallback Policy** 设为 **Prefer No Sysmem Fallback**。只设置该程序，保留全局设置。显存不足时驱动回退到 RAM 可能造成明显降速；本项目的 **7 GiB Host KV 是引擎主动管理的 RAM 缓存，仍需保留**。禁用驱动回退不会增加显存，不足时仍可能报错，启动前需预留显存。[详细设置与排障 →](docs/INSTALL.md#cuda-系统内存回退强烈建议禁用)
+
+## v0.1.1：修复检索上下文和工具续接
+
+**[下载 v0.1.1](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.1)**。修复长/短会话切换及缓存恢复时可能沿用其他上下文的检索索引；索引与排名随缓存检查点恢复，修正非对齐页追加、重复累加和缺失页计数。同步公开截图后的进度续接与取消透传补丁。
+
+实测 **62K 输入 → 累计 43,775 tokens 生成 → 工具调用 → 三轮续接**，工具结果只新算 52 tokens，TTFT **915 ms**，随后三轮 **382–411 ms**。没有新增 GPU buffer，xhigh、采样、MTP 和检索预算保持原样；新增索引快照使用 RAM。单次 49K 冷输入约慢 3%，不宣称整体提速；满 256K 压力及原 177K 截图任务行为尚未重放。[优化、对照与边界](docs/BENCHMARKS.md#原生检索上下文修复2026-10-15) · [已有安装升级](docs/INSTALL.md#从-v010-升级)
 
 ## 实际作品：鹈鹕骑自行车，约 7 分钟
 
@@ -47,7 +53,8 @@
 | 110,019 tokens 冷输入 | 预填充约 **620 token/s**，解码 **69.28 token/s** | 较早优化阶段的单次记录 |
 | 约 85K 历史工具续接 | 仅重算 **52 tokens**，预填充 **813.5 ms**，TTFT **1,234 ms** | 前一轮正常生成 22,528 tokens |
 | 随后三轮短续接 | TTFT **313–445 ms** | 验证码全部正确；小样本 |
-| 最新长任务 GPU 峰值 | 约 **11,122 MiB** | 每 0.5 秒采样，不能排除瞬时峰值 |
+| v0.1.1：106K 历史工具结果续接 | 仅新算 **52 tokens**，TTFT **915 ms** | 累计生成 43,775 tokens 后；后续三轮 382–411 ms |
+| 本轮 GPU 峰值 | 约 **11,120–11,124 MiB** | 分项轮询测量，不能排除瞬时峰值 |
 
 **这不是所有场景的保底速度。** 最新调度优化没有证明预填充或 TTFT 普遍变快；原版与新版的完整对照、质量验证和局限见 [实测报告](docs/BENCHMARKS.md)。重复文本触发近乎全接受的 221 token/s 不作为普通 Agent 速度宣传。
 
@@ -109,6 +116,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1 -ModelPath "D:\M
 | 实测数据与复现方法 | [`benchmarks/`](benchmarks/) · [报告](docs/BENCHMARKS.md) |
 | 上下游、许可证、署名 | [UPSTREAM_DOWNSTREAM.md](docs/UPSTREAM_DOWNSTREAM.md) · [NOTICE](NOTICE) |
 
-**English:** A Windows NInfer + KVMem distribution tuned on an RTX 5070 Ti **Laptop** 12GB: local Qwen3.8-27B IQ3_XXS inference, 256K configured logical context, RAM-backed KV, MTP speculative decoding, fast cached tool continuations, and optional DeepSeek Harness Agent/search/browser integration. Tested at 110K input and 62K+22K multi-turn continuation; full 256K end-to-end stress is pending. See [English overview](README.en.md).
+**English:** A Windows NInfer + KVMem distribution tuned on an RTX 5070 Ti **Laptop** 12GB: local Qwen3.8-27B IQ3_XXS inference, 256K configured logical context, RAM-backed KV, MTP speculative decoding, fast cached tool continuations, and optional DeepSeek Harness Agent/search/browser integration. Tested at 110K input and 62K+44K multi-turn continuation; full 256K end-to-end stress is pending. See [English overview](README.en.md).
 
 Keywords: RTX 5070 Ti Laptop · 12GB VRAM · Qwen 27B · Qwen3.8 · NInfer · KVMem · long context · speculative decoding · local LLM · local AI agent · DeepSeek Harness · Windows CUDA · 本地大模型 · 长上下文 · 笔记本推理。

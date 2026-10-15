@@ -314,6 +314,10 @@ void ProgramImpl::release_continuation_slot_best_effort(std::uint32_t index) noe
 void ProgramImpl::retire_continuation_slot(std::uint32_t index) noexcept {
     if (index >= continuation_capacity) { std::terminate(); }
     SequenceState& sequence     = continuation_states[index];
+    sequence.retrieval.reset();
+    sequence.ring_keep.clear();
+    sequence.ring_scored_mapped = 0;
+    sequence.ring_score_generation = 0;
     sequence.execution_frontier = 0;
     sequence.ledger_frontier    = 0;
     sequence.ledger.clear();
@@ -1615,7 +1619,57 @@ void ProgramImpl::resize_sequence_kv_entitlement(SequenceState& sequence, std::u
     }
 }
 
+void ProgramImpl::bind_retrieval_workspace() noexcept {
+    ops::raw_k_shadow_harvest_bind(&retrieval_harvest);
+    ops::mean_k_index_bind(&retrieval_index);
+    ops::detail::kvmem_score_bind(&retrieval_probe);
+}
+
+RetrievalCheckpoint ProgramImpl::capture_retrieval() {
+    if (!ops::detail::kvmem_score_enabled()) { return {}; }
+    bind_retrieval_workspace();
+    retrieval_probe.drain_readback();
+    auto out = std::make_shared<ops::detail::KvMemContextSnapshot>();
+    if (retrieval_index) { out->index = retrieval_index->snapshot(device.stream); }
+    out->ranking = retrieval_probe.page_ranking;
+    out->kept = retrieval_probe.kept;
+    return out;
+}
+
+void ProgramImpl::restore_retrieval(const RetrievalCheckpoint& checkpoint) {
+    if (!ops::detail::kvmem_score_enabled()) { return; }
+    bind_retrieval_workspace();
+    retrieval_probe.drain_readback();
+    if (retrieval_index) { retrieval_index->restore(checkpoint ? checkpoint->index : nullptr, device.stream); }
+    else if (checkpoint && checkpoint->index) {
+        const auto& saved = *checkpoint->index;
+        auto* index = ops::mean_k_index_for(saved.layers, saved.heads, saved.head_dim, saved.capacity_blocks);
+        index->restore(checkpoint->index, device.stream);
+    }
+    retrieval_probe.page_ranking = checkpoint ? checkpoint->ranking : ops::KvMemPageRanking{};
+    retrieval_probe.kept = checkpoint ? checkpoint->kept : std::vector<std::int32_t>{};
+    retrieval_probe.armed = false;
+    retrieval_probe.scored_this_chunk = false;
+    retrieval_probe.scored_last_chunk = false;
+    ++retrieval_probe.generation;
+}
+
+RetrievalCheckpoint ProgramImpl::selected_retrieval(const SequenceState& sequence,
+    ReusePath reuse, std::optional<runtime::CheckpointRef> checkpoint) const {
+    if (reuse == ReusePath::PrivateEndpoint) { return sequence.retrieval; }
+    if (is_rewrite_checkpoint_restore(reuse)) { return sequence.rewrite_checkpoint.retrieval; }
+    if (reuse == ReusePath::PrivateLongAnchor && checkpoint) {
+        for (const auto& anchor : sequence.long_anchors) {
+            if (anchor.frontier == checkpoint->frontier && anchor.ordinal == checkpoint->ordinal) {
+                return anchor.retrieval;
+            }
+        }
+    }
+    throw std::logic_error("KV reuse has no matching retrieval checkpoint");
+}
+
 void ProgramImpl::bind_sequence_kv(SequenceState& sequence) {
+    bind_retrieval_workspace();
     if (!sequence.kv) { throw std::logic_error("KV allocation bundle is unavailable"); }
     const std::int32_t row = static_cast<std::int32_t>(sequence.lane);
     const bool text_active = text_kv_addresses->active(sequence.kv->text);
@@ -2240,6 +2294,7 @@ void ProgramImpl::ensure_sequence_kv_mapped(SequenceState& sequence, std::uint32
     // beat; master's lease accounting is untouched. Kept FIRST because master ran it before any
     // mapping and because the beats below consume what it decides (beat 1 scores over the mapped
     // range, ring_one computes need = total - mapped, beat 3 maps into the entitlement it sized).
+    bind_retrieval_workspace();
     ensure_sequence_kv_lease(sequence, main_tokens, backend_tokens);
     // LOCAL PROTOTYPE (KVMem-style ring): when a Device pool is smaller than the logical context a
     // sequence cannot keep all of its KV on the Device. Each call then:
@@ -2304,10 +2359,12 @@ void ProgramImpl::ensure_sequence_kv_mapped(SequenceState& sequence, std::uint32
         const std::uint32_t budget = std::min(proto_kv_retrieve_pages(), pool / 4U);
         const std::uint32_t mapped_now = text_kv_addresses->mapped_pages(sequence.kv->text);
         if (budget != 0 && mapped_now > sink_pages &&
-            (mapped_now != sequence.ring_scored_mapped || sequence.ring_keep.empty())) {
+            (mapped_now != sequence.ring_scored_mapped || sequence.ring_keep.empty() ||
+             sequence.ring_score_generation != retrieval_probe.generation)) {
             preferred = select_retrieval_pages(sequence, sink_pages, mapped_now, budget);
             sequence.ring_keep          = preferred;
             sequence.ring_scored_mapped = mapped_now;
+            sequence.ring_score_generation = retrieval_probe.generation;
         } else if (mapped_now == sequence.ring_scored_mapped) {
             preferred = sequence.ring_keep;
         } else {

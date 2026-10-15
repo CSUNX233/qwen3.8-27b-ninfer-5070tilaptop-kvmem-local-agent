@@ -1,3 +1,4 @@
+// Modified in the CSUNX233 RTX 5070 Ti Laptop distribution. See ../docs/MODIFICATIONS.md.
 #pragma once
 
 // KVMem raw-K shadow: per-layer staging + the drain driver (segment 2 of the first cut).
@@ -47,6 +48,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 
 namespace ninfer::ops {
 
@@ -235,6 +237,7 @@ private:
 //
 // Reads the switch. Returns nullptr when NINFER_TERNARY_KVMEM is off, which is the default, so the
 // OFF arm allocates nothing and every install site reduces to storing a null pointer.
+void raw_k_shadow_harvest_bind(std::unique_ptr<RawKShadowHarvest>* owner) noexcept;
 [[nodiscard]] RawKShadowHarvest* raw_k_shadow_harvest_for(std::uint32_t prefill_chunk,
                                                           std::int32_t kv_size,
                                                           std::int32_t layers);

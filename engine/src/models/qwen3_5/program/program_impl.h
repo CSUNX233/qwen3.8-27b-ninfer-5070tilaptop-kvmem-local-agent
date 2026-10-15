@@ -1,7 +1,9 @@
+// Modified in the CSUNX233 RTX 5070 Ti Laptop distribution. See ../docs/MODIFICATIONS.md.
 #pragma once
 #include "models/qwen3_5/program/speculative/mtp_adaptive.h"
 #include "models/qwen3_5/program/internal.h"
 
+#include "ops/kvmem/kvmem_score.h"
 #include "core/arena.h"
 #include "core/disk_kv_bridge.h"
 #include "core/gdn_replay_records.h"
@@ -394,7 +396,10 @@ struct ContinuationSlot {
     std::uint64_t generation  = 1;
 };
 
+using RetrievalCheckpoint = std::shared_ptr<const ops::detail::KvMemContextSnapshot>;
+
 struct RewriteCheckpoint {
+    RetrievalCheckpoint retrieval;
     bool valid                 = false;
     RewriteCheckpointKind kind = RewriteCheckpointKind::TurnClosure;
     std::uint32_t frontier     = 0;
@@ -402,6 +407,7 @@ struct RewriteCheckpoint {
 };
 
 struct LongAnchorCheckpoint {
+    RetrievalCheckpoint retrieval;
     StateImageHandle state;
     std::uint32_t frontier = 0;
     std::uint32_t ordinal  = 0;
@@ -438,6 +444,7 @@ struct DecodeGraphFamily {
 // request which produced it has finished, so it is deliberately separate from request lifecycle,
 // output, sampling, and round-control state.
 struct SequenceState {
+    RetrievalCheckpoint retrieval;
     std::optional<SequenceKVBundle> kv;
     ActiveStateBinding state;
     std::optional<StateImageHandle> rewrite_state;
@@ -460,6 +467,7 @@ struct SequenceState {
     std::vector<std::uint32_t> ring_keep;
     // Mapped text pages at the last rescore; rescoring only happens when this changes.
     std::uint32_t ring_scored_mapped      = 0;
+    std::uint64_t ring_score_generation = 0;
     std::uint32_t dflash_context_frontier = 0;
     std::array<TokenId, qwen3_5::kMtpDecodeMaximumDrafts> mtp_drafts{};
     std::uint32_t mtp_draft_count = 0;
@@ -473,6 +481,7 @@ struct SequenceState {
 };
 
 struct SharedPrefixState {
+    RetrievalCheckpoint retrieval;
     std::optional<SequenceKVBundle> kv;
     StateImageHandle state;
     std::shared_ptr<const PreparedCaptureIdentity> identity;
@@ -809,6 +818,14 @@ public:
     // loop walks stages, so every existing workspace call site keeps using one arena object.
     std::vector<DeviceArena> workspace_storage_by_rank;
     WorkspaceArena work;
+    std::unique_ptr<ops::RawKShadowHarvest> retrieval_harvest;
+    std::unique_ptr<ops::MeanKIndex> retrieval_index;
+    ops::detail::KvMemScoreProbe retrieval_probe;
+    void bind_retrieval_workspace() noexcept;
+    [[nodiscard]] RetrievalCheckpoint capture_retrieval();
+    void restore_retrieval(const RetrievalCheckpoint& checkpoint);
+    [[nodiscard]] RetrievalCheckpoint selected_retrieval(const SequenceState& sequence,
+        ReusePath reuse, std::optional<runtime::CheckpointRef> checkpoint) const;
     std::unique_ptr<qwen3_5::DecoderState> decoder;
     std::unique_ptr<HostKVArena> host_kv_arena;
     std::unique_ptr<LogicalKVPageStore> text_kv_pages;

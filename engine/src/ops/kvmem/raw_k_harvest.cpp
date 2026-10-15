@@ -1,3 +1,4 @@
+// Modified in the CSUNX233 RTX 5070 Ti Laptop distribution. See ../docs/MODIFICATIONS.md.
 #include "ops/kvmem/raw_k_harvest.h"
 
 #include "core/device.h"
@@ -324,16 +325,21 @@ bool RawKShadowHarvest::dump_to_file(const char* path, const void* post_rope_lay
 //
 // Reads the switch, so the default (OFF) arm allocates nothing and returns nullptr; every install
 // site then stores a null pointer, which is what leaves the mixer with nothing to copy into.
+namespace {
+thread_local std::unique_ptr<RawKShadowHarvest>* harvest_owner = nullptr;
+}
+void raw_k_shadow_harvest_bind(std::unique_ptr<RawKShadowHarvest>* owner) noexcept { harvest_owner = owner; }
 RawKShadowHarvest* raw_k_shadow_harvest_for(std::uint32_t prefill_chunk, std::int32_t kv_size,
                                             std::int32_t layers) {
     if (!detail::kvmem_shadow_enabled()) { return nullptr; }
-    static RawKShadowHarvest* harvest = nullptr;
-    static std::uint32_t sized_for    = 0;
+    thread_local std::unique_ptr<RawKShadowHarvest> standalone;
+    auto& owner = harvest_owner ? *harvest_owner : standalone;
+    RawKShadowHarvest* harvest = owner.get();
     const std::int32_t tokens =
         (prefill_chunk == 0) ? 1 : static_cast<std::int32_t>(prefill_chunk);
     if (harvest == nullptr) {
         harvest   = new RawKShadowHarvest(layers, kv_size, tokens);
-        sized_for = prefill_chunk;
+        owner.reset(harvest);
         std::fprintf(stderr,
                      "raw_k_shadow: harvest installed layers=%d kv_size=%d tokens=%d (%.1f MiB "
                      "device, same pinned)\n",
@@ -341,7 +347,7 @@ RawKShadowHarvest* raw_k_shadow_harvest_for(std::uint32_t prefill_chunk, std::in
                      static_cast<double>(layers) * kv_size * tokens * 2 / (1024.0 * 1024.0));
         return harvest;
     }
-    if (prefill_chunk > sized_for) {
+    if (tokens > harvest->tokens() || layers != harvest->layers() || kv_size != harvest->kv_size()) {
         // Silently reusing an undersized harvest would make raw_k_shadow_copy throw mid-prefill;
         // silently reallocating would move device addresses a captured graph already points at.
         throw std::logic_error(std::string(kSubject) +

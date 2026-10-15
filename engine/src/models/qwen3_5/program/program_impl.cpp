@@ -1,3 +1,4 @@
+// Modified in the CSUNX233 RTX 5070 Ti Laptop distribution. See ../docs/MODIFICATIONS.md.
 #include "models/qwen3_5/program/structured_round.h"
 #include "models/qwen3_5/program/program_impl.h"
 #include "models/qwen3_5/program/context_work.h"
@@ -563,6 +564,14 @@ ProgramImpl::ProgramImpl(const execution::Parameters& parameters_in, const Seque
     work.reset();
     work.reset_peak();
     workspace_logical_peak_bytes = 0;
+    if (ops::detail::kvmem_score_enabled() && max_concurrency != 1) {
+        throw std::invalid_argument("KVMem content retrieval currently requires max-concurrency=1");
+    }
+    if (ops::detail::kvmem_score_enabled() && context_cache.enabled &&
+        context_cache.mode == ContextCacheMode::Hybrid) {
+        throw std::invalid_argument("KVMem retrieval checkpoints require the legacy context cache");
+    }
+    bind_retrieval_workspace();
     create_hybrid_prefix_cache(startup_observer);
 }
 
@@ -573,6 +582,11 @@ void ProgramImpl::synchronize_transfer_streams() const {
 }
 
 ProgramImpl::~ProgramImpl() noexcept {
+    if (ops::detail::bound_score_probe == &retrieval_probe) {
+        ops::detail::kvmem_score_bind(nullptr);
+        ops::mean_k_index_bind(nullptr);
+        ops::raw_k_shadow_harvest_bind(nullptr);
+    }
     flush_disk_tier();
     for (std::size_t rank = 0; rank < transfer_streams.size(); ++rank) {
         (void)cudaStreamSynchronize(transfer_streams[rank]);
@@ -590,6 +604,7 @@ std::vector<float> ProgramImpl::causal_score(PreparedPromptData&& prompt,
         context_cache.enabled) {
         throw std::logic_error("causal scoring Program has generation-only startup features");
     }
+    restore_retrieval({});
     const std::size_t token_count_size = prompt.token_ids.size();
     if (token_count_size < 2 || token_count_size > capacity) {
         throw std::invalid_argument("causal score token count must be in [2,capacity]");

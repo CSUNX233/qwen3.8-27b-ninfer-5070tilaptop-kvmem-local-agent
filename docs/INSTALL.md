@@ -39,6 +39,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1 -ModelPath "D:\M
 
 `config/local.json`、`runtime/`、`node_modules/`、模型及浏览器 profile 均被 Git 忽略。启动后等待权重和 CUDA Graph 加载，再自动打开 dsh 私有登录 URL。不要公开 `runtime/logs/dsh.stdout.log` 中的 token。首次安装需要网络，纯文字推理本身可离线。
 
+## 从 v0.1.0 升级
+
+先等待当前任务结束，用这份安装的 `stop.cmd` 关闭服务；备份自己的 `config/local.json`。Git 安装使用 `git pull --ff-only` 获取源码，ZIP 安装则解压新源码并保留原来的模型路径、私有配置和 `runtime/dsh-home`。不要把旧的 `config/downloads.json` 覆盖到新版本。
+
+在项目目录重新执行原 `setup.ps1 -ModelPath "<现有模型.ninfer>"` 命令（API-only 安装仍可加 `-SkipDsh`），再运行 `start.cmd`。安装器保留本地配置并按哈希替换旧引擎；需要联网下载约 0.8 GiB 的新引擎归档，模型无需重下。v0.1.1 的 exe SHA-256 见 [来源记录](../SOURCE_PROVENANCE.json)。只 `git pull` 不会替换已经下载的 exe。
+
+用户会话、浏览器 profile 和权重无需清空；原有会话首次换用新插件可能重算变化的前缀。该版本 KVMem 内容检索明确要求单并发与 Legacy 缓存，Hybrid/多并发配置会直接报不支持。引擎 ZIP 和 Source code ZIP 用途不同，不要将整个引擎 ZIP 当作源码或完整安装包。
+
 ## 日常启动、关闭和 API
 
 双击 `start.cmd`；关闭时双击 `stop.cmd`。关闭脚本检查记录的 PID、启动时间、可执行路径和命令行标记，只关闭本目录启动的进程及子进程。会话和权重保留。

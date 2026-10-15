@@ -1,3 +1,4 @@
+// Modified in the CSUNX233 RTX 5070 Ti Laptop distribution. See ../docs/MODIFICATIONS.md.
 #include "models/qwen3_5/program/program_impl.h"
 #include "models/qwen3_5/program/context_work.h"
 #include "models/qwen3_5/program/planning/pressure_planner.h"
@@ -637,6 +638,7 @@ ProgramImpl::install_private_capture(SequenceState& sequence, const CaptureGroup
                                      StateImageHandle checkpoint,
                                      std::optional<runtime::CheckpointRef> replacement) {
     detail::PhysicalResources removed;
+    const auto retrieval = capture_retrieval();
     if (group.rewrite) {
         if (sequence.rewrite_state && *sequence.rewrite_state != checkpoint) {
             removed = checked_resource_sum(removed,
@@ -645,6 +647,7 @@ ProgramImpl::install_private_capture(SequenceState& sequence, const CaptureGroup
         state_store->retain_checkpoint_reference(checkpoint);
         sequence.rewrite_state      = checkpoint;
         sequence.rewrite_checkpoint = RewriteCheckpoint{
+            .retrieval    = retrieval,
             .valid        = true,
             .kind         = *group.rewrite,
             .frontier     = group.frontier,
@@ -690,6 +693,7 @@ ProgramImpl::install_private_capture(SequenceState& sequence, const CaptureGroup
         }
         state_store->retain_checkpoint_reference(checkpoint);
         sequence.long_anchors.push_back(LongAnchorCheckpoint{
+            .retrieval    = retrieval,
             .state        = checkpoint,
             .frontier     = group.frontier,
             .ordinal      = ordinal,
@@ -1109,6 +1113,7 @@ ActiveCaptureResult ProgramImpl::publish_active_capture(ActiveCaptureTransaction
         shared.state    = transaction.source_state;
         shared.identity = transaction.group.identity;
         shared.frontier = transaction.group.frontier;
+        shared.retrieval = capture_retrieval();
         shared.backend_frontier =
             speculative_backend == SpeculativeBackend::Mtp      ? transaction.group.frontier - 1U
             : speculative_backend == SpeculativeBackend::DFlash ? transaction.group.frontier
