@@ -17,6 +17,8 @@ A Windows source distribution and deployment kit maintained by **CSUNX233**, bui
 
 Validated hardware: RTX 5070 Ti Laptop 12GB, 46 SMs, i7-14650HX, 32GB RAM, Windows x64, driver 617.14. Prebuilt target: sm120a, CUDA 13.0.48, MSVC 14.44.35207. Other hardware requires independent qualification.
 
+Hybrid integrated/discrete graphics is recommended: let the iGPU render the desktop and browser, preserving discrete VRAM for inference. The launcher does not change the system graphics mode. Systems without hybrid graphics can also try it after closing unnecessary GPU workloads and reserving sufficient VRAM. Other RTX 50-series GPUs with 12GB or more VRAM are welcome to try this preset; they have not all been tested. Non-50-series GPUs require a source build for their CUDA architecture. Contributions with build instructions, configurations and measured results are welcome.
+
 Download this repository, prepare a v3 `.ninfer` artifact with MTP following [MODELS.md](docs/MODELS.md), and install Node.js 24+, the x64 VC++ runtime and a CUDA 13 compatible NVIDIA driver:
 
 ```powershell

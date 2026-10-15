@@ -32,4 +32,4 @@ cmake --build runtime/build --target ninfer-serve -j
 
 测试入口在 `engine/tests/README.md`。按变更选择测试；例如 Host 索引、页存储、异步检索及小矩阵数值资格检查。不要在用户正在使用 GPU 时并发运行性能测试。`benchmarks/qualification/qualify_vec.cpp` 是此次实际权重解包、FP64 oracle 的独立资格检查程序，需与构建出的引擎库、CUDA 头文件及模型制品配套使用，不是 CPU-only 单元测试。
 
-若移植其他 GPU，需重新编译架构、预算和验证。当前记录只支持这张 Laptop 卡的已测条件。
+RTX 50 系、12GB 及以上显存的其他设备欢迎尝试并提交参数与实测；目前明确验证的是 RTX 5070 Ti Laptop 12GB。**非 50 系显卡须自行按实际 CUDA 架构重新编译**，不要原样照搬上面针对本机的 `120a` 参数。按上游对该架构的支持情况配置内核路径，再调整 Device KV / Host KV 等预算，并验证模型正确性和稳定性。欢迎通过 Issue / PR 补齐不同设备的编译步骤、适配修复和测速。
