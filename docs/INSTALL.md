@@ -1,5 +1,7 @@
 # 安装与使用条件
 
+给部署者或 Agent 的完整操作顺序、版本表、启动设置和踩坑处理，见 [部署与维护交接手册](DEPLOYMENT_AGENT_GUIDE.md)。
+
 验证环境：Windows x64、RTX 5070 Ti Laptop 12GB、i7-14650HX、32GB RAM，驱动 617.14。现有配置使用 36K Device KV、7 GiB Host KV 和 256K 逻辑容量；不要把内存容量直接等同于可用上下文或召回质量。
 
 ## 显卡模式与显存准备

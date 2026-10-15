@@ -1,5 +1,7 @@
 # dsh、搜索、浏览器与缓存续接
 
+首次部署、排查变慢或工具故障时，先看 [部署与维护交接手册](../docs/DEPLOYMENT_AGENT_GUIDE.md)，按引擎 → 守卫 → dsh → 工具逐层验收。
+
 `setup.ps1` 在本目录的 `dsh/` 用固定 lockfile 安装 `@deepseek-ai/dsh@0.1.5-rc.3`；程序生成独立的 `runtime/dsh-home`，不接管已有 dsh 安装。仅对匹配版本应用分享包的 compaction / tool-result-pruner 修复，保留 DeepSeek MIT 许可和本地原文件备份。
 
 `scripts/configure-dsh.mjs` 生成本地模型路由、256K 上下文、73728 最大输出、约 184320 压缩阈值及 32768 摘要上限。启动前同步安装路径，保留与本安装器无关的 patch 项。若修改模型/上下文，需同时核对输出预留和压缩策略；不能把逻辑上限当成实际可用输入长度。

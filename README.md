@@ -57,6 +57,8 @@
 
 ## 下载与运行
 
+**交给自己或 Agent 部署前，先读 [部署与维护交接手册](docs/DEPLOYMENT_AGENT_GUIDE.md)**：包含可复制的 Agent 提示词、关键组件版本、显存准备、启动设置、分层验收、实际踩坑及处理办法。
+
 1. [下载仓库源码 ZIP](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/archive/refs/heads/main.zip)，解压到 D 盘等空间充足的位置；或使用下面的 Git 命令。
 2. 准备 **Windows x64、可用的 RTX 5070 Ti Laptop 12GB、32GB RAM、Node.js 24+、x64 VC++ 运行库**，以及兼容 CUDA 13 的 NVIDIA 驱动。
 3. 准备带 MTP 的 **v3 `.ninfer` 模型**。[模型来源、精确文件与转换步骤 →](docs/MODELS.md) 权重不包含在本仓库或 Release 中。
@@ -102,6 +104,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1 -ModelPath "D:\M
 | 引擎完整源码与原上游说明 | [`engine/`](engine/) |
 | 本机修复与优化说明 | [MODIFICATIONS.md](docs/MODIFICATIONS.md) |
 | 固定版本安装、启动与关闭 | `setup.ps1` / `start.cmd` / `stop.cmd` |
+| 给部署者与 Agent 的交接手册 | [DEPLOYMENT_AGENT_GUIDE.md](docs/DEPLOYMENT_AGENT_GUIDE.md) |
 | dsh、搜索、浏览器与缓存守卫 | [`integrations/`](integrations/) |
 | 实测数据与复现方法 | [`benchmarks/`](benchmarks/) · [报告](docs/BENCHMARKS.md) |
 | 上下游、许可证、署名 | [UPSTREAM_DOWNSTREAM.md](docs/UPSTREAM_DOWNSTREAM.md) · [NOTICE](NOTICE) |

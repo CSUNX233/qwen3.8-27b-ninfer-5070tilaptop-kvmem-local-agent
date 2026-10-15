@@ -2,6 +2,8 @@
 
 [中文说明与完整快速开始](README.md)
 
+[Deployment and maintenance handoff guide (Chinese)](docs/DEPLOYMENT_AGENT_GUIDE.md): copyable instructions for deployment agents, version pins, VRAM preparation, launch settings, layered checks, known failures and fixes.
+
 A Windows source distribution and deployment kit maintained by **CSUNX233**, built on NInfer-all, NInfer and the shensanshu KVMem integration. Upstream engine and model authors retain their credit and licenses. See [provenance](docs/UPSTREAM_DOWNSTREAM.md).
 
 **Special thanks to Bilibili creator 0xFFFF7:** the foundation used here was downloaded from his shared distribution, and he also resolved the reported infinite-loop issue. This downstream project builds on that work.
