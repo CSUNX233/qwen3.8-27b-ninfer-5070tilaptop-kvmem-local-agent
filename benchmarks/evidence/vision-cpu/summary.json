@@ -1,0 +1,236 @@
+{
+  "completed": true,
+  "restored": true,
+  "memory": {
+    "256": {
+      "peak_gpu_mib": 11753.0,
+      "minimum_available_ram_gib": 16.057857513427734
+    },
+    "512": {
+      "peak_gpu_mib": 11790.0,
+      "minimum_available_ram_gib": 16.83864974975586
+    },
+    "1024": {
+      "peak_gpu_mib": 11753.0,
+      "minimum_available_ram_gib": 16.733173370361328
+    }
+  },
+  "text": {
+    "original-text-2": {
+      "same_output": true,
+      "decode_tps": 109.38019220802106
+    },
+    "vision-256-text-2": {
+      "same_output": true,
+      "decode_tps": 111.59880518380388
+    },
+    "vision-512-text-2": {
+      "same_output": true,
+      "decode_tps": 110.63670381760409
+    },
+    "vision-1024-text-2": {
+      "same_output": true,
+      "decode_tps": 113.34800308377689
+    }
+  },
+  "tests": [
+    {
+      "label": "original-text-1",
+      "wall_seconds": 5.156000000075437,
+      "vision_seconds": null,
+      "prompt_tokens": 57,
+      "cache": 0,
+      "prompt_ms": 1585.0158999999999,
+      "text": null
+    },
+    {
+      "label": "original-text-2",
+      "wall_seconds": 2.468999999924563,
+      "vision_seconds": null,
+      "prompt_tokens": 57,
+      "cache": 50,
+      "prompt_ms": 96.4314,
+      "text": null
+    },
+    {
+      "label": "vision-256-text-1",
+      "wall_seconds": 3.125,
+      "vision_seconds": 0.0,
+      "prompt_tokens": 57,
+      "cache": 0,
+      "prompt_ms": 716.3184,
+      "text": null
+    },
+    {
+      "label": "vision-256-text-2",
+      "wall_seconds": 2.390999999945052,
+      "vision_seconds": 0.0,
+      "prompt_tokens": 57,
+      "cache": 50,
+      "prompt_ms": 75.21640000000001,
+      "text": null
+    },
+    {
+      "label": "256-image-first",
+      "wall_seconds": 10.655999999959022,
+      "vision_seconds": 9.5659391,
+      "prompt_tokens": 300,
+      "cache": 0,
+      "prompt_ms": 10527.3258,
+      "text": "左边是一个红色的圆形，右边是一个蓝色的正方形。"
+    },
+    {
+      "label": "256-image-followup-1",
+      "wall_seconds": 0.2190000000409782,
+      "vision_seconds": 0.0,
+      "prompt_tokens": 333,
+      "cache": 310,
+      "prompt_ms": 144.8399,
+      "text": "红色"
+    },
+    {
+      "label": "256-image-followup-2",
+      "wall_seconds": 0.640999999945052,
+      "vision_seconds": 0.0,
+      "prompt_tokens": 356,
+      "cache": 334,
+      "prompt_ms": 562.7976,
+      "text": "正方形"
+    },
+    {
+      "label": "256-image-followup-3",
+      "wall_seconds": 0.2660000000614673,
+      "vision_seconds": 0.0,
+      "prompt_tokens": 379,
+      "cache": 357,
+      "prompt_ms": 135.3476,
+      "text": "左边是红色圆形，右边是蓝色正方形。"
+    },
+    {
+      "label": "256-two-images",
+      "wall_seconds": 19.96799999999348,
+      "vision_seconds": 19.2868852,
+      "prompt_tokens": 545,
+      "cache": 0,
+      "prompt_ms": 19711.7426,
+      "text": "第一张图左边的圆形是红色，第二张图左边的圆形是绿色。"
+    },
+    {
+      "label": "256-large-image-downscaled",
+      "wall_seconds": 9.515999999945052,
+      "vision_seconds": 8.8107776,
+      "prompt_tokens": 259,
+      "cache": 0,
+      "prompt_ms": 9161.6715,
+      "text": "图片上方的文字是“VISION 5070”。下方左侧是一个红色圆形，右侧是一个蓝色正方形。"
+    },
+    {
+      "label": "256-bad-image",
+      "wall_seconds": 0.062000000034458935,
+      "vision_seconds": null,
+      "prompt_tokens": null,
+      "cache": null,
+      "prompt_ms": null,
+      "text": null
+    },
+    {
+      "label": "256-after-bad-image",
+      "wall_seconds": 0.21799999999348074,
+      "vision_seconds": 0.0,
+      "prompt_tokens": 17,
+      "cache": 0,
+      "prompt_ms": 159.5728,
+      "text": "服务正常"
+    },
+    {
+      "label": "256-long-context-image",
+      "wall_seconds": 81.20299999997951,
+      "vision_seconds": 9.7576763,
+      "prompt_tokens": 45297,
+      "cache": 0,
+      "prompt_ms": 81028.7837,
+      "text": "红色圆形，蓝色正方形。"
+    },
+    {
+      "label": "256-long-context-tool-followup",
+      "wall_seconds": 0.43700000003445894,
+      "vision_seconds": 0.0,
+      "prompt_tokens": 45371,
+      "cache": 45303,
+      "prompt_ms": 307.0113,
+      "text": "红色"
+    },
+    {
+      "label": "vision-512-text-1",
+      "wall_seconds": 2.937999999965541,
+      "vision_seconds": 0.0,
+      "prompt_tokens": 57,
+      "cache": 0,
+      "prompt_ms": 552.4894,
+      "text": null
+    },
+    {
+      "label": "vision-512-text-2",
+      "wall_seconds": 2.405999999959022,
+      "vision_seconds": 0.0,
+      "prompt_tokens": 57,
+      "cache": 50,
+      "prompt_ms": 81.6019,
+      "text": null
+    },
+    {
+      "label": "512-large-image",
+      "wall_seconds": 33.875,
+      "vision_seconds": 31.9495311,
+      "prompt_tokens": 519,
+      "cache": 0,
+      "prompt_ms": 32630.4928,
+      "text": "好的，我们来分步完成这个任务。\n\n首先，我们读取图片上方的文字。\n- 图片上方的文字是 “VISION 5070”。\n\n接下来，我们描述下方的两个图形。\n- 左边的图形是一个红色的圆形。\n- 右边的图形是一个蓝色的正方形。\n\n综上所述，图片上方的文字是“VISION 5070”，下方左侧是一个红色圆形，右侧是一个蓝色正方形。"
+    },
+    {
+      "label": "512-text-recovery",
+      "wall_seconds": 0.21899999992456287,
+      "vision_seconds": 0.0,
+      "prompt_tokens": 17,
+      "cache": 0,
+      "prompt_ms": 175.2935,
+      "text": "服务正常"
+    },
+    {
+      "label": "vision-1024-text-1",
+      "wall_seconds": 2.969000000040978,
+      "vision_seconds": 0.0,
+      "prompt_tokens": 57,
+      "cache": 0,
+      "prompt_ms": 650.5733,
+      "text": null
+    },
+    {
+      "label": "vision-1024-text-2",
+      "wall_seconds": 2.3429999999934807,
+      "vision_seconds": 0.0,
+      "prompt_tokens": 57,
+      "cache": 50,
+      "prompt_ms": 79.7202,
+      "text": null
+    },
+    {
+      "label": "1024-large-image",
+      "wall_seconds": 94.92200000002049,
+      "vision_seconds": 92.8464217,
+      "prompt_tokens": 997,
+      "cache": 0,
+      "prompt_ms": 94334.927,
+      "text": "好的，图片上方的文字是“VISION 5070”。\n\n下方有两个图形：\n- 左侧是一个红色的圆形。\n- 右侧是一个蓝色的正方形。"
+    },
+    {
+      "label": "1024-text-recovery",
+      "wall_seconds": 0.2190000000409782,
+      "vision_seconds": 0.0,
+      "prompt_tokens": 17,
+      "cache": 0,
+      "prompt_ms": 175.6378,
+      "text": "服务正常"
+    }
+  ]
+}

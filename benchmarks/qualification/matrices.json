@@ -1,0 +1,149 @@
+[
+  {
+    "type": 10,
+    "rows": 5120,
+    "k": 17408,
+    "object": "weight/000122",
+    "bytes": 29245440
+  },
+  {
+    "type": 10,
+    "rows": 6144,
+    "k": 5120,
+    "object": "weight/000091",
+    "bytes": 10321920
+  },
+  {
+    "type": 10,
+    "rows": 17408,
+    "k": 5120,
+    "object": "weight/000202",
+    "bytes": 29245440
+  },
+  {
+    "type": 18,
+    "rows": 5120,
+    "k": 6144,
+    "object": "weight/000187",
+    "bytes": 12042240
+  },
+  {
+    "type": 18,
+    "rows": 5120,
+    "k": 17408,
+    "object": "weight/000133",
+    "bytes": 34119680
+  },
+  {
+    "type": 18,
+    "rows": 6144,
+    "k": 5120,
+    "object": "weight/000129",
+    "bytes": 12042240
+  },
+  {
+    "type": 18,
+    "rows": 17408,
+    "k": 5120,
+    "object": "weight/000144",
+    "bytes": 34119680
+  },
+  {
+    "type": 21,
+    "rows": 5120,
+    "k": 6144,
+    "object": "weight/000093",
+    "bytes": 13516800
+  },
+  {
+    "type": 21,
+    "rows": 5120,
+    "k": 17408,
+    "object": "weight/000155",
+    "bytes": 38297600
+  },
+  {
+    "type": 21,
+    "rows": 6144,
+    "k": 5120,
+    "object": "weight/000078",
+    "bytes": 13516800
+  },
+  {
+    "type": 21,
+    "rows": 17408,
+    "k": 5120,
+    "object": "weight/000396",
+    "bytes": 38297600
+  },
+  {
+    "type": 22,
+    "rows": 5120,
+    "k": 6144,
+    "object": "weight/000200",
+    "bytes": 10076160
+  },
+  {
+    "type": 22,
+    "rows": 5120,
+    "k": 17408,
+    "object": "weight/000110",
+    "bytes": 28549120
+  },
+  {
+    "type": 22,
+    "rows": 6144,
+    "k": 5120,
+    "object": "weight/000438",
+    "bytes": 10076160
+  },
+  {
+    "type": 22,
+    "rows": 17408,
+    "k": 5120,
+    "object": "weight/000108",
+    "bytes": 28549120
+  },
+  {
+    "type": 22,
+    "rows": 248320,
+    "k": 5120,
+    "object": "weight/000069",
+    "bytes": 407244800
+  },
+  {
+    "type": 23,
+    "rows": 5120,
+    "k": 6144,
+    "object": "weight/000080",
+    "bytes": 16711680
+  },
+  {
+    "type": 23,
+    "rows": 5120,
+    "k": 17408,
+    "object": "weight/000529",
+    "bytes": 47349760
+  },
+  {
+    "type": 23,
+    "rows": 6144,
+    "k": 5120,
+    "object": "weight/000104",
+    "bytes": 16711680
+  },
+  {
+    "type": 23,
+    "rows": 17408,
+    "k": 5120,
+    "object": "weight/000238",
+    "bytes": 47349760
+  },
+  {
+    "type": 23,
+    "rows": 248320,
+    "k": 5120,
+    "object": "weight/000070",
+    "bytes": 675430400
+  }
+]

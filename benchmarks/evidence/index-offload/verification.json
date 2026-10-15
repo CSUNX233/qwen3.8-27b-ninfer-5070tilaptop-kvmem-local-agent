@@ -1,0 +1,10 @@
+{
+  "hardware": "RTX 5070 Ti Laptop 12GB, i7-14650HX, 32GB RAM, driver 617.14",
+  "change": "Mapped pinned FP32 mean-K sums/counts with one layer of stream-ordered device scoring scratch; CUDA math unchanged",
+  "index_bytes": 268697600,
+  "score_scratch_bytes": 16777216,
+  "saved_device_bytes": 251920384,
+  "build": "MSVC v143 14.44 portable official packages, CUDA 13.0 runtime headers; existing sm_120a CUDA archives retained",
+  "verification": "Independent represented BF16 decode and FP64 ordered-sum/softmax oracle; last logical block, partial completion, reset/reuse, bounds and graph replay checked",
+  "tests": "storage=device score_max_absolute_error=1.20925574e-10 mass=2.99999981\nstorage=device PASS: full capacity, partial append, graph replay, bounds, reset and reuse\nstorage=host score_max_absolute_error=1.20925574e-10 mass=3.00000005\nstorage=host PASS: full capacity, partial append, graph replay, bounds, reset and reuse\nkvmem_retrieve: kernel=onedot n_range=4096 shmem=32960 (ref=192 onedot=32960)\n"
+}

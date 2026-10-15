@@ -1,0 +1,61 @@
+{
+  "version": "0.1.0",
+  "archives": [
+    {
+      "id": "engine",
+      "name": "ninfer-5070ti-win-x64-sm120a-v0.1.0.zip",
+      "url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/download/v0.1.0/ninfer-5070ti-win-x64-sm120a-v0.1.0.zip",
+      "sha256": "c27fa44f8d4fba000a9577e35c8ab2d55ed55cc7d7c94dfb6a17d5d7d93dc867",
+      "files": [
+        {
+          "name": "ninfer-serve.exe",
+          "sha256": "940e68278ae91c60e7ed8e70fc495efec1686fb16b7362f0002d6498e609413d"
+        }
+      ]
+    },
+    {
+      "id": "cublas",
+      "name": "libcublas-windows-x86_64-13.0.0.19-archive.zip",
+      "url": "https://developer.download.nvidia.com/compute/cuda/redist/libcublas/windows-x86_64/libcublas-windows-x86_64-13.0.0.19-archive.zip",
+      "sha256": "c8fb12715b9639f51983315cc4b195e272128c675aa3766b13c4f470b892e6c8",
+      "files": [
+        {
+          "name": "cublas64_13.dll",
+          "sha256": "5d083083cdd613577496791dd96d00fe3a78c955684b53ca46a8ffa3e0b1e170"
+        },
+        {
+          "name": "cublasLt64_13.dll",
+          "sha256": "e1c26671801ecd435baf97c6e9cfe28196cf55005c2039356b48030b09ce5dd5"
+        }
+      ]
+    },
+    {
+      "id": "ffmpeg",
+      "name": "ffmpeg-N-127527-g045dea2a34-win64-lgpl-shared.zip",
+      "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-10-14-13-03/ffmpeg-N-127527-g045dea2a34-win64-lgpl-shared.zip",
+      "sha256": "b5d1ae0224e45ac0830ebb347ee30ee57db2025d869de4d5d09cfbd37093ba06",
+      "files": [
+        {
+          "name": "avcodec-63.dll",
+          "sha256": "2d93f8eb881348ebd85931547debe5b2db48dca3c0828f2bc695d13209157e53"
+        },
+        {
+          "name": "avformat-63.dll",
+          "sha256": "ee3da7ecc21cedd94f622777f2f84c9586b562b7d9fed111a32592bae9b43ed6"
+        },
+        {
+          "name": "avutil-61.dll",
+          "sha256": "89caf177516fbee5de53c98cbd2b0e616f333a886494cbcabb44e49e1847195d"
+        },
+        {
+          "name": "swresample-7.dll",
+          "sha256": "316490fe36d463c22f8b6e785a4de4f1559782682ced20880f509a3c06d8e979"
+        },
+        {
+          "name": "swscale-10.dll",
+          "sha256": "c81b29b50222becc754d6259408d07a5d7e6d25ede1a580c1d596546694be8e9"
+        }
+      ]
+    }
+  ]
+}

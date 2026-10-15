@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-13T11:09:28.665Z",
+  "model": "qwen3.8-27b-gsq-rco-iq3-xxs",
+  "tools": [
+    "web_search",
+    "web_fetch",
+    "mcp__browser__browser_open",
+    "mcp__browser__browser_action",
+    "mcp__browser__browser_action",
+    "mcp__browser__browser_evaluate",
+    "mcp__browser__browser_status"
+  ],
+  "toolCalls": 7,
+  "errors": 0,
+  "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11-32.0.101.6647)",
+  "historical_stage": true,
+  "note": "Original local dsh + model integration test. Not rerun as a throughput benchmark during publication."
+}

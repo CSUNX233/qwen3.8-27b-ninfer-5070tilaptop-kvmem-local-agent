@@ -1,0 +1,13 @@
+#include "runtime/engine/device_profiles_builtin.h"
+
+namespace ninfer::runtime {
+
+// Generated from src/runtime/engine/device_profiles.json at configure time. The table ships as a
+// run of adjacent raw string literals, which the preprocessor concatenates: MSVC cannot compile one
+// string literal longer than 16380 bytes (C2026).
+std::string_view compiled_device_route_profiles_json() {
+    return
+    @NINFER_DEVICE_PROFILES_CHUNKS@;
+}
+
+} // namespace ninfer::runtime

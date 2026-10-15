@@ -1,0 +1,448 @@
+{
+  "hardware": "RTX 5070 Ti Laptop 12GB / i7-14650HX / 32GB RAM",
+  "settings": "256K max-context, 36864 device KV, rk4v4, 7GiB Host KV, chunk128, MTP3, concurrency1",
+  "scratch": "16MiB serial; 32MiB prefetch; same 256.25MiB host F32 index",
+  "profiling": {
+    "serial-profile": {
+      "chunks": 507,
+      "copy_sum_ms": 1745.280128,
+      "exposed_sum_ms": 1767.938816,
+      "identical_input_warm_scoring_chunks": 0,
+      "history_32K_plus": {
+        "chunks": 251,
+        "median_copy_ms": 4.777504,
+        "median_exposed_ms": 4.821504
+      },
+      "history_56K_plus": {
+        "chunks": 59,
+        "median_copy_ms": 5.663712,
+        "median_exposed_ms": 5.707488
+      }
+    },
+    "prefetch-profile": {
+      "chunks": 507,
+      "copy_sum_ms": 1287.956288,
+      "exposed_sum_ms": 183.202336,
+      "identical_input_warm_scoring_chunks": 0,
+      "history_32K_plus": {
+        "chunks": 251,
+        "median_copy_ms": 3.786464,
+        "median_exposed_ms": 0.4472
+      },
+      "history_56K_plus": {
+        "chunks": 59,
+        "median_copy_ms": 4.739104,
+        "median_exposed_ms": 0.504576
+      }
+    }
+  },
+  "pairs": {
+    "profiled": {
+      "selected_page_chunks": 507,
+      "exact_pages": true,
+      "cases": {
+        "cold": {
+          "exact_messages": true,
+          "exact_usage": true,
+          "serial-profile": {
+            "prompt_tokens": 62002,
+            "cached_tokens": 0,
+            "output_tokens": 512,
+            "prefill_ms": 107025.3331,
+            "prefill_tps": 579.3207851272738,
+            "decode_tps": 76.35754715829411,
+            "ttft_ms": 107095.6672000002
+          },
+          "prefetch-profile": {
+            "prompt_tokens": 62002,
+            "cached_tokens": 0,
+            "output_tokens": 512,
+            "prefill_ms": 106030.45520000001,
+            "prefill_tps": 584.7565200304826,
+            "decode_tps": 79.13859421205721,
+            "ttft_ms": 106113.03969999972
+          }
+        },
+        "warm": {
+          "exact_messages": true,
+          "exact_usage": true,
+          "serial-profile": {
+            "prompt_tokens": 62002,
+            "cached_tokens": 61995,
+            "output_tokens": 512,
+            "prefill_ms": 93.14949999999999,
+            "prefill_tps": 75.14801475048176,
+            "decode_tps": 73.80938848199438,
+            "ttft_ms": 168.85950000050798
+          },
+          "prefetch-profile": {
+            "prompt_tokens": 62002,
+            "cached_tokens": 61995,
+            "output_tokens": 512,
+            "prefill_ms": 102.955,
+            "prefill_tps": 67.99086979748434,
+            "decode_tps": 77.22708051757378,
+            "ttft_ms": 205.81729999958043
+          }
+        },
+        "suffix-0": {
+          "exact_messages": true,
+          "exact_usage": true,
+          "serial-profile": {
+            "prompt_tokens": 62039,
+            "cached_tokens": 61995,
+            "output_tokens": 23,
+            "prefill_ms": 547.9462000000001,
+            "prefill_tps": 80.29985425576452,
+            "decode_tps": 97.52741406948208,
+            "ttft_ms": 620.1152000003276
+          },
+          "prefetch-profile": {
+            "prompt_tokens": 62039,
+            "cached_tokens": 61995,
+            "output_tokens": 23,
+            "prefill_ms": 563.5107,
+            "prefill_tps": 78.08192462006488,
+            "decode_tps": 98.45585418508985,
+            "ttft_ms": 634.1366999995444
+          }
+        },
+        "suffix-1": {
+          "exact_messages": true,
+          "exact_usage": true,
+          "serial-profile": {
+            "prompt_tokens": 64502,
+            "cached_tokens": 62061,
+            "output_tokens": 23,
+            "prefill_ms": 6395.9478,
+            "prefill_tps": 381.6478927485931,
+            "decode_tps": 123.12720719510625,
+            "ttft_ms": 6476.823500000137
+          },
+          "prefetch-profile": {
+            "prompt_tokens": 64502,
+            "cached_tokens": 62061,
+            "output_tokens": 23,
+            "prefill_ms": 6305.897599999999,
+            "prefill_tps": 387.0979446288503,
+            "decode_tps": 123.90143077993133,
+            "ttft_ms": 6387.635699999919
+          }
+        },
+        "suffix-2": {
+          "exact_messages": true,
+          "exact_usage": true,
+          "serial-profile": {
+            "prompt_tokens": 64545,
+            "cached_tokens": 64524,
+            "output_tokens": 23,
+            "prefill_ms": 187.1314,
+            "prefill_tps": 112.22061075800212,
+            "decode_tps": 126.01167326318685,
+            "ttft_ms": 246.60990000029415
+          },
+          "prefetch-profile": {
+            "prompt_tokens": 64545,
+            "cached_tokens": 64524,
+            "output_tokens": 23,
+            "prefill_ms": 185.8099,
+            "prefill_tps": 113.01873581547592,
+            "decode_tps": 123.17236012238853,
+            "ttft_ms": 266.2391000003481
+          }
+        }
+      },
+      "vram": {
+        "serial-profile": {
+          "peak_MiB": 11102.0,
+          "peak_temperature_C": 76.0
+        },
+        "prefetch-profile": {
+          "peak_MiB": 11116.0,
+          "peak_temperature_C": 77.0
+        }
+      }
+    },
+    "uninstrumented": {
+      "selected_page_chunks": 507,
+      "exact_pages": true,
+      "cases": {
+        "cold": {
+          "exact_messages": true,
+          "exact_usage": true,
+          "serial-plain": {
+            "prompt_tokens": 62002,
+            "cached_tokens": 0,
+            "output_tokens": 512,
+            "prefill_ms": 107576.3762,
+            "prefill_tps": 576.3533053458627,
+            "decode_tps": 77.04818773087975,
+            "ttft_ms": 107659.42950000043
+          },
+          "prefetch-plain": {
+            "prompt_tokens": 62002,
+            "cached_tokens": 0,
+            "output_tokens": 512,
+            "prefill_ms": 105677.7705,
+            "prefill_tps": 586.708062695172,
+            "decode_tps": 78.91521264615203,
+            "ttft_ms": 105763.88859999951
+          }
+        },
+        "warm": {
+          "exact_messages": true,
+          "exact_usage": true,
+          "serial-plain": {
+            "prompt_tokens": 62002,
+            "cached_tokens": 61995,
+            "output_tokens": 512,
+            "prefill_ms": 94.95009999999999,
+            "prefill_tps": 73.72293446768356,
+            "decode_tps": 75.6810632931692,
+            "ttft_ms": 173.11359999985143
+          },
+          "prefetch-plain": {
+            "prompt_tokens": 62002,
+            "cached_tokens": 61995,
+            "output_tokens": 512,
+            "prefill_ms": 108.6026,
+            "prefill_tps": 64.45517878945809,
+            "decode_tps": 77.00466152465403,
+            "ttft_ms": 189.1371000001527
+          }
+        },
+        "suffix-0": {
+          "exact_messages": true,
+          "exact_usage": true,
+          "serial-plain": {
+            "prompt_tokens": 62039,
+            "cached_tokens": 61995,
+            "output_tokens": 23,
+            "prefill_ms": 568.9701,
+            "prefill_tps": 77.33271045350186,
+            "decode_tps": 88.15646008535948,
+            "ttft_ms": 668.2744999998249
+          },
+          "prefetch-plain": {
+            "prompt_tokens": 62039,
+            "cached_tokens": 61995,
+            "output_tokens": 23,
+            "prefill_ms": 570.0204,
+            "prefill_tps": 77.19021985879803,
+            "decode_tps": 89.10775192887905,
+            "ttft_ms": 643.2165000005625
+          }
+        },
+        "suffix-1": {
+          "exact_messages": true,
+          "exact_usage": true,
+          "serial-plain": {
+            "prompt_tokens": 64502,
+            "cached_tokens": 62061,
+            "output_tokens": 23,
+            "prefill_ms": 6417.1242,
+            "prefill_tps": 380.3884612362653,
+            "decode_tps": 123.36582340518832,
+            "ttft_ms": 6504.130199999963
+          },
+          "prefetch-plain": {
+            "prompt_tokens": 64502,
+            "cached_tokens": 62061,
+            "output_tokens": 23,
+            "prefill_ms": 6298.2743,
+            "prefill_tps": 387.5664799165702,
+            "decode_tps": 123.92523027560972,
+            "ttft_ms": 6371.92480000067
+          }
+        },
+        "suffix-2": {
+          "exact_messages": true,
+          "exact_usage": true,
+          "serial-plain": {
+            "prompt_tokens": 64545,
+            "cached_tokens": 64524,
+            "output_tokens": 23,
+            "prefill_ms": 192.80829999999997,
+            "prefill_tps": 108.91647299416053,
+            "decode_tps": 122.89205217996535,
+            "ttft_ms": 267.1147999999448
+          },
+          "prefetch-plain": {
+            "prompt_tokens": 64545,
+            "cached_tokens": 64524,
+            "output_tokens": 23,
+            "prefill_ms": 184.4109,
+            "prefill_tps": 113.87613205076272,
+            "decode_tps": 127.4157593602802,
+            "ttft_ms": 242.54649999966205
+          }
+        }
+      },
+      "vram": {
+        "serial-plain": {
+          "peak_MiB": 11100.0,
+          "peak_temperature_C": 78.0
+        },
+        "prefetch-plain": {
+          "peak_MiB": 11116.0,
+          "peak_temperature_C": 78.0
+        }
+      }
+    }
+  },
+  "agent": {
+    "long_cases": [
+      "final-agent-long-0"
+    ],
+    "generated_tokens": 22528,
+    "all_four_codes_correct": true,
+    "tool-call": {
+      "usage": {
+        "completion_tokens": 20,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens": 84925,
+        "prompt_tokens_details": {
+          "cached_tokens": 84873
+        },
+        "total_tokens": 84945
+      },
+      "timings": {
+        "cache_n": 84873,
+        "draft_n": 15,
+        "draft_n_accepted": 15,
+        "predicted_ms": 205.7592,
+        "predicted_n": 20,
+        "predicted_per_second": 92.34095000369364,
+        "predicted_per_token_ms": 10.829431578947368,
+        "prompt_ms": 574.1783,
+        "prompt_n": 52,
+        "prompt_per_second": 90.56420279205953,
+        "prompt_per_token_ms": 11.041890384615385
+      },
+      "ttft_ms": 883.8585999992574
+    },
+    "tool-result": {
+      "usage": {
+        "completion_tokens": 47,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens": 84996,
+        "prompt_tokens_details": {
+          "cached_tokens": 84944
+        },
+        "total_tokens": 85043
+      },
+      "timings": {
+        "cache_n": 84944,
+        "draft_n": 51,
+        "draft_n_accepted": 33,
+        "predicted_ms": 536.5007,
+        "predicted_n": 47,
+        "predicted_per_second": 85.74080145654982,
+        "predicted_per_token_ms": 11.663058695652175,
+        "prompt_ms": 289.1147,
+        "prompt_n": 52,
+        "prompt_per_second": 179.85941219868792,
+        "prompt_per_token_ms": 5.559898076923077
+      },
+      "ttft_ms": 403.9520000005723
+    },
+    "followup-0": {
+      "usage": {
+        "completion_tokens": 47,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens": 85067,
+        "prompt_tokens_details": {
+          "cached_tokens": 85042
+        },
+        "total_tokens": 85114
+      },
+      "timings": {
+        "cache_n": 85042,
+        "draft_n": 42,
+        "draft_n_accepted": 42,
+        "predicted_ms": 297.779,
+        "predicted_n": 47,
+        "predicted_per_second": 154.4769778930012,
+        "predicted_per_token_ms": 6.473456521739131,
+        "prompt_ms": 225.8278,
+        "prompt_n": 25,
+        "prompt_per_second": 110.70381945889744,
+        "prompt_per_token_ms": 9.033112
+      },
+      "ttft_ms": 314.5812000002479
+    },
+    "followup-1": {
+      "usage": {
+        "completion_tokens": 47,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens": 85138,
+        "prompt_tokens_details": {
+          "cached_tokens": 85113
+        },
+        "total_tokens": 85185
+      },
+      "timings": {
+        "cache_n": 85113,
+        "draft_n": 42,
+        "draft_n_accepted": 42,
+        "predicted_ms": 297.9608,
+        "predicted_n": 47,
+        "predicted_per_second": 154.3827241704278,
+        "predicted_per_token_ms": 6.477408695652174,
+        "prompt_ms": 232.5604,
+        "prompt_n": 25,
+        "prompt_per_second": 107.49895511015633,
+        "prompt_per_token_ms": 9.302416
+      },
+      "ttft_ms": 342.74979999918287
+    },
+    "followup-2": {
+      "usage": {
+        "completion_tokens": 47,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens": 85209,
+        "prompt_tokens_details": {
+          "cached_tokens": 85184
+        },
+        "total_tokens": 85256
+      },
+      "timings": {
+        "cache_n": 85184,
+        "draft_n": 42,
+        "draft_n_accepted": 42,
+        "predicted_ms": 299.0557,
+        "predicted_n": 47,
+        "predicted_per_second": 153.81749954941503,
+        "predicted_per_token_ms": 6.5012108695652175,
+        "prompt_ms": 227.44629999999998,
+        "prompt_n": 25,
+        "prompt_per_second": 109.91605491054374,
+        "prompt_per_token_ms": 9.097852
+      },
+      "ttft_ms": 315.47349999982544
+    },
+    "peak_vram_MiB": 11120.0
+  },
+  "checks": {
+    "prefetch_test": "PASS",
+    "host_storage_test": "PASS",
+    "score_schedule_test": "PASS",
+    "context_store_test": "PASS"
+  },
+  "limitations": [
+    "Small paired runs on a laptop do not establish a universal speedup percentage.",
+    "CUDA event profiling changes host submission overhead; uninstrumented measurements are separate.",
+    "VRAM sampled every 0.5 seconds at integer MiB resolution.",
+    "Full 256K model inference is not covered by the 256K index-storage test."
+  ]
+}

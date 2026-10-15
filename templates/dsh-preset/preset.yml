@@ -1,0 +1,3 @@
+name: NInfer 5070 Ti Laptop 12GB · 256K KVMem
+description: Local Agent; 36K device KV, 7 GiB Host KV, compaction near 184320 tokens.
+order: 50

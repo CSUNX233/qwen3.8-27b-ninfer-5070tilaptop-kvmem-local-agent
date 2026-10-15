@@ -1,0 +1,134 @@
+--- a/src/ops/linear/gguf/ggml_bridge_vec.cuh
++++ b/src/ops/linear/gguf/ggml_bridge_vec.cuh
+@@ -1,7 +1,7 @@
+ #pragma once
+ 
+ // The vector kernel: products of a GGUF matrix with one to eight q8 activation columns. A warp owns
+-// two rows; lane l takes the 32-value slices l, l + 32, ... of each. Every slice of a row is decoded
++// a row group; lane l takes the 32-value slices l, l + 32, ... of each. Every slice of a row is decoded
+ // once into eight int8x4 words in value order (word i holds values 4i..4i+3) plus the factors of its
+ // type, then dotted with that slice of every column. The activation is planar: int8 values
+ // [columns][K] and one (d, sum of x) half2 per 32 values [columns][K / 32], ggml's q8_1 numbers.
+@@ -12,6 +12,7 @@
+ #include "ggml_bridge_internal.cuh"
+ 
+ #include <algorithm>
++#include <cstdlib>
+ 
+ namespace ninfer::ops::gguf::detail {
+ 
+@@ -456,16 +457,16 @@
+ 
+ // KS: the static K the slice loop unrolls over, or 0 for the runtime K. Fused: the weight is one
+ // [gate; up] parent and each output row is silu(gate row) * up row.
+-template <ggml_type type, int T, bool Fused, int KS>
+-__launch_bounds__(kVecWarps * 32) __global__ void kernel(VecArgs p) {
++template <ggml_type type, int T, bool Fused, int KS, int Warps = kVecWarps, int Rows = 2>
++__launch_bounds__(Warps * 32) __global__ void kernel(VecArgs p) {
+     using D                 = Decoder<type>;
+     constexpr int kTable    = D::kTableWords > 0 ? D::kTableWords : 4;
+     constexpr int kPerBlock = D::kBlockElems / 32;
+-    constexpr int kRows     = 2;
++    constexpr int kRows     = Fused ? 2 : Rows;
+     __shared__ __align__(16) std::uint32_t table[kTable];
+     if constexpr (D::kTableWords > 0) {
+         const std::uint32_t* src = D::table();
+-        for (int i = threadIdx.x; i < D::kTableWords; i += kVecWarps * 32) { table[i] = src[i]; }
++        for (int i = threadIdx.x; i < D::kTableWords; i += Warps * 32) { table[i] = src[i]; }
+         __syncthreads();
+     }
+     const int warp   = threadIdx.x >> 5;
+@@ -476,8 +477,8 @@
+     const std::int64_t lane_offset = std::int64_t(lane / kPerBlock) * D::kBlockBytes;
+     const int sub                  = lane % kPerBlock;
+ 
+-    for (int row0 = (blockIdx.x * kVecWarps + warp) * step; row0 < p.rows;
+-         row0 += gridDim.x * kVecWarps * step) {
++    for (int row0 = (blockIdx.x * Warps + warp) * step; row0 < p.rows;
++         row0 += gridDim.x * Warps * step) {
+         const std::uint8_t* rowp[kRows];
+         if constexpr (Fused) {
+             rowp[0] = p.weight + std::int64_t(row0) * p.row_bytes + lane_offset;
+@@ -550,24 +551,76 @@
+     }
+ }
+ 
+-template <ggml_type type, int T, bool Fused, int KS>
++template <ggml_type type, int T, bool Fused, int KS, int Warps = kVecWarps, int Rows = 2,
++          int Waves = 1>
+ void launch(const VecArgs& args, cudaStream_t stream) {
+     static const int resident = [] {
+         int blocks = 0;
+-        check(cudaOccupancyMaxActiveBlocksPerMultiprocessor(&blocks, kernel<type, T, Fused, KS>,
+-                                                            kVecWarps * 32, 0),
++        check(cudaOccupancyMaxActiveBlocksPerMultiprocessor(
++                  &blocks, kernel<type, T, Fused, KS, Warps, Rows>, Warps * 32, 0),
+               "vector occupancy");
+         return std::max(blocks, 1);
+     }();
+-    const int per_block = kVecWarps * (Fused ? 1 : 2);
++    const int per_block = Warps * (Fused ? 1 : Rows);
+     const int groups    = (args.rows + per_block - 1) / per_block;
+-    const int blocks    = std::min(groups, resident * device_facts().sm_count);
+-    kernel<type, T, Fused, KS><<<blocks, kVecWarps * 32, 0, stream>>>(args);
++    const int blocks    = std::min(groups, resident * device_facts().sm_count * Waves);
++    kernel<type, T, Fused, KS, Warps, Rows><<<blocks, Warps * 32, 0, stream>>>(args);
+     check(cudaGetLastError(), "vector product launch");
+ }
+ 
+ template <ggml_type type, int T, bool Fused>
+ void launch_k(const VecArgs& args, cudaStream_t stream) {
++    // Measured on the local 46-SM RTX 5070 Ti Laptop (sm120). Only launch geometry changes:
++    // each row retains the same slice accumulation and warp reduction, with no weight repack.
++    if constexpr ((type == GGML_TYPE_IQ2_S || type == GGML_TYPE_IQ3_XXS ||
++                   type == GGML_TYPE_Q2_K) && !Fused && (T == 1 || T == 4)) {
++        static const bool disabled = std::getenv("NINFER_VEC5070_DISABLE") != nullptr;
++        const auto& facts = device_facts();
++        if (!disabled && facts.cc == 1200 && facts.sm_count == 46) {
++            if constexpr (type == GGML_TYPE_IQ3_XXS && T == 4) {
++                if (args.k == 5120 && args.rows == 17408) {
++                    return launch<type, T, Fused, 5120, 4, 4>(args, stream);
++                }
++            }
++            if constexpr (type == GGML_TYPE_Q2_K) {
++                if constexpr (T == 4) {
++                    if (args.k == 5120 && args.rows == 17408) {
++                        return launch<type, T, Fused, 5120, 8, 4>(args, stream);
++                    }
++                } else {
++                    if (args.k == 17408 && args.rows == 5120) {
++                        return launch<type, T, Fused, 17408, 4, 4>(args, stream);
++                    }
++                }
++            }
++            if constexpr (type == GGML_TYPE_IQ2_S) {
++                if constexpr (T == 4) {
++                    if (args.k == 5120 && (args.rows == 17408 || args.rows == 6144)) {
++                        return launch<type, T, Fused, 5120, 8, 4>(args, stream);
++                    }
++                    if (args.k == 17408 && args.rows == 5120) {
++                        return launch<type, T, Fused, 17408, 8, 2>(args, stream);
++                    }
++                    if (args.k == 6144 && args.rows == 5120) {
++                        return launch<type, T, Fused, 6144, 8, 4>(args, stream);
++                    }
++                } else {
++                    if (args.k == 5120 && args.rows == 17408) {
++                        return launch<type, T, Fused, 5120, 2, 1, 2>(args, stream);
++                    }
++                    if (args.k == 5120 && args.rows == 6144) {
++                        return launch<type, T, Fused, 5120, 2, 1>(args, stream);
++                    }
++                    if (args.k == 17408 && args.rows == 5120) {
++                        return launch<type, T, Fused, 17408, 4, 4>(args, stream);
++                    }
++                    if (args.k == 6144 && args.rows == 5120) {
++                        return launch<type, T, Fused, 6144, 2, 1>(args, stream);
++                    }
++                }
++            }
++        }
++    }
+     if constexpr (kVecStaticK<type>) {
+         switch (args.k) {
+         case 5120: return launch<type, T, Fused, 5120>(args, stream);

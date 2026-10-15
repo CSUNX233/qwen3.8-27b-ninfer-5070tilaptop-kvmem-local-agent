@@ -1,0 +1,51 @@
+{
+  "recorded_at_utc": "2026-10-15T08:56:40.937986+00:00",
+  "purpose": "Validation of the isolated public deployment, not a new performance benchmark or a clean rebuild of every upstream test.",
+  "engine_sha256": "940e68278ae91c60e7ed8e70fc495efec1686fb16b7362f0002d6498e609413d",
+  "runtime_archive_sha256": "c27fa44f8d4fba000a9577e35c8ab2d55ed55cc7d7c94dfb6a17d5d7d93dc867",
+  "passed": [
+    "PowerShell parser: setup.ps1, start.ps1, stop.ps1 and scripts/common.ps1 after adding the per-checkout launch mutex.",
+    "Node syntax: six public integration/configuration .mjs files.",
+    "check-release.py: public relative document links, download hashes, pinned lockfile, candidate-file credential-pattern and size checks.",
+    "Engine --help and a full model launch using the public runtime directory and pinned LGPL FFmpeg shared DLLs.",
+    "FFmpeg avcodec_license() reports LGPL version 3 or later.",
+    "dsh and local-web dependencies installed with npm ci --ignore-scripts; fresh isolated DSH_HOME configured, patch version checked, dsh config dumped.",
+    "Combined engine / strict cache guard / dsh web launch on isolated ports; announced private login URL responds successfully.",
+    "benchmarks/run.py --mode smoke through the strict cache guard: arithmetic 11001177, structured read_file tool call, and correct GPU-STATE-7392 tool result.",
+    "setup.ps1 -SkipDsh verifies already-present hash-pinned engine/runtime files.",
+    "After launch mutex change: EngineOnly startup healthy, duplicate startup refused with the first instance remaining healthy, scoped stop and repeated stop succeed.",
+    "After testing, the three isolated test ports are closed; nvidia-smi reports 14 MiB GPU memory and 0 percent utilization.",
+    "Publication-owned files pass git diff --cached --check; inherited engine snapshots, upstream license text and evidence patch files retain original whitespace."
+  ],
+  "cached_tool_continuation": {
+    "prompt_tokens": 349,
+    "cached_tokens": 319,
+    "new_tokens": 30,
+    "correct_fixture_code": true
+  },
+  "pelican_demo": {
+    "path": "docs/demo/tihuriding.html",
+    "sha256": "502597cc593503149108be7e02bf8e9af13d8786e2916607626f7b4438b8e43d",
+    "matches_user_original_bytes": true,
+    "render_method": "Playwright page.setContent of reviewed self-contained HTML",
+    "svg_count": 1,
+    "animation_changed": true,
+    "page_errors": [],
+    "preview": "output/playwright/pelican-preview.png",
+    "reported_generation_minutes": 7,
+    "time_source": "Maintainer report; original generation was not rerun for publication."
+  },
+  "maintainer_observations": {
+    "context_200k": "Maintainer reports stable operation with no noticeable slowdown at 200K context and faster repeated tasks; controlled cold/warm per-stage timing logs were not supplied.",
+    "recommended_reasoning": "xhigh",
+    "foundation_credit": "Special thanks to Bilibili 0xFFFF7 for the provided foundation distribution and the infinite-loop fix.",
+    "dynamic_mtp": "Possible future decode improvement; not benchmarked or enabled in this preset."
+  },
+  "not_retested": [
+    "A complete clean CUDA build and all inherited upstream tests.",
+    "A complete 256K whole-model stress run.",
+    "The fresh network download branch of setup.ps1 for all runtime archives; the installed-file hash verification branch was executed.",
+    "Performance, long-context, browser tools and CPU-vision evidence from earlier optimization stages; those remain separately dated/scoped evidence.",
+    "Adaptive MTP throughput, quality and VRAM effects."
+  ]
+}

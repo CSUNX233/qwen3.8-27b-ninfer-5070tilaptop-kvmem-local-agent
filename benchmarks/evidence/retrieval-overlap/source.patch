@@ -1,0 +1,565 @@
+--- a/src/ops/kvmem/kvmem_score.h
++++ b/src/ops/kvmem/kvmem_score.h
+@@ -1,15 +1,14 @@
+ #pragma once
+ 
+-// KVMem 选择探针（**最小切片**）· 只做三件事：按 query 打分 → 选块 → 打一行证据日志
++// KVMem 内容检索：按 query 打分，发布两级选页所需的同一份历史分数与候选排名。
+ //
+ // 【它是什么】把已经在库里的三件套接上主路径的**第一刀**：
+ //     kvmem_retrieve（官方 KVMem 论文 Eq.10 的 query-conditioned 打分器）
+ //   → kvmem_select  （host：sink/recent 恒留 + 中段按分降序）
+ //   → 一行 fprintf（对齐官方实现的三口径：selected 非连续 / skip>0 / window≈budget）
+ //
+-// 【它不是什么】**不碰页表、不碰 cache position、不碰 attention envelope、不 arm 窗口**。
+-//   ⇒ 可见集不变、OFF 臂逐位不变、**不需要 re-RoPE**（那属于第二刀：见 kvmem_window.h 的 arming 前置）。
+-//   ⇒ 因此本探针**不会让任何答案变对或变错**，它只回答"选择器选得对不对"。
++// 页表和 KV 恢复仍由 Program 管理；这里发布的排名由 Program 的 ring 路径消费，会决定历史可见页。
++// 分数回传在索引追加前提交，只等待该份回传的事件；未打分的 chunk 保留上次发布的选择。
+ //
+ // 【开关】NINFER_TERNARY_KVMEM_SCORE=1（默认关）。OFF 臂：不分配、不启动、不读索引、不写日志。
+ //   ⚠️ 开关与 env 只在这个头文件里读（与 kvmem_shadow.h 同一条纪律：开关的读取点必须唯一）。
+@@ -34,15 +33,18 @@
+ //     token 当检索 query 打分（官方 kvmem_set_query_span 的等价物：query 是"问"，不是整段
+ //     ingest），MAXQ 的门限看 **span 长度**、不看 chunk 长度 —— 解掉"探针只在短 query chunk
+ //     上打分（skip long chunk tokens=1024 > MAXQ=256）"那块拦路石。默认 0 = 旧行为（逐位不变）。
+-//   * 本探针**不改可见集** ⇒ 它与"答案对不对"无关；要验证"被选中 ⇒ 真的进了 softmax"必须等第二刀。
++//   * 第一层同分优先新页，ring 第二层同分优先旧页；缓存排名不得混淆这两个规则。
+ 
+ #include "ops/kvmem/kvmem_retrieve_launch.h"
+ #include "ops/kvmem/kvmem_select.h"
+ #include "ops/kvmem/mean_k_index.h"
++#include "core/mapped_host_buffer.h"
+ 
+ #include <algorithm>
+ #include <cstdio>
+ #include <cstdlib>
++#include <cstring>
++#include <memory>
+ #include <vector>
+ 
+ #include <cuda_runtime.h>
+@@ -94,6 +96,12 @@
+     // host staging
+     std::vector<float>        score_host;
+     std::vector<std::int32_t> tokens_host;
++    // One pinned RAM staging allocation; no additional Device score allocation. The event is
++    // recorded BEFORE index append, so consuming scores need not wait for that independent work.
++    std::unique_ptr<MappedHostBuffer> score_readback;
++    cudaEvent_t score_ready = nullptr;
++    bool readback_pending = false;
++    KvMemPageRanking page_ranking;
+     // LOCAL (2026-10-02, the caller step): the block ids the last finish() selected, ASCENDING.
+     // This is what the ring consumes as its `preferred` set. It exists because this file used to be a
+     // probe that only LOGGED the selection ("本探针不改可见集"); a caller that reads it is the
+@@ -125,6 +133,21 @@
+     bool scored_this_chunk = false;        // 本 chunk 真的累加过（否则 finish 打出来的是全零假日志）
+     bool failed   = false;                 // 出过致命几何/分配错 ⇒ 之后一律不打分（但引擎继续跑）
+     bool logged_once = false;
++
++    // Drain a cancelled/failed round before reusing its single staging allocation. Normal rounds
++    // consume at their tail, before any query/history metadata can be changed by the next chunk.
++    void drain_readback() noexcept {
++        if (readback_pending) {
++            (void)cudaEventSynchronize(score_ready);
++            readback_pending = false;
++        }
++    }
++    ~KvMemScoreProbe() {
++        drain_readback();
++        if (score_ready != nullptr) { (void)cudaEventDestroy(score_ready); }
++        if (score != nullptr) { (void)cudaFree(score); }
++        if (block_tokens_dev != nullptr) { (void)cudaFree(block_tokens_dev); }
++    }
+ };
+ 
+ inline KvMemScoreProbe& kvmem_score_probe() {
+@@ -132,24 +155,12 @@
+     return probe;
+ }
+ 
+-// LOCAL (2026-10-02, the caller step): the block ids selected by the most recent kvmem_score_finish().
+-// ASCENDING (kvmem_select.h:30-33 -- never score order). Empty = no fresh selection, see the note on
+-// KvMemScoreProbe::kept. Read by ProgramImpl::select_retrieval_pages as the ring's `preferred` set.
+-inline const std::vector<std::int32_t>& kvmem_score_selected_blocks() noexcept {
+-    return kvmem_score_probe().kept;
+-}
+-
+-// The per-block scores behind that selection: index i is the score of block i (first_block is 0 at our
+-// single call site). Published because the ring's restore budget is SMALLER than the selector's
+-// default budget, so the caller has to rank the kept set again and take its top `budget` -- truncating
+-// the ascending id list would silently keep the OLDEST blocks instead of the best ones.
+-inline const std::vector<float>& kvmem_score_host_scores() noexcept {
+-    return kvmem_score_probe().score_host;
+-}
+-
+-// How many blocks the published scores describe ([0, n)). Zero = nothing to read.
+-inline std::int32_t kvmem_score_scored_blocks() noexcept {
+-    return kvmem_score_probe().scored_n_blocks;
++// Read the last published ranking without re-sorting the same scores at every ring mapping update.
++// Empty means the content path has no candidates in this range; Program retains its lexical fallback.
++inline std::vector<std::uint32_t> kvmem_score_retrieval_pages(std::uint32_t begin,
++                                                            std::uint32_t end,
++                                                            std::uint32_t budget) {
++    return kvmem_score_probe().page_ranking.select(begin, end, budget);
+ }
+ 
+ // ---- ①b 绝对 query span（D-12, 2026-10-02）------------------------------------------------------
+@@ -192,6 +203,7 @@
+     if (!kvmem_score_enabled()) { return; }
+     KvMemScoreProbe& p = kvmem_score_probe();
+     if (p.failed) { return; }
++    p.drain_readback();
+ 
+     // LOCAL (D-12, 2026-10-02): a round that ends up NOT scoring -- because its chunk does not contain
+     // the query span (see kvmem_score_accumulate) -- must not leave the PREVIOUS round's selection
+@@ -224,6 +236,18 @@
+         p.capacity_blocks = requested_capacity;
+         p.score_host.assign(static_cast<std::size_t>(requested_capacity), 0.0F);
+         p.tokens_host.assign(static_cast<std::size_t>(requested_capacity), 0);
++        try {
++            p.score_readback = std::make_unique<MappedHostBuffer>(bytes);
++        } catch (const std::exception& error) {
++            std::fprintf(stderr, "kvmem_score: pinned readback allocation failed: %s\n", error.what());
++            kvmem_score_fail("pinned readback");
++            return;
++        }
++        if (p.score_ready == nullptr &&
++            cudaEventCreateWithFlags(&p.score_ready, cudaEventDisableTiming) != cudaSuccess) {
++            kvmem_score_fail("readback event");
++            return;
++        }
+         std::fprintf(stderr, "kvmem_score: ARMED capacity_blocks=%d layers_total=%d heads=%d kv_heads=%d "
+                              "head_dim=%d\n", requested_capacity, layers_total, n_heads, n_kv_heads, head_dim);
+     }
+@@ -416,46 +440,57 @@
+ 
+ // ---- ③ chunk 收尾：D2H + 选块 + 一行证据日志 ---------------------------------------------------
+ //
+-// 放在与本文件同类的位置：prefill chunk 的尾巴、**任何捕获之外**（现有 kvmem_index 探针就在那儿
+-// 做 cudaMemcpyAsync + cudaStreamSynchronize，理由照抄它：一次同步换一个外部可核的数）。
++// 在 prefill chunk 尾部、CUDA Graph 捕获之外提交。先记录回传完成事件，再提交同 stream 的索引追加。
+ //
+ // 免 oracle 自检：契约保证 `sum_b score[b] == n_query_tokens`（与带掩码与否无关）⇒ sum_score 就是
+ // 内置 oracle。对不上说明打分器没跑、跑了半截、或几何配错 —— 三种都得当场喊出来。
+-inline void kvmem_score_finish(const char* label, std::int32_t query_tokens,
+-                               cudaStream_t stream) noexcept {
++inline void kvmem_score_submit_readback(cudaStream_t stream) noexcept {
+     if (!kvmem_score_enabled()) { return; }
+     KvMemScoreProbe& p = kvmem_score_probe();
+     if (!p.armed || p.failed || p.n_blocks <= 0) { return; }
+     p.armed = false;
+     if (!p.scored_this_chunk) { return; }   // 本 chunk 没打过（如长 ingest）⇒ 不打印全零假日志
+-    // ★ 出处登记（2026-09-26 语义档的准入闸）：这份分数描述块 [0, n_blocks)，且来自**最近一个
+-    //   chunk 的 query**。语义档只在 scored_last_chunk 为真时才用它装窗（宁可退压力档，也不装
+-    //   一个来路不明的窗）。
+-    p.scored_n_blocks   = p.n_blocks;
+-    p.scored_last_chunk = true;
+     // DIAGNOSTIC ONLY (NINFER_KVMEM_PROF, never set in production): stop before the per-chunk
+     // D2H + cudaStreamSynchronize + host-side selection so that tail can be timed in isolation.
+     if (std::getenv("NINFER_KVMEM_PROF") != nullptr) { return; }
++    const std::size_t bytes = static_cast<std::size_t>(p.n_blocks) * sizeof(float);
++    if (cudaMemcpyAsync(p.score_readback->host_data(), p.score, bytes, cudaMemcpyDeviceToHost, stream) !=
++        cudaSuccess) {
++        kvmem_score_fail("score D2H");
++        return;
++    }
++    if (cudaEventRecord(p.score_ready, stream) != cudaSuccess) {
++        // The copy was submitted but has no usable fence. Drain it before any storage is released.
++        (void)cudaStreamSynchronize(stream);
++        kvmem_score_fail("readback event record");
++        return;
++    }
++    p.readback_pending = true;
++}
++
++// Consumed within the same round, after index work has been submitted. Nothing can overwrite the
++// score buffers or query metadata between submit and consumption. Only this result's event is waited
++// on; index append remains ordered on the original stream for its next GPU consumer.
++inline void kvmem_score_finish(const char* label) noexcept {
++    KvMemScoreProbe& p = kvmem_score_probe();
++    if (!p.readback_pending || p.failed) { return; }
++    if (cudaEventSynchronize(p.score_ready) != cudaSuccess) {
++        p.readback_pending = false;
++        kvmem_score_fail("readback event wait");
++        return;
++    }
++    p.readback_pending = false;
++    std::memcpy(p.score_host.data(), p.score_readback->host_data(),
++                static_cast<std::size_t>(p.n_blocks) * sizeof(float));
+     const std::int32_t q_used = p.query_span_tokens > 0 ? p.query_span_tokens : p.chunk_tokens;
+ 
+-    // 选块的带（只影响这一行日志；本探针不改可见集 ⇒ 不改变引擎行为）。
++    // 第一层的原有预算；ring 使用更小的恢复预算时从同一份候选排名筛选。
+     // 默认取"小预算"以便**逼出选择**：budget 32768 / sink 4096 / recent 0（官方那台仪器用的就是这组）。
+     const std::int32_t budget_tokens = kvmem_score_env_i32("NINFER_TERNARY_KVMEM_SCORE_BUDGET", 32768);
+     const std::int32_t sink_tokens   = kvmem_score_env_i32("NINFER_TERNARY_KVMEM_SCORE_SINK", 4096);
+     const std::int32_t recent_tokens = std::getenv("NINFER_TERNARY_KVMEM_SCORE_RECENT") != nullptr
+                                            ? kvmem_score_env_i32("NINFER_TERNARY_KVMEM_SCORE_RECENT", 0)
+                                            : 0;
+-
+-    const std::size_t bytes = static_cast<std::size_t>(p.n_blocks) * sizeof(float);
+-    if (cudaMemcpyAsync(p.score_host.data(), p.score, bytes, cudaMemcpyDeviceToHost, stream) !=
+-        cudaSuccess) {
+-        kvmem_score_fail("score D2H");
+-        return;
+-    }
+-    if (cudaStreamSynchronize(stream) != cudaSuccess) {
+-        kvmem_score_fail("sync");
+-        return;
+-    }
+ 
+     double sum_score = 0.0;
+     for (std::int32_t i = 0; i < p.n_blocks; ++i) { sum_score += static_cast<double>(p.score_host[i]); }
+@@ -470,6 +505,9 @@
+     // selector returns and only when this chunk really scored, so a failed/skipped round leaves the
+     // previous selection intact instead of emptying it.
+     p.kept = sel.kept;
++    p.page_ranking.update(p.kept, p.score_host, p.n_blocks);
++    p.scored_n_blocks   = p.n_blocks;
++    p.scored_last_chunk = true;
+ 
+     // 选择结构的形状（这是判据的核心：非连续 ⇒ 真在选择）
+     std::int32_t runs = 0;
+--- a/src/ops/kvmem/kvmem_select.h
++++ b/src/ops/kvmem/kvmem_select.h
+@@ -51,6 +51,8 @@
+ #include <cstddef>
+ #include <cstdint>
+ #include <vector>
++#include <span>
++#include <utility>
+ 
+ namespace ninfer::ops {
+ 
+@@ -99,4 +101,21 @@
+                                                      const float*             scores,
+                                                      std::int32_t             first_block);
+ 
++// The ring has a smaller budget than the first selector. Its existing tie rule is OLDER page
++// first, unlike the first selector's NEWER-block rule. Build this ranking once per published score
++// snapshot; each consumer filters its range BEFORE applying the ring budget.
++class KvMemPageRanking {
++public:
++    void update(std::span<const std::int32_t> kept, std::span<const float> scores,
++                std::int32_t scored_blocks);
++    [[nodiscard]] std::vector<std::uint32_t> select(std::uint32_t begin, std::uint32_t end,
++                                                   std::uint32_t budget) const;
++
++private:
++    std::vector<std::pair<float, std::uint32_t>> ranked_;
++    // The old ring comparator does not define a total order for NaN. Preserve its range-local
++    // behavior in that exceptional case rather than changing page selection in a scheduling patch.
++    bool cacheable_ = true;
++};
++
+ } // namespace ninfer::ops
+--- a/src/ops/kvmem/kvmem_select.cpp
++++ b/src/ops/kvmem/kvmem_select.cpp
+@@ -172,4 +172,50 @@
+     return out;
+ }
+ 
++void KvMemPageRanking::update(std::span<const std::int32_t> kept, std::span<const float> scores,
++                              std::int32_t scored_blocks) {
++    ranked_.clear();
++    ranked_.reserve(kept.size());
++    cacheable_ = true;
++    for (const std::int32_t block : kept) {
++        if (block < 0 || block >= scored_blocks || static_cast<std::size_t>(block) >= scores.size()) {
++            continue;
++        }
++        const float score = scores[static_cast<std::size_t>(block)];
++        cacheable_ = cacheable_ && !std::isnan(score);
++        ranked_.emplace_back(score, static_cast<std::uint32_t>(block));
++    }
++    if (cacheable_) {
++        std::sort(ranked_.begin(), ranked_.end(), [](const auto& left, const auto& right) {
++            return left.first != right.first ? left.first > right.first : left.second < right.second;
++        });
++    }
++}
++
++std::vector<std::uint32_t> KvMemPageRanking::select(std::uint32_t begin, std::uint32_t end,
++                                                  std::uint32_t budget) const {
++    std::vector<std::uint32_t> selected;
++    if (budget == 0 || end <= begin) { return selected; }
++    selected.reserve(std::min<std::size_t>(budget, ranked_.size()));
++    if (cacheable_) {
++        for (const auto& entry : ranked_) {
++            if (entry.second < begin || entry.second >= end) { continue; }
++            selected.push_back(entry.second);
++            if (selected.size() == budget) { break; }
++        }
++    } else {
++        std::vector<std::pair<float, std::uint32_t>> filtered;
++        for (const auto& entry : ranked_) {
++            if (entry.second >= begin && entry.second < end) { filtered.push_back(entry); }
++        }
++        std::sort(filtered.begin(), filtered.end(), [](const auto& left, const auto& right) {
++            return left.first != right.first ? left.first > right.first : left.second < right.second;
++        });
++        if (filtered.size() > budget) { filtered.resize(budget); }
++        for (const auto& entry : filtered) { selected.push_back(entry.second); }
++    }
++    std::sort(selected.begin(), selected.end());
++    return selected;
++}
++
+ } // namespace ninfer::ops
+--- a/src/models/qwen3_5/execution/text.cpp
++++ b/src/models/qwen3_5/execution/text.cpp
+@@ -1709,6 +1709,10 @@
+ 
+     prefill_split_frontier_ = -1;
+ 
++    // Fold the small pinned D2H into this already-required prefill drain. Scores describe the
++    // pre-append history; the index is appended later, in kvmem_round_end(). No extra GPU round trip
++    // is needed between the existing synchronization and host selection.
++    ops::detail::kvmem_score_submit_readback(ctx_.stream);
+     timing.begin_wait();
+     ctx_.synchronize();
+     timing.end_wait();
+@@ -1823,13 +1827,14 @@
+     const std::int32_t capacity_blocks = static_cast<std::int32_t>(
+         batch_text_kv_->max_context() / static_cast<std::uint32_t>(kPagedKVPageSize));
+     ops::MeanKIndex* index = ops::mean_k_index_for(layers, kv_heads, head_dim, capacity_blocks);
++    // The score readback was queued before prefill's mandatory drain. Queue independent index
++    // append now; host selection waits only for the earlier readback event.
+     if (index != nullptr) {
+         const std::int32_t round_first_block =
+             static_cast<std::int32_t>(text_kv_base_ / static_cast<std::uint32_t>(kPagedKVPageSize));
+         index->append_round(*harvest, round_first_block, ctx_.stream);
+     }
+-    // D2H + sync + selection, at the chunk tail and outside any capture (the glue's own contract).
+-    ops::detail::kvmem_score_finish("text_prefill_chunk", kvmem_round_width_, ctx_.stream);
++    ops::detail::kvmem_score_finish("text_prefill_chunk");
+     // Clear the process-wide hook state as well: this card is done with the round, and the static in
+     // attention.cpp must not describe a round that no longer exists (a later pass would otherwise see
+     // a stale armed width -- the mismatch that crashed the worker on turn 2, 2026-10-02).
+--- a/src/models/qwen3_5/program/storage/context.cpp
++++ b/src/models/qwen3_5/program/storage/context.cpp
+@@ -1734,38 +1734,15 @@
+     // lexical dependence is the measured defect: with the IDF path below, a question that is
+     // semantically the same but lexically disjoint lost the mid-prompt needle in 2 of 6 trials.
+     //
+-    // The ring's restore budget is smaller than the selector's own budget, so the kept set is ranked
+-    // again here and cut to `budget`; ids are ascending by contract (kvmem_select.h).
++    // The ring's restore budget is smaller than the selector's own budget. Reuse the cached second
++    // ranking, filter [begin,end), take `budget`, then emit ascending page ids (kvmem_select.h).
+     //
+     // Everything below stays untouched and is the fallback -- and also this change's NEGATIVE CONTROL:
+     // with NINFER_TERNARY_KVMEM_SCORE unset nothing is published, this block is skipped, and the
+     // engine must reproduce the old readings exactly (the disjoint arm goes back to its pre-fix 4/6).
+     {
+-        const std::vector<std::int32_t>& kept = ops::detail::kvmem_score_selected_blocks();
+-        const std::vector<float>& scores     = ops::detail::kvmem_score_host_scores();
+-        const std::int32_t scored            = ops::detail::kvmem_score_scored_blocks();
+-        if (!kept.empty() && scored > 0 && !scores.empty()) {
+-            std::vector<std::pair<float, std::uint32_t>> ranked;
+-            ranked.reserve(kept.size());
+-            for (const std::int32_t block : kept) {
+-                if (block < 0 || block >= scored) { continue; }
+-                const std::uint32_t page = static_cast<std::uint32_t>(block);
+-                if (page < begin || page >= end) { continue; }
+-                if (static_cast<std::size_t>(block) >= scores.size()) { continue; }
+-                ranked.emplace_back(scores[static_cast<std::size_t>(block)], page);
+-            }
+-            if (!ranked.empty()) {
+-                std::sort(ranked.begin(), ranked.end(), [](const auto& left, const auto& right) {
+-                    return left.first != right.first ? left.first > right.first
+-                                                     : left.second < right.second;
+-                });
+-                if (ranked.size() > budget) { ranked.resize(budget); }
+-                selected.reserve(ranked.size());
+-                for (const auto& entry : ranked) { selected.push_back(entry.second); }
+-                std::sort(selected.begin(), selected.end());
+-                return selected;
+-            }
+-        }
++        selected = ops::detail::kvmem_score_retrieval_pages(begin, end, budget);
++        if (!selected.empty()) { return selected; }
+     }
+     // The ledger is only needed by the lexical fallback below; an empty ledger is not a reason to skip
+     // the content path (which reads the index, not the ledger).
+--- a/tests/ops/tests.cmake
++++ b/tests/ops/tests.cmake
+@@ -1,4 +1,5 @@
+ set(ninfer_op_tests
++  kvmem_score_schedule
+   add_bias
+   gelu
+   hadamard_transform
+--- a/tests/ops/test_kvmem_score_schedule.cpp
++++ b/tests/ops/test_kvmem_score_schedule.cpp
+@@ -0,0 +1,170 @@
++#include "ops/kvmem/kvmem_score.h"
++#include "core/device.h"
++#include "core/paged_kv_cache.h"
++
++#include <atomic>
++#include <chrono>
++#include <cmath>
++#include <cstdio>
++#include <limits>
++#include <numeric>
++#include <random>
++#include <stdexcept>
++#include <thread>
++
++using namespace ninfer;
++using namespace ninfer::ops;
++using namespace ninfer::ops::detail;
++
++namespace {
++void require(bool condition, const char* message) {
++    if (!condition) { throw std::runtime_error(message); }
++}
++
++// Independent membership oracle: a candidate is selected iff fewer than budget in-range
++// candidates precede it under the ring's score-descending / page-ascending total order.
++std::vector<std::uint32_t> oracle(std::span<const std::int32_t> kept,
++                                  std::span<const float> scores, int scored,
++                                  std::uint32_t begin, std::uint32_t end, std::uint32_t budget) {
++    std::vector<std::uint32_t> out;
++    auto valid = [&](int b) {
++        return b >= 0 && b < scored && static_cast<std::size_t>(b) < scores.size() &&
++               static_cast<std::uint32_t>(b) >= begin && static_cast<std::uint32_t>(b) < end;
++    };
++    if (budget == 0 || end <= begin) { return out; }
++    for (int b : kept) {
++        if (!valid(b)) { continue; }
++        std::uint32_t preceding = 0;
++        for (int other : kept) {
++            if (valid(other) && (scores[other] > scores[b] ||
++                                  (scores[other] == scores[b] && other < b))) { ++preceding; }
++        }
++        if (preceding < budget) { out.push_back(static_cast<std::uint32_t>(b)); }
++    }
++    std::sort(out.begin(), out.end());
++    return out;
++}
++
++void test_ranking() {
++    KvMemPageRanking ranking;
++    std::mt19937 rng(741);
++    std::size_t checks = 0;
++    for (int size : {0, 1, 7, 64, 512, 4096}) {
++        std::vector<float> scores(size);
++        std::vector<int> kept;
++        for (int round = 0; round < 5; ++round) {
++            kept.clear();
++            for (int b = 0; b < size; ++b) {
++                scores[b] = round == 0 ? 0.0f : float(int(rng() % 23) - 11);
++                if (round == 2 && b % 67 == 0) { scores[b] = -INFINITY; }
++                if (round == 3 && b % 71 == 0) { scores[b] = INFINITY; }
++                if (b % 3 != 1 || round == 0) { kept.push_back(b); }
++            }
++            kept.insert(kept.begin(), -1);
++            kept.push_back(size + 11);
++            ranking.update(kept, scores, size);
++            for (std::uint32_t begin : {0U, std::uint32_t(size / 4), std::uint32_t(size)}) {
++                for (std::uint32_t end : {0U, std::uint32_t(size * 3 / 4), std::uint32_t(size + 5)}) {
++                    for (std::uint32_t budget : {0U, 1U, 60U, 512U, 5000U}) {
++                        require(ranking.select(begin, end, budget) == oracle(kept, scores, size, begin, end, budget),
++                                "cached ranking disagrees with independent membership oracle");
++                        ++checks;
++                    }
++                }
++            }
++        }
++    }
++    // Explicit opposing tie rules: first stage keeps the NEWER middle page; ring picks OLDER.
++    std::vector<float> flat(8, 0);
++    auto first = kvmem_select_blocks({3, 1, 0, 8}, flat.data(), 0);
++    require(first.kept == std::vector<int>({0, 6, 7}), "first-stage tie direction changed");
++    ranking.update(first.kept, flat, 8);
++    require(ranking.select(0, 8, 1) == std::vector<std::uint32_t>({0}), "ring tie direction changed");
++    // Invalid/absent score slots must not enter the range or displace a scored page.
++    ranking.update(std::vector<int>{0, 2, 7, -1, 20}, std::vector<float>{4, 8, 2}, 8);
++    require(ranking.select(0, 8, 8) == std::vector<std::uint32_t>({0, 2}), "absent score handling changed");
++    ranking.update({}, {}, 0);
++    require(ranking.select(0, 4096, 60).empty(), "new empty snapshot retained stale ranking");
++    std::printf("ranking: %zu independent oracle cases, tie/range/missing-score boundaries OK\n", checks);
++}
++
++struct Delay {
++    std::atomic<bool> release{false};
++    std::atomic<bool> timed_out{false};
++};
++void CUDART_CB delayed_append(void* opaque) {
++    auto& delay = *static_cast<Delay*>(opaque);
++    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(3);
++    while (!delay.release.load()) {
++        if (std::chrono::steady_clock::now() >= deadline) { delay.timed_out = true; break; }
++        std::this_thread::sleep_for(std::chrono::milliseconds(1));
++    }
++}
++
++void test_schedule() {
++#ifdef _WIN32
++    _putenv_s("NINFER_TERNARY_KVMEM_SCORE", "1");
++#else
++    setenv("NINFER_TERNARY_KVMEM_SCORE", "1", 1);
++#endif
++    DeviceContext device;
++    auto& p = kvmem_score_probe();
++    std::vector<float> scores(4096);
++    for (int i = 0; i < 4096; ++i) { scores[i] = float(i % 101) / 101.0f; }
++    const double mass = std::accumulate(scores.begin(), scores.end(), 0.0);
++    for (float& score : scores) { score *= static_cast<float>(3.0 / mass); }
++    kvmem_score_begin(4096, 4096, 17, kPagedKVPageSize, 16, 24, 4, 256, device.stream);
++    cudaPointerAttributes attributes{};
++    CUDA_CHECK(cudaPointerGetAttributes(&attributes, p.score_readback->host_data()));
++    require(attributes.type == cudaMemoryTypeHost, "readback is not pinned Host storage");
++    CUDA_CHECK(cudaMemcpyAsync(p.score, scores.data(), scores.size() * sizeof(float),
++                               cudaMemcpyHostToDevice, device.stream));
++    p.scored_this_chunk = true;
++    p.query_span_tokens = 3;
++    kvmem_score_submit_readback(device.stream);
++    Delay delay;
++    CUDA_CHECK(cudaLaunchHostFunc(device.stream, delayed_append, &delay));
++    const auto started = std::chrono::steady_clock::now();
++    kvmem_score_finish("schedule_test");
++    const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
++    delay.release = true;
++    CUDA_CHECK(cudaStreamSynchronize(device.stream));
++    require(!delay.timed_out, "score consumption waited for work AFTER its readback event");
++    require(p.score_host == scores, "score publication read incomplete or wrong snapshot");
++    const auto expected = kvmem_select_blocks({512, 64, 0, 4096}, scores.data(), 0);
++    require(p.kept == expected.kept, "first selector changed during score publication");
++    require(kvmem_score_retrieval_pages(192, 3000, 60) == oracle(p.kept, scores, 4096, 192, 3000, 60),
++            "second selector changed during score publication");
++    const auto inherited = p.kept;
++    const auto inherited_ring = kvmem_score_retrieval_pages(192, 3000, 60);
++    // Unscored chunks must preserve the previously published snapshot.
++    kvmem_score_begin(4096, 3000, 17, kPagedKVPageSize, 16, 24, 4, 256, device.stream);
++    kvmem_score_submit_readback(device.stream);
++    kvmem_score_finish("unscored_test");
++    require(p.kept == inherited && kvmem_score_retrieval_pages(192, 3000, 60) == inherited_ring,
++            "unscored chunk lost inherited retrieval selection");
++    // A cancelled round is drained before staging reuse, and is never published as a fresh query.
++    kvmem_score_begin(4096, 3000, 17, kPagedKVPageSize, 16, 24, 4, 256, device.stream);
++    p.scored_this_chunk = true;
++    kvmem_score_submit_readback(device.stream);
++    require(p.readback_pending, "test did not enqueue cancelled snapshot");
++    kvmem_score_begin(4096, 2000, 31, kPagedKVPageSize, 16, 24, 4, 256, device.stream);
++    require(!p.readback_pending && p.kept == inherited &&
++            kvmem_score_retrieval_pages(192, 3000, 60) == inherited_ring,
++            "cancelled snapshot contaminated published selection");
++    CUDA_CHECK(cudaStreamSynchronize(device.stream));
++    std::printf("schedule: pinned RAM, event-before-append, inherited/cancelled snapshots OK (consume %.3f ms)\n", ms);
++}
++}
++
++int main() {
++    try {
++        test_ranking();
++        test_schedule();
++        std::puts("OK");
++        return 0;
++    } catch (const std::exception& error) {
++        std::fprintf(stderr, "%s\n", error.what());
++        return 1;
++    }
++}

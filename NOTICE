@@ -1,0 +1,39 @@
+NInfer RTX 5070 Ti Laptop KVMem Local Agent distribution
+Maintainer and local integration: CSUNX233 (2026)
+https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent
+
+Special thanks: Bilibili creator 0xFFFF7 provided the foundation distribution
+downloaded by this project's maintainer and resolved the reported infinite-loop
+issue. This downstream publication builds on that work and retains wider
+upstream authorship. Attribution supplied by the maintainer.
+
+This is a downstream distribution of NInfer and NInfer-all, not an original
+implementation of their engine, models, quantization or KVMem design.
+
+NInfer: Neroued and contributors — https://github.com/Neroued/ninfer
+Immediate source line: iamwavecut/ninfer-all — https://github.com/iamwavecut/ninfer-all
+The inherited source README and CONTRIBUTORS retain the wider fork authorship.
+KVMem integration: 沈三殊 / shensanshu,
+https://modelscope.cn/models/shensanshu/ninfer-master-shensanshu-kvmem
+Windows/share-bundle fixes: original NInfer2-Share-C distributor, identified
+as "chatbox" in its accompanying modification records.
+
+Local downstream changes include Host RAM retrieval indexing, asynchronous
+retrieval transfer/prefetch, cache takeover and page-lifetime repairs, selected
+46-SM cc1200 quantized matrix launch schedules, and portable deployment tools.
+See docs/MODIFICATIONS.md and SOURCE_PROVENANCE.json.
+
+DeepSeek Harness / dsh: Copyright (c) 2026 DeepSeek, MIT.
+Modified dsh files retain MIT terms; copies are in licenses/.
+Vendored engine components retain their individual license/notice files
+under engine/third_party/. Do not remove those notices when redistributing.
+
+Model authors: Qwen; GSQ-RCO quantization: ISTA-DASLab.
+Model weights are not included. Model and tokenizer licenses apply separately.
+NVIDIA CUDA/cuBLAS and Microsoft runtimes are external dependencies under their
+respective terms. FFmpeg LGPL shared runtime is downloaded from BtbN directly;
+the working installation's GPL FFmpeg DLLs are not part of this distribution.
+
+Original git history was not available in the received share bundle. This
+repository starts a new downstream history and does not claim to reconstruct
+or replace upstream commits or contributor identities.

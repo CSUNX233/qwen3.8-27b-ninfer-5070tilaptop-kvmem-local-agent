@@ -1,0 +1,45 @@
+{
+  "source": "Local NInfer2-Share-C / NInfer2-retrieval snapshot",
+  "upstream": "https://github.com/iamwavecut/ninfer-all",
+  "upstream_base_reported_by_bundle": "v0.11.0-rtx3090; KVMem integration reference 65dbd4f2",
+  "original_git_history_available": false,
+  "engine_binary_sha256": "940e68278ae91c60e7ed8e70fc495efec1686fb16b7362f0002d6498e609413d",
+  "copy_count": 2407,
+  "locally_recorded_modified_files": [
+    "docs/serving.md",
+    "src/core/CMakeLists.txt",
+    "src/core/mapped_host_buffer.cpp",
+    "src/core/mapped_host_buffer.h",
+    "src/models/qwen3_5/execution/text.cpp",
+    "src/models/qwen3_5/program/planning/request_plan.cpp",
+    "src/models/qwen3_5/program/storage/context.cpp",
+    "src/models/qwen3_5/program/storage/kv_store.h",
+    "src/models/qwen3_5/program/transactions/materialization.cpp",
+    "src/ops/kvmem/kvmem_score.h",
+    "src/ops/kvmem/kvmem_select.cpp",
+    "src/ops/kvmem/kvmem_select.h",
+    "src/ops/kvmem/mean_k_index.cpp",
+    "src/ops/kvmem/mean_k_index.h",
+    "src/ops/linear/gguf/ggml_bridge_vec.cuh",
+    "tests/models/qwen3_5/test_context_store.cpp",
+    "tests/ops/test_kvmem_score_schedule.cpp",
+    "tests/ops/test_mean_k_host_storage.cpp",
+    "tests/ops/test_mean_k_prefetch.cpp",
+    "tests/ops/tests.cmake"
+  ],
+  "excluded": [
+    "models/weights",
+    "build outputs",
+    "private sessions/credentials",
+    "eval/corpora",
+    "author-specific agent instructions",
+    "backups",
+    "profiling logs"
+  ],
+  "foundation_distribution_credit": {
+    "creator": "0xFFFF7",
+    "platform": "Bilibili",
+    "contribution": "Provided the foundation distribution downloaded by the maintainer and resolved the reported infinite-loop issue.",
+    "source": "Maintainer attribution supplied for this publication; not a claim of sole upstream authorship."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "finish_reason": "stop",
+  "usage": {
+    "completion_tokens": 19,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 349,
+    "prompt_tokens_details": {
+      "cached_tokens": 319
+    },
+    "total_tokens": 368
+  },
+  "timings": {
+    "cache_n": 319,
+    "draft_n": 15,
+    "draft_n_accepted": 14,
+    "predicted_ms": 185.3176,
+    "predicted_n": 19,
+    "predicted_per_second": 97.13054777312031,
+    "predicted_per_token_ms": 10.295422222222221,
+    "prompt_ms": 142.67430000000002,
+    "prompt_n": 30,
+    "prompt_per_second": 210.26912345110503,
+    "prompt_per_token_ms": 4.75581
+  },
+  "message": {
+    "role": "assistant",
+    "content": "The code in verification.txt is:\n\n**GPU-STATE-7392**"
+  },
+  "wall_seconds": 0.3399749999989581,
+  "ttft_seconds": 0.15429280000171275
+}

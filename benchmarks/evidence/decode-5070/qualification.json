@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "full_fp32_and_bf16_bitwise_equal": true,
+  "results": [
+    {
+      "mode": "off",
+      "public_fp64_checks": 42,
+      "bytes": 3686400,
+      "sha256": "bd073a5c72281ecce3eb69f854b2448d00ec65dea6a075a043aa1b49fc008f50"
+    },
+    {
+      "mode": "on",
+      "public_fp64_checks": 42,
+      "bytes": 3686400,
+      "sha256": "bd073a5c72281ecce3eb69f854b2448d00ec65dea6a075a043aa1b49fc008f50"
+    }
+  ]
+}

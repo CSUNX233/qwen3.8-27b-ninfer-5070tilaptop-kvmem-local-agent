@@ -1,0 +1,654 @@
+--- a/src/ops/kvmem/mean_k_index.h
++++ b/src/ops/kvmem/mean_k_index.h
+@@ -139,7 +139,8 @@
+     // spend, not from the model's context ceiling).
+     MeanKIndex(std::int32_t layers, std::int32_t heads, std::int32_t head_dim,
+                std::int32_t capacity_blocks,
+-               MeanKIndexStorage storage = MeanKIndexStorage::Device);
++               MeanKIndexStorage storage = MeanKIndexStorage::Device,
++               bool prefetch_scoring = false);
+ 
+     MeanKIndex(const MeanKIndex&)            = delete;
+     MeanKIndex& operator=(const MeanKIndex&) = delete;
+@@ -188,9 +189,18 @@
+     // Per-layer F32 token count, [blocks]. The count is a property of the BLOCK (not of a head), and
+     // it is the REAL fill: a partial tail block counts only the tokens it actually holds.
+     [[nodiscard]] const Tensor& layer_counts(std::int32_t layer_index) const noexcept;
+-    // Device mode returns the original view. Host mode uploads populated sums
+-    // to shared scratch. Consume it on this stream before preparing another
+-    // layer. No allocation or synchronization; safe to capture and replay.
++    // A scoring pass reads an immutable history version. Outside capture, an enabled host index
++    // stages the next layer on a private transfer stream into a second layer-sized scratch slot.
++    // The caller releases each view AFTER its last GPU consumer. End joins outstanding source
++    // reads back to the compute stream before any append/reset; no CPU wait is needed.
++    // Begin during capture (or without prefetch) retains the original single-stream route.
++    void begin_scoring_round(std::int32_t populated_blocks, cudaStream_t stream);
++    void release_scoring_layer(std::int32_t layer_index, cudaStream_t stream);
++    [[nodiscard]] cudaError_t end_scoring_round(cudaStream_t stream) noexcept;
++
++    // Without begin_scoring_round, retains the original capture-safe single-stream contract:
++    // consume on this stream before preparing another layer. During a pass, release before
++    // preparing another view. All buffers/events are allocated at index construction.
+     [[nodiscard]] const Tensor& layer_sums_for_scoring(std::int32_t layer_index,
+                                                       std::int32_t populated_blocks,
+                                                       cudaStream_t stream);
+@@ -198,6 +208,7 @@
+     [[nodiscard]] std::size_t bytes_per_layer() const noexcept { return per_layer_bytes_; }
+     [[nodiscard]] std::size_t bytes_total() const noexcept { return total_bytes_; }
+     [[nodiscard]] bool host_backed() const noexcept { return host_storage_ != nullptr; }
++    [[nodiscard]] std::size_t scoring_scratch_bytes() const noexcept;
+ 
+     // Blocks appended so far, and the fill (0..block_tokens) of the last one. The fill is kept
+     // because the final chunk of a prompt is usually SHORT: the first cut measured a 511-token final
+@@ -213,7 +224,8 @@
+ 
+ private:
+     MeanKIndex(std::int32_t layers, std::int32_t heads, std::int32_t head_dim,
+-               std::int32_t capacity_blocks, std::unique_ptr<MappedHostBuffer> host_storage);
++               std::int32_t capacity_blocks, std::unique_ptr<MappedHostBuffer> host_storage,
++               bool prefetch_scoring);
+     // `source_layer_stride` is the element distance between consecutive layers inside the SOURCE
+     // allocation (the harvest packs every layer into one buffer at its configured width, so this is
+     // not the round width), while `index_layer_stride` is the F32 element count of one layer's
+@@ -245,6 +257,8 @@
+     std::unique_ptr<MappedHostBuffer> host_storage_;
+     std::unique_ptr<DeviceBuffer> score_storage_;
+     Tensor score_view_;
++    struct ScoringState;
++    std::unique_ptr<ScoringState> scoring_;
+ };
+ 
+ // The one-line way to size an index for a harvest: one chunk produces exactly
+@@ -277,7 +291,8 @@
+ // `capacity_blocks` is honoured on the FIRST call only, and it fixes the allocation for the process.
+ // NINFER_KVMEM_INDEX_HOST=1 selects explicitly mapped pinned system memory.
+ // Unset/0 uses device memory. Both routes use the same F32 layout and CUDA kernels;
+-// the host route uses one layer-sized device scratch region while scoring.
++// The host route uses two layer-sized scratch regions by default (one with
++// NINFER_KVMEM_INDEX_PREFETCH=0). Only actual scoring passes issue prefetch transfers.
+ [[nodiscard]] MeanKIndex* mean_k_index_for(std::int32_t layers, std::int32_t heads,
+                                            std::int32_t head_dim, std::int32_t capacity_blocks);
+ 
+--- a/src/ops/kvmem/mean_k_index.cpp
++++ b/src/ops/kvmem/mean_k_index.cpp
+@@ -55,18 +55,98 @@
+ 
+ } // namespace
+ 
++struct MeanKIndex::ScoringState {
++    struct Timing {
++        cudaEvent_t copy_begin = nullptr, copy_end = nullptr;
++        cudaEvent_t wait_begin = nullptr, wait_end = nullptr;
++        bool recorded = false;
++    };
++    std::unique_ptr<DeviceBuffer> second_storage;
++    Tensor second_view;
++    cudaStream_t transfer = nullptr, compute = nullptr;
++    cudaEvent_t producer = nullptr, drained = nullptr;
++    std::array<cudaEvent_t, 2> ready{}, used{};
++    std::array<bool, 2> used_valid{};
++    std::array<std::int32_t, 2> staged_layer{-1, -1};
++    std::array<Timing, kMeanKMaxLayers> timing{};
++    bool profile = false, timing_pass = false, active = false, async = false;
++    std::int32_t blocks = 0, held_layer = -1;
++
++    void initialize(bool prefetch, std::size_t bytes, std::int32_t capacity,
++                    std::int32_t heads, std::int32_t dim) {
++        const char* setting = std::getenv("NINFER_KVMEM_INDEX_TIMING");
++        profile = setting != nullptr && std::strcmp(setting, "1") == 0;
++        if (prefetch) {
++            second_storage = std::make_unique<DeviceBuffer>(bytes);
++            second_view = Tensor(second_storage->p, DType::FP32, {capacity, heads, dim});
++            CUDA_CHECK(cudaStreamCreateWithFlags(&transfer, cudaStreamNonBlocking));
++            CUDA_CHECK(cudaEventCreateWithFlags(&producer, cudaEventDisableTiming));
++            CUDA_CHECK(cudaEventCreateWithFlags(&drained, cudaEventDisableTiming));
++            for (int s = 0; s < 2; ++s) {
++                CUDA_CHECK(cudaEventCreateWithFlags(&ready[s], cudaEventDisableTiming));
++                CUDA_CHECK(cudaEventCreateWithFlags(&used[s], cudaEventDisableTiming));
++            }
++        }
++        if (profile) {
++            for (auto& t : timing) {
++                CUDA_CHECK(cudaEventCreate(&t.copy_begin));
++                CUDA_CHECK(cudaEventCreate(&t.copy_end));
++                CUDA_CHECK(cudaEventCreate(&t.wait_begin));
++                CUDA_CHECK(cudaEventCreate(&t.wait_end));
++            }
++        }
++    }
++
++    // Diagnostic only. Normal inference has no timing events, queries, or logging here.
++    // At the normal prefill tail the existing compute drain already completed these events.
++    void report() noexcept {
++        if (!timing_pass) { return; }
++        double copies = 0, exposed = 0;
++        int measured = 0;
++        for (auto& t : timing) {
++            if (!t.recorded || cudaEventQuery(t.wait_end) != cudaSuccess) { continue; }
++            float copy = 0, wait = 0;
++            if (cudaEventElapsedTime(&copy, t.copy_begin, t.copy_end) != cudaSuccess ||
++                cudaEventElapsedTime(&wait, t.wait_begin, t.wait_end) != cudaSuccess) { continue; }
++            copies += copy; exposed += wait; ++measured;
++        }
++        if (measured > 0) {
++            std::fprintf(stderr, "kvmem_index_timing: mode=%s blocks=%d layers=%d copy_ms=%.6f exposed_ms=%.6f\n",
++                         async ? "prefetch" : "serial", blocks, measured, copies, exposed);
++        }
++    }
++
++    ~ScoringState() {
++        if (transfer != nullptr) { (void)cudaStreamSynchronize(transfer); }
++        for (int s = 0; s < 2; ++s) {
++            if (used_valid[s]) { (void)cudaEventSynchronize(used[s]); }
++            if (ready[s] != nullptr) { (void)cudaEventDestroy(ready[s]); }
++            if (used[s] != nullptr) { (void)cudaEventDestroy(used[s]); }
++        }
++        for (const auto& t : timing) {
++            for (auto event : {t.copy_begin, t.copy_end, t.wait_begin, t.wait_end}) {
++                if (event != nullptr) { (void)cudaEventDestroy(event); }
++            }
++        }
++        if (producer != nullptr) { (void)cudaEventDestroy(producer); }
++        if (drained != nullptr) { (void)cudaEventDestroy(drained); }
++        if (transfer != nullptr) { (void)cudaStreamDestroy(transfer); }
++    }
++};
++
+ MeanKIndex::MeanKIndex(std::int32_t layers, std::int32_t heads, std::int32_t head_dim,
+-                       std::int32_t capacity_blocks, MeanKIndexStorage storage)
++                       std::int32_t capacity_blocks, MeanKIndexStorage storage,
++                       bool prefetch_scoring)
+     : MeanKIndex(layers, heads, head_dim, capacity_blocks,
+                  storage == MeanKIndexStorage::HostMapped &&
+                          checked_bytes(layers, capacity_blocks, heads, head_dim) != 0
+                      ? std::make_unique<MappedHostBuffer>(
+                            checked_bytes(layers, capacity_blocks, heads, head_dim))
+-                     : nullptr) {}
++                     : nullptr, prefetch_scoring) {}
+ 
+ MeanKIndex::MeanKIndex(std::int32_t layers, std::int32_t heads, std::int32_t head_dim,
+                        std::int32_t capacity_blocks,
+-                       std::unique_ptr<MappedHostBuffer> host_storage)
++                       std::unique_ptr<MappedHostBuffer> host_storage, bool prefetch_scoring)
+     : layers_(layers),
+       heads_(heads),
+       head_dim_(head_dim),
+@@ -109,10 +189,84 @@
+         score_storage_ = std::make_unique<DeviceBuffer>(sums_per_layer_ * sizeof(float));
+         score_view_ = Tensor(score_storage_->p, DType::FP32,
+                              {capacity_blocks_, heads_, head_dim_});
+-    }
+-}
+-
+-MeanKIndex::~MeanKIndex() = default;
++        scoring_ = std::make_unique<ScoringState>();
++        scoring_->initialize(prefetch_scoring, sums_per_layer_ * sizeof(float),
++                             capacity_blocks_, heads_, head_dim_);
++    }
++}
++
++MeanKIndex::~MeanKIndex() {
++    if (scoring_ != nullptr && scoring_->active) {
++        (void)end_scoring_round(scoring_->compute);
++    }
++    // Destroy stream/event owners before the original scratch and mapped source are freed.
++    scoring_.reset();
++}
++
++std::size_t MeanKIndex::scoring_scratch_bytes() const noexcept {
++    return score_storage_ == nullptr ? 0 : sums_per_layer_ * sizeof(float) *
++        (scoring_ != nullptr && scoring_->second_storage != nullptr ? 2 : 1);
++}
++
++void MeanKIndex::begin_scoring_round(std::int32_t populated_blocks, cudaStream_t stream) {
++    if (populated_blocks < 0 || populated_blocks > capacity_blocks_) {
++        throw std::out_of_range("mean_k_index: invalid scoring history size");
++    }
++    if (scoring_ == nullptr) { return; }
++    CUDA_CHECK(end_scoring_round(stream)); // also drains an abandoned pass before reuse
++    auto& s = *scoring_;
++    cudaStreamCaptureStatus capture;
++    CUDA_CHECK(cudaStreamIsCapturing(stream, &capture));
++    s.compute = stream;
++    s.blocks = populated_blocks;
++    s.held_layer = -1;
++    s.staged_layer = {-1, -1};
++    for (auto& t : s.timing) { t.recorded = false; }
++    s.async = s.transfer != nullptr && capture == cudaStreamCaptureStatusNone;
++    s.timing_pass = s.profile && capture == cudaStreamCaptureStatusNone;
++    // Timing events are deliberately absent from capture, including on the serial fallback.
++    s.active = true;
++    if (s.async) {
++        CUDA_CHECK(cudaEventRecord(s.producer, stream));
++        CUDA_CHECK(cudaStreamWaitEvent(s.transfer, s.producer, 0));
++    }
++}
++
++void MeanKIndex::release_scoring_layer(std::int32_t layer_index, cudaStream_t stream) {
++    if (scoring_ == nullptr || !scoring_->active || !scoring_->async) { return; }
++    auto& s = *scoring_;
++    if (stream != s.compute || layer_index != s.held_layer) {
++        throw std::logic_error("mean_k_index: scoring release does not match its consumer");
++    }
++    const int slot = layer_index % 2;
++    CUDA_CHECK(cudaEventRecord(s.used[slot], stream));
++    s.used_valid[slot] = true;
++    s.held_layer = -1;
++}
++
++cudaError_t MeanKIndex::end_scoring_round(cudaStream_t stream) noexcept {
++    if (scoring_ == nullptr || !scoring_->active) { return cudaSuccess; }
++    auto& s = *scoring_;
++    if (stream != s.compute) { return cudaErrorInvalidResourceHandle; }
++    if (s.async) {
++        // A cancelled pass may not have released the last handed-out view. Fence all work already
++        // submitted by its owner, then join every speculative source read before index mutation.
++        if (s.held_layer >= 0) {
++            const int slot = s.held_layer % 2;
++            const cudaError_t st = cudaEventRecord(s.used[slot], stream);
++            if (st != cudaSuccess) { return st; }
++            s.used_valid[slot] = true;
++            s.held_layer = -1;
++        }
++        cudaError_t st = cudaEventRecord(s.drained, s.transfer);
++        if (st != cudaSuccess) { return st; }
++        st = cudaStreamWaitEvent(stream, s.drained, 0);
++        if (st != cudaSuccess) { return st; }
++    }
++    s.report();
++    s.active = false;
++    return cudaSuccess;
++}
+ 
+ const Tensor& MeanKIndex::layer_sums(std::int32_t layer_index) const noexcept {
+     static const Tensor kInvalid{};
+@@ -135,13 +289,59 @@
+     }
+     if (host_storage_ == nullptr || empty()) { return layer_sums(layer_index); }
+     const std::size_t count = static_cast<std::size_t>(populated_blocks) * heads_ * head_dim_ * sizeof(float);
++    auto& s = *scoring_;
++    if (s.active && (stream != s.compute || populated_blocks != s.blocks)) {
++        throw std::logic_error("mean_k_index: scoring pass changed stream or history version");
++    }
++    if (s.active && s.async) {
++        if (s.held_layer >= 0) {
++            throw std::logic_error("mean_k_index: scoring view must be released before reuse");
++        }
++        const auto stage = [&](std::int32_t layer) {
++            const int slot = layer % 2;
++            if (s.staged_layer[slot] == layer) { return; }
++            if (s.used_valid[slot]) { CUDA_CHECK(cudaStreamWaitEvent(s.transfer, s.used[slot], 0)); }
++            auto& t = s.timing[static_cast<std::size_t>(layer)];
++            if (s.timing_pass) { CUDA_CHECK(cudaEventRecord(t.copy_begin, s.transfer)); }
++            void* target = slot == 0 ? score_storage_->p : s.second_storage->p;
++            CUDA_CHECK(host_storage_->copy_to_device_async(target, count,
++                        static_cast<std::size_t>(layer) * per_layer_bytes_, s.transfer));
++            if (s.timing_pass) { CUDA_CHECK(cudaEventRecord(t.copy_end, s.transfer)); }
++            CUDA_CHECK(cudaEventRecord(s.ready[slot], s.transfer));
++            s.staged_layer[slot] = layer;
++        };
++        stage(layer_index);
++        const int slot = layer_index % 2;
++        auto& t = s.timing[static_cast<std::size_t>(layer_index)];
++        if (s.timing_pass) { CUDA_CHECK(cudaEventRecord(t.wait_begin, stream)); }
++        CUDA_CHECK(cudaStreamWaitEvent(stream, s.ready[slot], 0));
++        if (s.timing_pass) { CUDA_CHECK(cudaEventRecord(t.wait_end, stream)); t.recorded = true; }
++        // Next-layer data is independent of the current query/scorer. Its slot is reusable only
++        // after the previous consumer's event, never just after its copy completed.
++        if (layer_index + 1 < layers_) { stage(layer_index + 1); }
++        s.held_layer = layer_index;
++        return slot == 0 ? score_view_ : s.second_view;
++    }
++    const bool timed = s.active && s.timing_pass && s.transfer == nullptr;
++    auto& t = s.timing[static_cast<std::size_t>(layer_index)];
++    if (timed) {
++        CUDA_CHECK(cudaEventRecord(t.wait_begin, stream));
++        CUDA_CHECK(cudaEventRecord(t.copy_begin, stream));
++    }
+     CUDA_CHECK(host_storage_->copy_to_device_async(score_storage_->p, count,
+                 static_cast<std::size_t>(layer_index) * per_layer_bytes_, stream));
++    if (timed) {
++        CUDA_CHECK(cudaEventRecord(t.copy_end, stream));
++        CUDA_CHECK(cudaEventRecord(t.wait_end, stream));
++        t.recorded = true;
++    }
+     return score_view_;
+ }
+ 
+ cudaError_t MeanKIndex::zero(cudaStream_t stream) {
+     if (total_bytes_ == 0 || flat_.data == nullptr) { return cudaSuccess; }
++    const cudaError_t join = end_scoring_round(stream);
++    if (join != cudaSuccess) { return join; }
+     // Not folded into append on purpose. An append that zeroed its own fresh blocks would be replayed
+     // verbatim inside a captured decode graph, and a replayed memset would wipe the sums the prefill
+     // accumulated -- the accumulation is state that outlives the graph. Zeroing is therefore an
+@@ -202,6 +402,7 @@
+                                 std::to_string(first_block) + " exceeds the reserved capacity " +
+                                 std::to_string(capacity_blocks_));
+     }
++    CUDA_CHECK(end_scoring_round(stream));
+     (void)index_layer_stride; // the kernel derives the destination stride from blocks_per_layer
+ 
+     // THE APPEND ACCUMULATES INTO THE DESTINATION, so the target blocks must already be zero. That is
+@@ -269,9 +470,15 @@
+             std::strcmp(host_env, "0") != 0) {
+             throw std::invalid_argument("NINFER_KVMEM_INDEX_HOST must be 0 or 1");
+         }
++        const char* prefetch_env = std::getenv("NINFER_KVMEM_INDEX_PREFETCH");
++        const bool prefetch = prefetch_env == nullptr || prefetch_env[0] == '\0' ||
++                              std::strcmp(prefetch_env, "1") == 0;
++        if (!prefetch && std::strcmp(prefetch_env, "0") != 0) {
++            throw std::invalid_argument("NINFER_KVMEM_INDEX_PREFETCH must be 0 or 1");
++        }
+         installed = new MeanKIndex(layers, heads, head_dim, capacity_blocks,
+                                   host_backed ? MeanKIndexStorage::HostMapped
+-                                              : MeanKIndexStorage::Device);
++                                              : MeanKIndexStorage::Device, prefetch);
+         // REQUIRED before the first append: arena bytes are not guaranteed zero, and the accumulate
+         // kernel ADDS into the destination, so an unwritten block would otherwise start from
+         // garbage and its count would claim tokens it never saw.
+@@ -290,7 +497,7 @@
+                      static_cast<int>(head_dim), static_cast<int>(capacity_blocks),
+                      static_cast<double>(installed->bytes_total()) / (1024.0 * 1024.0),
+                      installed->host_backed() ? "host-mapped-staged" : "device",
+-                     installed->host_backed() ? static_cast<double>(capacity_blocks) * heads * head_dim * sizeof(float) / (1024.0 * 1024.0) : 0.0,
++                     static_cast<double>(installed->scoring_scratch_bytes()) / (1024.0 * 1024.0),
+                      cudaGetErrorName(zero_status));
+         if (zero_status != cudaSuccess) {
+             // Fail loudly instead of handing back an index whose counts are noise: a bad count is not
+--- a/src/ops/kvmem/kvmem_score.h
++++ b/src/ops/kvmem/kvmem_score.h
+@@ -401,6 +401,7 @@
+ 
+     const Tensor* prepared = nullptr;
+     try {
++        if (!p.scored_this_chunk) { index->begin_scoring_round(p.n_blocks, stream); }
+         prepared = &index->layer_sums_for_scoring(fidx, p.n_blocks, stream);
+     } catch (const std::exception& error) {
+         std::fprintf(stderr, "kvmem_score: index preparation failed: %s\n", error.what());
+@@ -430,6 +431,13 @@
+     const cudaError_t status =
+         ops::kvmem_retrieve_scores(cfg, p.score, q, static_cast<const float*>(sums.data),
+                                    p.block_tokens_dev, stream);
++    try {
++        index->release_scoring_layer(fidx, stream);
++    } catch (const std::exception& error) {
++        std::fprintf(stderr, "kvmem_score: index release failed: %s\n", error.what());
++        kvmem_score_fail("index release");
++        return;
++    }
+     if (status != cudaSuccess) {
+         std::fprintf(stderr, "kvmem_score: launch failed layer=%d: %s\n", fidx, cudaGetErrorString(status));
+         kvmem_score_fail("launch");
+--- a/tests/ops/test_mean_k_host_storage.cpp
++++ b/tests/ops/test_mean_k_host_storage.cpp
+@@ -91,7 +91,8 @@
+     return score;
+ }
+ 
+-void judge_scores(MeanKIndex& index, const std::vector<float>& expected, cudaStream_t stream) {
++void judge_scores(MeanKIndex& index, const std::vector<float>& expected, cudaStream_t stream,
++                  bool captured = true) {
+     constexpr int query_heads = 24, query_tokens = 3;
+     std::vector<std::uint16_t> query(query_heads * query_tokens * dim);
+     for (std::size_t i = 0; i < query.size(); ++i) { query[i] = encode(static_cast<float>(int(i * 13 % 43) - 21) / 32.0f); }
+@@ -106,7 +107,8 @@
+     }
+     counts.copy_from_host(host_counts.data(), counts.bytes);
+     cudaGraph_t graph; cudaGraphExec_t executable;
+-    CUDA_CHECK(cudaStreamBeginCapture(stream, cudaStreamCaptureModeThreadLocal));
++    if (captured) { CUDA_CHECK(cudaStreamBeginCapture(stream, cudaStreamCaptureModeThreadLocal)); }
++    index.begin_scoring_round(blocks, stream);
+     CUDA_CHECK(cudaMemsetAsync(result.p, 0, result.bytes, stream));
+     for (int l = 0; l < layers; ++l) {
+         KvMemRetrieveConfig cfg;
+@@ -120,12 +122,16 @@
+         CUDA_CHECK(kvmem_retrieve_scores(cfg, static_cast<float*>(result.p), device_query.p,
+                     static_cast<const float*>(staged.data),
+                     static_cast<const std::int32_t*>(counts.p) + l * blocks, stream));
+-    }
+-    CUDA_CHECK(cudaStreamEndCapture(stream, &graph));
+-    CUDA_CHECK(cudaGraphInstantiate(&executable, graph, 0));
+-    for (int replay = 0; replay < 3; ++replay) { CUDA_CHECK(cudaGraphLaunch(executable, stream)); }
++        index.release_scoring_layer(l, stream);
++    }
++    CUDA_CHECK(index.end_scoring_round(stream));
++    if (captured) {
++        CUDA_CHECK(cudaStreamEndCapture(stream, &graph));
++        CUDA_CHECK(cudaGraphInstantiate(&executable, graph, 0));
++        for (int replay = 0; replay < 3; ++replay) { CUDA_CHECK(cudaGraphLaunch(executable, stream)); }
++    }
+     CUDA_CHECK(cudaStreamSynchronize(stream));
+-    CUDA_CHECK(cudaGraphExecDestroy(executable)); CUDA_CHECK(cudaGraphDestroy(graph));
++    if (captured) { CUDA_CHECK(cudaGraphExecDestroy(executable)); CUDA_CHECK(cudaGraphDestroy(graph)); }
+     std::vector<float> actual(blocks);
+     result.copy_to_host(actual.data(), result.bytes);
+     const auto wanted = score_oracle(expected, query);
+@@ -139,14 +145,16 @@
+         sum += actual[b];
+     }
+     require(std::abs(sum - query_tokens) < 1e-4, "retrieval lost probability mass");
+-    std::printf("storage=%s score_max_absolute_error=%.9g mass=%.9g\n", index.host_backed() ? "host" : "device", maximum, sum);
+-}
+-
+-void qualify(MeanKIndexStorage storage) {
++    std::printf("storage=%s scratch=%zu capture=%d score_max_absolute_error=%.9g mass=%.9g\n",
++                index.host_backed() ? "host" : "device", index.scoring_scratch_bytes(),
++                captured ? 1 : 0, maximum, sum);
++}
++
++void qualify(MeanKIndexStorage storage, bool prefetch = false) {
+     cudaStream_t stream;
+     CUDA_CHECK(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
+     {
+-        MeanKIndex index(layers, heads, dim, blocks, storage);
++        MeanKIndex index(layers, heads, dim, blocks, storage, prefetch);
+         require(index.bytes_total() == 268697600, "real-model capacity bytes mismatch");
+         cudaPointerAttributes attributes;
+         CUDA_CHECK(cudaPointerGetAttributes(&attributes, index.layer_sums(0).data));
+@@ -189,6 +197,7 @@
+         try { index.append_layer(one, 0, 1, blocks, stream); } catch (const std::out_of_range&) { rejected = true; }
+         require(rejected, "out-of-capacity write accepted");
+         judge_scores(index, expected, stream);
++        if (prefetch) { judge_scores(index, expected, stream, false); }
+         CUDA_CHECK(index.zero(stream));
+         std::fill(expected.begin(), expected.end(), 0.0f);
+         judge(index, expected, stream);
+@@ -205,6 +214,7 @@
+     try {
+         qualify(MeanKIndexStorage::Device);
+         qualify(MeanKIndexStorage::HostMapped);
++        qualify(MeanKIndexStorage::HostMapped, true);
+         return 0;
+     } catch (const std::exception& e) {
+         std::fprintf(stderr, "FAIL: %s\n", e.what()); return 1;
+--- a/tests/ops/test_mean_k_prefetch.cpp
++++ b/tests/ops/test_mean_k_prefetch.cpp
+@@ -0,0 +1,148 @@
++#include "core/device.h"
++#include "core/mapped_host_buffer.h"
++#include "ops/kvmem/mean_k_index.h"
++
++#include <atomic>
++#include <cstdio>
++#include <cstring>
++#include <stdexcept>
++#include <thread>
++#include <vector>
++
++using namespace ninfer;
++using namespace ninfer::ops;
++
++namespace {
++constexpr int layers = 16, heads = 4, dim = 256, capacity = 4096;
++constexpr std::size_t width = heads * dim;
++void require(bool ok, const char* message) {
++    if (!ok) { throw std::runtime_error(message); }
++}
++
++struct Gate { std::atomic<bool> open{false}; };
++void CUDART_CB gated_consumer(void* data) {
++    auto& gate = *static_cast<Gate*>(data);
++    while (!gate.open.load(std::memory_order_acquire)) { std::this_thread::yield(); }
++}
++
++// Exact represented-input oracle: every cell includes the source layer and address. Checking all
++// bytes detects wrong versions, wrong slots, short copies and early scratch overwrites directly.
++float value(int layer, std::size_t cell, int version) {
++    return static_cast<float>((cell * 17 + layer * 271 + version * 4093) % 65521) / 64.0f;
++}
++void fill(MeanKIndex& index, int version) {
++    for (int l = 0; l < layers; ++l) {
++        cudaPointerAttributes attributes{};
++        CUDA_CHECK(cudaPointerGetAttributes(&attributes, index.layer_sums(l).data));
++        auto* sums = static_cast<float*>(attributes.hostPointer);
++        require(sums != nullptr, "test index must be physically host-backed");
++        for (std::size_t i = 0; i < capacity * width; ++i) { sums[i] = value(l, i, version); }
++    }
++}
++
++void check_pass(MeanKIndex& index, cudaStream_t stream, int blocks, int version,
++                const std::vector<int>& order, bool hold_compute) {
++    const std::size_t bytes = static_cast<std::size_t>(blocks) * width * sizeof(float);
++    MappedHostBuffer output(bytes * order.size());
++    Gate gate;
++    index.begin_scoring_round(blocks, stream);
++    try {
++        for (std::size_t step = 0; step < order.size(); ++step) {
++            const auto& sums = index.layer_sums_for_scoring(order[step], blocks, stream);
++            if (hold_compute && step == 0) {
++                CUDA_CHECK(cudaLaunchHostFunc(stream, gated_consumer, &gate));
++            }
++            CUDA_CHECK(cudaMemcpyAsync(static_cast<char*>(output.host_data()) + bytes * step,
++                                       sums.data, bytes, cudaMemcpyDeviceToHost, stream));
++            index.release_scoring_layer(order[step], stream);
++        }
++        CUDA_CHECK(index.end_scoring_round(stream));
++    } catch (...) {
++        gate.open.store(true, std::memory_order_release);
++        (void)cudaStreamSynchronize(stream);
++        throw;
++    }
++    gate.open.store(true, std::memory_order_release);
++    CUDA_CHECK(cudaStreamSynchronize(stream));
++    const auto* actual = static_cast<const float*>(output.host_data());
++    for (std::size_t step = 0; step < order.size(); ++step) {
++        for (std::size_t i = 0; i < static_cast<std::size_t>(blocks) * width; ++i) {
++            require(actual[step * blocks * width + i] == value(order[step], i, version),
++                    "staged index differs from immutable source oracle");
++        }
++    }
++}
++
++void qualify() {
++    cudaStream_t stream;
++    CUDA_CHECK(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
++    {
++        MeanKIndex index(layers, heads, dim, capacity, MeanKIndexStorage::HostMapped, true);
++        require(index.scoring_scratch_bytes() == 32 * 1024 * 1024, "double scratch budget changed");
++        CUDA_CHECK(index.zero(stream));
++        CUDA_CHECK(cudaStreamSynchronize(stream));
++        std::vector<int> sequential;
++        for (int l = 0; l < layers; ++l) { sequential.push_back(l); }
++        for (int version = 0; version < 3; ++version) {
++            fill(index, version);
++            for (int blocks : {1, 3, 513, 2049, 4096}) {
++                check_pass(index, stream, blocks, version, sequential, true);
++            }
++            check_pass(index, stream, capacity, version, {0, 0, 3, 8, 9, 14, 15}, true);
++            // Abandon after a view was handed out, including its speculative next-layer copy.
++            index.begin_scoring_round(capacity, stream);
++            (void)index.layer_sums_for_scoring(0, capacity, stream);
++            bool rejected = false;
++            try { (void)index.layer_sums_for_scoring(1, capacity, stream); }
++            catch (const std::logic_error&) { rejected = true; }
++            require(rejected, "scratch reuse without a consumer fence was accepted");
++            // Begin closes an abandoned round; append/reset also join speculative reads.
++            check_pass(index, stream, 513, version, sequential, false);
++            index.begin_scoring_round(capacity, stream);
++            (void)index.layer_sums_for_scoring(7, capacity, stream);
++            CUDA_CHECK(index.zero(stream));
++            CUDA_CHECK(cudaStreamSynchronize(stream));
++            std::vector<float> zero(capacity * width);
++            for (int l = 0; l < layers; ++l) {
++                CUDA_CHECK(cudaMemcpy(zero.data(), index.layer_sums(l).data,
++                                      zero.size() * sizeof(float), cudaMemcpyDefault));
++                for (float cell : zero) { require(cell == 0.0f, "reset raced a speculative read"); }
++            }
++        }
++        fill(index, 7);
++        // Captured callers retain the original ordered upload route, including replay.
++        MappedHostBuffer output(3 * width * layers * sizeof(float));
++        cudaGraph_t graph; cudaGraphExec_t executable;
++        CUDA_CHECK(cudaStreamBeginCapture(stream, cudaStreamCaptureModeThreadLocal));
++        index.begin_scoring_round(3, stream);
++        for (int l = 0; l < layers; ++l) {
++            const auto& view = index.layer_sums_for_scoring(l, 3, stream);
++            CUDA_CHECK(cudaMemcpyAsync(static_cast<float*>(output.host_data()) + l * 3 * width,
++                                       view.data, 3 * width * sizeof(float), cudaMemcpyDeviceToHost, stream));
++            index.release_scoring_layer(l, stream);
++        }
++        CUDA_CHECK(index.end_scoring_round(stream));
++        CUDA_CHECK(cudaStreamEndCapture(stream, &graph));
++        CUDA_CHECK(cudaGraphInstantiate(&executable, graph, 0));
++        for (int replay = 0; replay < 3; ++replay) { CUDA_CHECK(cudaGraphLaunch(executable, stream)); }
++        CUDA_CHECK(cudaStreamSynchronize(stream));
++        auto* actual = static_cast<float*>(output.host_data());
++        for (int l = 0; l < layers; ++l) {
++            for (std::size_t i = 0; i < 3 * width; ++i) {
++                require(actual[l * 3 * width + i] == value(l, i, 7), "capture fallback changed data");
++            }
++        }
++        CUDA_CHECK(cudaGraphExecDestroy(executable)); CUDA_CHECK(cudaGraphDestroy(graph));
++        // Destruction while an asynchronous pass still has an unreleased view.
++        index.begin_scoring_round(capacity, stream);
++        (void)index.layer_sums_for_scoring(0, capacity, stream);
++    }
++    CUDA_CHECK(cudaStreamDestroy(stream));
++    std::puts("PASS: exact full-capacity bytes, gated consumers, slot reuse, history versions, cancellation, reset, capture replay, destruction");
++}
++} // namespace
++
++int main() {
++    try { qualify(); return 0; }
++    catch (const std::exception& error) { std::fprintf(stderr, "FAIL: %s\n", error.what()); return 1; }
++}
+--- a/tests/ops/tests.cmake
++++ b/tests/ops/tests.cmake
+@@ -283,3 +283,6 @@
+ ninfer_add_op_test(test_mean_k_host_storage
+   SOURCES ops/test_mean_k_host_storage.cpp
+   LIBRARIES ninfer_ops ninfer_core)
++ninfer_add_op_test(test_mean_k_prefetch
++  SOURCES ops/test_mean_k_prefetch.cpp
++  LIBRARIES ninfer_ops ninfer_core)
+--- a/docs/serving.md
++++ b/docs/serving.md
+@@ -49,12 +49,21 @@
+ For the local KVMem ring with `--max-concurrency 1`, `NINFER_KVMEM_INDEX_HOST=1`
+ stores the mean-K index in explicitly mapped pinned Host memory. Unset or `0`
+ keeps it in Device memory. The Host route retains the same ordered F32 sums,
+-counts and CUDA kernels; scoring uploads each populated layer into one reused
+-Device scratch buffer on the scoring stream. For 16 full-attention layers,
+-4 KV heads, head dimension 256 and a 262144-token ceiling, the index occupies
+-256.25 MiB of Host RAM plus 16 MiB of Device scratch, saving 240.25 MiB of
+-Device storage. This allocation is independent of `--host-kv-mib` and is
+-reported by the `kvmem_index` warmup log. `NINFER_HOST_PAGEABLE=1` does not
++counts and CUDA kernels. By default, scoring prefetches the next populated
++layer on a private nonblocking transfer stream into a second Device scratch
++slot. Producer, ready, consumer and round-join events protect the history
++version, scratch reuse, cancellation and subsequent index append/reset.
++Chunks that do not score issue no prefetch copies; captured callers retain
++the ordered single-stream route. For 16 full-attention layers, 4 KV heads,
++head dimension 256 and a 262144-token ceiling, the index occupies 256.25 MiB
++of Host RAM plus 32 MiB of Device scratch, saving 224.25 MiB of Device storage.
++`NINFER_KVMEM_INDEX_PREFETCH=0` selects the original serial upload route and
++allocates only 16 MiB of scratch (saving 240.25 MiB). It does not change the
++index representation, scoring, retrieval budget or context limit.
++These allocations are independent of `--host-kv-mib` and are reported by the
++`kvmem_index` warmup log. `NINFER_KVMEM_INDEX_TIMING=1` enables diagnostic CUDA
++event timing of copies and exposed compute-stream waits outside capture;
++leave it unset during ordinary inference and end-to-end benchmarking. `NINFER_HOST_PAGEABLE=1` does not
+ make this index pageable. The existing ring index is process-local and shared;
+ this option does not add concurrent sequence support. Qualify long-context
+ recall and end-to-end performance before increasing the Device KV pool.

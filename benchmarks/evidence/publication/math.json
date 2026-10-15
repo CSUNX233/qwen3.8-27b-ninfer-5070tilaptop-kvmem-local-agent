@@ -1,0 +1,33 @@
+{
+  "finish_reason": "stop",
+  "usage": {
+    "completion_tokens": 9,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 30,
+    "prompt_tokens_details": {
+      "cached_tokens": 23
+    },
+    "total_tokens": 39
+  },
+  "timings": {
+    "cache_n": 23,
+    "draft_n": 12,
+    "draft_n_accepted": 7,
+    "predicted_ms": 122.1054,
+    "predicted_n": 9,
+    "predicted_per_second": 65.51716795489799,
+    "predicted_per_token_ms": 15.263175,
+    "prompt_ms": 363.6252,
+    "prompt_n": 7,
+    "prompt_per_second": 19.25059099314349,
+    "prompt_per_token_ms": 51.94645714285714
+  },
+  "message": {
+    "role": "assistant",
+    "content": "11001177"
+  },
+  "wall_seconds": 0.5042114999996556,
+  "ttft_seconds": 0.3817325999989407
+}

@@ -1,0 +1,28 @@
+name: publication checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate release metadata and public docs
+        run: python scripts/check-release.py
+      - name: Parse PowerShell and JavaScript
+        shell: pwsh
+        run: |
+          $files = @(Get-ChildItem -LiteralPath . -File -Filter '*.ps1') + @(Get-ChildItem -LiteralPath scripts -File -Filter '*.ps1')
+          foreach ($file in $files) {
+            $tokens = $null; $errors = $null
+            $null = [Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$errors)
+            if ($errors) { throw ($errors | Out-String) }
+          }
+          $js = @(Get-ChildItem -LiteralPath scripts -Filter '*.mjs' -File) + @(Get-ChildItem -LiteralPath integrations -Filter '*.mjs' -File -Recurse)
+          foreach ($file in $js) { node --check $file.FullName; if ($LASTEXITCODE) { throw $file.FullName } }

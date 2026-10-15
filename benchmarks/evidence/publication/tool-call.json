@@ -1,0 +1,43 @@
+{
+  "finish_reason": "tool_calls",
+  "usage": {
+    "completion_tokens": 18,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 302,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 320
+  },
+  "timings": {
+    "cache_n": 0,
+    "draft_n": 15,
+    "draft_n_accepted": 15,
+    "predicted_ms": 184.0988,
+    "predicted_n": 18,
+    "predicted_per_second": 92.34172085858245,
+    "predicted_per_token_ms": 10.829341176470589,
+    "prompt_ms": 2207.7192999999997,
+    "prompt_n": 302,
+    "prompt_per_second": 136.7927525931399,
+    "prompt_per_token_ms": 7.310328807947019
+  },
+  "message": {
+    "role": "assistant",
+    "content": "",
+    "tool_calls": [
+      {
+        "type": "function",
+        "function": {
+          "name": "read_file",
+          "arguments": "{\"path\":\"verification.txt\"}"
+        },
+        "id": "call_503ec9fe658ec1c9"
+      }
+    ]
+  },
+  "wall_seconds": 2.4020827999993344,
+  "ttft_seconds": 2.4019387000007555
+}

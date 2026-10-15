@@ -1,0 +1,196 @@
+{
+  "hardware": "RTX 5070 Ti Laptop 12GB / i7-14650HX / 32GB RAM",
+  "toolchain": "portable MSVC 14.44.35207 / existing sm_120a CUDA archives / Python 3.12.10",
+  "settings": "unchanged 256K context, 36K Device KV, rk4v4, 7GiB Host KV, chunk128, MTP3, concurrency1",
+  "workload": "62002-token identical fixed input; temperature0/seed1234/reasoning none only in probes",
+  "first_stage_page_traces": {
+    "baseline": 507,
+    "final": 507,
+    "all_equal": true
+  },
+  "paired": {
+    "cold": {
+      "baseline": {
+        "prompt_tokens": 62002,
+        "cached_tokens": 0,
+        "output_tokens": 512,
+        "prefill_ms": 109460.0591,
+        "prefill_tps": 566.4349216489688,
+        "decode_tps": 75.28164912717189,
+        "ttft_ms": 109564.53529999999
+      },
+      "final": {
+        "prompt_tokens": 62002,
+        "cached_tokens": 0,
+        "output_tokens": 512,
+        "prefill_ms": 107413.382,
+        "prefill_tps": 577.2278913999747,
+        "decode_tps": 77.93019120225789,
+        "ttft_ms": 107491.01679999966
+      },
+      "exact_messages": true
+    },
+    "warm": {
+      "baseline": {
+        "prompt_tokens": 62002,
+        "cached_tokens": 61995,
+        "output_tokens": 512,
+        "prefill_ms": 109.7745,
+        "prefill_tps": 63.76708616299778,
+        "decode_tps": 74.12410798127344,
+        "ttft_ms": 251.93010000020877
+      },
+      "final": {
+        "prompt_tokens": 62002,
+        "cached_tokens": 61995,
+        "output_tokens": 512,
+        "prefill_ms": 98.8343,
+        "prefill_tps": 70.8256141845493,
+        "decode_tps": 74.02717249216329,
+        "ttft_ms": 174.84169999988808
+      },
+      "exact_messages": true
+    },
+    "suffix-0": {
+      "baseline": {
+        "prompt_tokens": 62039,
+        "cached_tokens": 61995,
+        "output_tokens": 23,
+        "prefill_ms": 873.1308,
+        "prefill_tps": 50.39336603404667,
+        "decode_tps": 78.05459564171522,
+        "ttft_ms": 1005.1009999997405
+      },
+      "final": {
+        "prompt_tokens": 62039,
+        "cached_tokens": 61995,
+        "output_tokens": 23,
+        "prefill_ms": 577.2451,
+        "prefill_tps": 76.22412039530522,
+        "decode_tps": 98.42123393385198,
+        "ttft_ms": 653.977599999962
+      },
+      "exact_messages": true
+    },
+    "suffix-1": {
+      "baseline": {
+        "prompt_tokens": 64502,
+        "cached_tokens": 62061,
+        "output_tokens": 23,
+        "prefill_ms": 6551.661700000001,
+        "prefill_tps": 372.5772348715746,
+        "decode_tps": 114.36883220584726,
+        "ttft_ms": 6661.933700000191
+      },
+      "final": {
+        "prompt_tokens": 64502,
+        "cached_tokens": 62061,
+        "output_tokens": 23,
+        "prefill_ms": 6408.2444000000005,
+        "prefill_tps": 380.9155593379054,
+        "decode_tps": 123.71783336332552,
+        "ttft_ms": 6482.8120000001945
+      },
+      "exact_messages": true
+    },
+    "suffix-2": {
+      "baseline": {
+        "prompt_tokens": 64545,
+        "cached_tokens": 64524,
+        "output_tokens": 23,
+        "prefill_ms": 218.3911,
+        "prefill_tps": 96.15776467081305,
+        "decode_tps": 125.15744237353124,
+        "ttft_ms": 325.929300000098
+      },
+      "final": {
+        "prompt_tokens": 64545,
+        "cached_tokens": 64524,
+        "output_tokens": 23,
+        "prefill_ms": 190.9384,
+        "prefill_tps": 109.98311497320601,
+        "decode_tps": 125.99103401986993,
+        "ttft_ms": 267.1761999999944
+      },
+      "exact_messages": true
+    }
+  },
+  "vram": {
+    "baseline": {
+      "peak_MiB": 11108.0,
+      "peak_temperature_C": 75.0
+    },
+    "final": {
+      "peak_MiB": 11100.0,
+      "peak_temperature_C": 79.0
+    },
+    "long_stress": {
+      "peak_MiB": 11104.0
+    }
+  },
+  "checks": {
+    "ranking_oracle_cases": 1350,
+    "score_schedule": "pinned RAM, event-before-append, inherited/cancelled snapshots: OK",
+    "context_storage": "OK"
+  },
+  "production_candidate_sha256": "1d604226cc88a4ede437be613c77d5d5027487c9174f6b5b32787812b124bb0d",
+  "agent": {
+    "generated_tokens": 22528,
+    "long-0": {
+      "prompt_tokens": 62346,
+      "cached_tokens": 0,
+      "output_tokens": 22528,
+      "prefill_ms": 108333.0888,
+      "decode_tps": 222.7299160950887,
+      "ttft_ms": 108427.2275000003
+    },
+    "tool-call": {
+      "prompt_tokens": 84925,
+      "cached_tokens": 84873,
+      "output_tokens": 20,
+      "prefill_ms": 574.1727,
+      "decode_tps": 84.92534838389297,
+      "ttft_ms": 901.7749000004187
+    },
+    "tool-result": {
+      "prompt_tokens": 84996,
+      "cached_tokens": 84944,
+      "output_tokens": 47,
+      "prefill_ms": 317.21840000000003,
+      "decode_tps": 85.71373735931999,
+      "ttft_ms": 422.2431999996843
+    },
+    "followup-0": {
+      "prompt_tokens": 85067,
+      "cached_tokens": 85042,
+      "output_tokens": 47,
+      "prefill_ms": 245.2559,
+      "decode_tps": 154.60953194653064,
+      "ttft_ms": 339.70380000027944
+    },
+    "followup-1": {
+      "prompt_tokens": 85138,
+      "cached_tokens": 85113,
+      "output_tokens": 47,
+      "prefill_ms": 237.12269999999998,
+      "decode_tps": 154.7456973127064,
+      "ttft_ms": 341.7667000003348
+    },
+    "followup-2": {
+      "prompt_tokens": 85209,
+      "cached_tokens": 85184,
+      "output_tokens": 47,
+      "prefill_ms": 234.5178,
+      "decode_tps": 154.6915249221498,
+      "ttft_ms": 318.32239999948797
+    },
+    "all_four_codes_correct": true,
+    "request_only_sampling": "temperature0, seed1234, reasoning none, presence_penalty0 for echo output; production defaults unchanged",
+    "ignore_eos": false
+  },
+  "limitations": [
+    "One paired serving sample: small timing changes are not a statistical speedup claim.",
+    "Full 256K end-to-end stress has not been run.",
+    "Peak VRAM uses 0.5-second nvidia-smi sampling and integer MiB resolution."
+  ]
+}

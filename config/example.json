@@ -1,0 +1,15 @@
+{
+  "ModelPath": "models/qwen3.8-27b-gsq-rco-iq3-xxs.ninfer",
+  "EnginePath": "runtime/engine/ninfer-serve.exe",
+  "ModelId": "qwen3.8-27b-gsq-rco-iq3-xxs",
+  "EnginePort": 1234,
+  "GuardPort": 1236,
+  "WebPort": 3080,
+  "MaxContext": 262144,
+  "DeviceKV": 36864,
+  "HostKVMiB": 7168,
+  "RecentTokens": 19456,
+  "SinkTokens": 12288,
+  "RetrieveTokens": 3840,
+  "ReasoningEffort": "xhigh"
+}

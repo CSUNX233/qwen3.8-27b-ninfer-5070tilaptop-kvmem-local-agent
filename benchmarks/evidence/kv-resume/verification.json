@@ -1,0 +1,192 @@
+{
+  "hardware": "RTX 5070 Ti Laptop 12GB / i7-14650HX / 32GB RAM",
+  "toolchain": "MSVC 14.44.35207 + existing sm_120a CUDA archives",
+  "production_sha256": "02D4C4EA3E7A1FB4D2D5D3E3369C66C886D5A799461926EF03DB4016D5163BA6",
+  "storage_regression": "ok",
+  "baseline_final_exact_messages": {
+    "cold": true,
+    "warm": true
+  },
+  "baseline_final_exact_short": true,
+  "configuration": {
+    "device_state_slots": 1,
+    "host_kv_bytes": 7516192768,
+    "host_state_slots": 8,
+    "kv_capacity_pages": 576,
+    "kv_capacity_tokens": 36864,
+    "kv_page_tokens": 64,
+    "max_admitted_requests": 17,
+    "max_concurrency": 1,
+    "max_context": 262144,
+    "max_pending_requests": 16
+  },
+  "benchmarks": {
+    "baseline-cold": {
+      "prompt_tokens": 62002,
+      "output_tokens": 512,
+      "cached_tokens": 0,
+      "prefill_seconds": 130.7791225,
+      "decode_tokens_per_second": 77.20008612568513,
+      "ttft_seconds": 130.90329449996352,
+      "mtp_accepted": 348,
+      "mtp_proposed": 487
+    },
+    "baseline-warm": {
+      "prompt_tokens": 62002,
+      "output_tokens": 512,
+      "cached_tokens": 61995,
+      "prefill_seconds": 0.1037981,
+      "decode_tokens_per_second": 78.35751365444845,
+      "ttft_seconds": 0.22124230000190437,
+      "mtp_accepted": 346,
+      "mtp_proposed": 495
+    },
+    "final-cold": {
+      "prompt_tokens": 62002,
+      "output_tokens": 512,
+      "cached_tokens": 0,
+      "prefill_seconds": 131.647471,
+      "decode_tokens_per_second": 77.62662208498362,
+      "ttft_seconds": 131.75080699997488,
+      "mtp_accepted": 348,
+      "mtp_proposed": 487
+    },
+    "final-warm": {
+      "prompt_tokens": 62002,
+      "output_tokens": 512,
+      "cached_tokens": 61995,
+      "prefill_seconds": 0.1100525,
+      "decode_tokens_per_second": 77.64248486157675,
+      "ttft_seconds": 0.2365337999071926,
+      "mtp_accepted": 346,
+      "mtp_proposed": 495
+    },
+    "final-agent-long": {
+      "prompt_tokens": 62386,
+      "output_tokens": 23656,
+      "cached_tokens": 0,
+      "prefill_seconds": 251.9509008,
+      "decode_tokens_per_second": 118.75194915347868,
+      "ttft_seconds": 252.07043879991397,
+      "mtp_accepted": 20833,
+      "mtp_proposed": 40230
+    },
+    "final-agent-tool-call": {
+      "prompt_tokens": 86092,
+      "output_tokens": 20,
+      "cached_tokens": 86041,
+      "prefill_seconds": 0.4754489,
+      "decode_tokens_per_second": 87.03064715531168,
+      "ttft_seconds": 0.8318352999631315,
+      "mtp_accepted": 15,
+      "mtp_proposed": 15
+    },
+    "final-agent-tool-result": {
+      "prompt_tokens": 86163,
+      "output_tokens": 47,
+      "cached_tokens": 86111,
+      "prefill_seconds": 0.4428707,
+      "decode_tokens_per_second": 100.77354650589635,
+      "ttft_seconds": 0.5804325999924913,
+      "mtp_accepted": 37,
+      "mtp_proposed": 63
+    },
+    "final-agent-followup-0": {
+      "prompt_tokens": 86234,
+      "output_tokens": 47,
+      "cached_tokens": 86209,
+      "prefill_seconds": 0.333869,
+      "decode_tokens_per_second": 141.62901695299334,
+      "ttft_seconds": 0.4339973999885842,
+      "mtp_accepted": 42,
+      "mtp_proposed": 42
+    },
+    "final-agent-followup-1": {
+      "prompt_tokens": 86305,
+      "output_tokens": 47,
+      "cached_tokens": 86280,
+      "prefill_seconds": 0.3483755,
+      "decode_tokens_per_second": 145.62427544008605,
+      "ttft_seconds": 0.49694520002231,
+      "mtp_accepted": 42,
+      "mtp_proposed": 42
+    },
+    "final-agent-followup-2": {
+      "prompt_tokens": 86376,
+      "output_tokens": 47,
+      "cached_tokens": 86351,
+      "prefill_seconds": 0.3309043,
+      "decode_tokens_per_second": 147.912726346665,
+      "ttft_seconds": 0.4927952999714762,
+      "mtp_accepted": 42,
+      "mtp_proposed": 42
+    },
+    "final-stress-long": {
+      "prompt_tokens": 62291,
+      "output_tokens": 24576,
+      "cached_tokens": 0,
+      "prefill_seconds": 132.1267075,
+      "decode_tokens_per_second": 74.06508100325367,
+      "ttft_seconds": 132.205990599934,
+      "mtp_accepted": 16354,
+      "mtp_proposed": 24688
+    },
+    "final-stress-tool-call": {
+      "prompt_tokens": 156408,
+      "output_tokens": 20,
+      "cached_tokens": 62284,
+      "prefill_seconds": 205.2000635,
+      "decode_tokens_per_second": 80.90456412453172,
+      "ttft_seconds": 205.60817349993158,
+      "mtp_accepted": 15,
+      "mtp_proposed": 15
+    },
+    "final-stress-tool-result": {
+      "prompt_tokens": 156479,
+      "output_tokens": 47,
+      "cached_tokens": 156427,
+      "prefill_seconds": 0.4266782,
+      "decode_tokens_per_second": 80.29559952185716,
+      "ttft_seconds": 0.5567373998928815,
+      "mtp_accepted": 37,
+      "mtp_proposed": 63
+    },
+    "final-stress-followup-0": {
+      "prompt_tokens": 156550,
+      "output_tokens": 47,
+      "cached_tokens": 156525,
+      "prefill_seconds": 0.3842115,
+      "decode_tokens_per_second": 122.98008551393511,
+      "ttft_seconds": 0.5743882999522611,
+      "mtp_accepted": 42,
+      "mtp_proposed": 42
+    },
+    "final-stress-followup-1": {
+      "prompt_tokens": 156621,
+      "output_tokens": 47,
+      "cached_tokens": 156596,
+      "prefill_seconds": 0.4174886,
+      "decode_tokens_per_second": 110.14724291872952,
+      "ttft_seconds": 0.5720304999267682,
+      "mtp_accepted": 42,
+      "mtp_proposed": 42
+    },
+    "final-stress-followup-2": {
+      "prompt_tokens": 156692,
+      "output_tokens": 47,
+      "cached_tokens": 156667,
+      "prefill_seconds": 0.3575381,
+      "decode_tokens_per_second": 134.7696654577437,
+      "ttft_seconds": 0.5651045999256894,
+      "mtp_accepted": 42,
+      "mtp_proposed": 42
+    }
+  },
+  "verification_codes": "all four correct in tool result and three followups for both workloads",
+  "limitations": [
+    "Full 256K end-to-end model stress was not run.",
+    "Synthetic long workloads do not establish arbitrary Agent decoding throughput.",
+    "ignore_eos emitted special-token strings; re-encoding them changed the token prefix and required real recomputation.",
+    "Single before/after performance samples; small timing differences are reported without claiming statistical equivalence."
+  ]
+}

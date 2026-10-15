@@ -1,0 +1,15 @@
+{
+  "compared_tensors": 856,
+  "tensor_differences": [],
+  "changed_resources": [],
+  "component_config_matches": {
+    "text": true,
+    "mtp": true
+  },
+  "old_bindings_preserved": true,
+  "old_execution_uses_preserved": true,
+  "vision_formats": [
+    "bf16"
+  ],
+  "bytes": 11718222080
+}

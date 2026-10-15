@@ -1,0 +1,464 @@
+{
+  "hardware": {
+    "gpu": "RTX 5070 Ti Laptop 12 GB",
+    "cc": "sm120a",
+    "sms": 46,
+    "cpu": "i7-14650HX",
+    "ram_gib": 32
+  },
+  "toolchain": {
+    "cuda": "13.0.48",
+    "msvc": "14.44.35207"
+  },
+  "implementation": "Launch geometry only, exact selected IQ2_S / IQ3_XXS / Q2_K shapes at T=1 or 4",
+  "defaults_preserved": {
+    "context": 262144,
+    "device_kv": 36864,
+    "host_kv_mib": 7168,
+    "kv_dtype": "rk4v4",
+    "mtp": 3,
+    "prefill_chunk": 128,
+    "concurrency": 1,
+    "recent": 19456,
+    "sink": 12288,
+    "retrieve": 3840,
+    "default_reasoning": "xhigh",
+    "presence_penalty": 1,
+    "weights_and_quantization_unchanged": true
+  },
+  "profiling": {
+    "round_gpu_ms": 37.8,
+    "target_verify_ms": 30.0,
+    "mlp_ms": 18.1,
+    "gdn_ms": 7.64,
+    "attention_ms": 2.45,
+    "draft_heads_ms": 4.85,
+    "draft_body_ms": 1.85,
+    "alignment_ms": 0.97,
+    "source": "profile3, external CUDA Graph events; production candidate has no probes"
+  },
+  "short": {
+    "tokens_per_second": {
+      "off": {
+        "prose-0": [
+          68.44975573298609,
+          66.03037888136704
+        ],
+        "code-0": [
+          84.00232674128017,
+          83.33779349383558
+        ],
+        "prose-1": [
+          64.50932783854037,
+          64.61156675931167
+        ],
+        "code-1": [
+          83.95119456682312,
+          83.43317857117574
+        ]
+      },
+      "on": {
+        "prose-0": [
+          72.07592302945459,
+          71.53723834567218
+        ],
+        "code-0": [
+          84.22548193956614,
+          84.74873313691786
+        ],
+        "prose-1": [
+          63.95473625637942,
+          66.3559013041184
+        ],
+        "code-1": [
+          84.35547833955403,
+          85.64324164943861
+        ]
+      }
+    },
+    "total_predicted_ms": {
+      "off": 95482.3955,
+      "on": 93204.0791
+    },
+    "aggregate_speed_gain_percent": 2.444438507412916,
+    "original_full_messages_usage_and_mtp_equal": true,
+    "note": "Two independent runs per switch setting; drift in clocks/power remains. This is a workload result, not a universal speedup."
+  },
+  "quality": [
+    {
+      "case": "math-0",
+      "full_message_equal": true,
+      "reasoning_tokens": 0
+    },
+    {
+      "case": "math-1",
+      "full_message_equal": true,
+      "reasoning_tokens": 0
+    },
+    {
+      "case": "math-2",
+      "full_message_equal": true,
+      "reasoning_tokens": 325
+    },
+    {
+      "case": "reasoning",
+      "full_message_equal": true,
+      "reasoning_tokens": 1092
+    },
+    {
+      "case": "tool-call",
+      "full_message_equal": true,
+      "reasoning_tokens": 0
+    },
+    {
+      "case": "tool-result",
+      "full_message_equal": true,
+      "reasoning_tokens": 0
+    }
+  ],
+  "independent_op_qualification": {
+    "passed": true,
+    "full_fp32_and_bf16_bitwise_equal": true,
+    "results": [
+      {
+        "mode": "off",
+        "public_fp64_checks": 42,
+        "bytes": 3686400,
+        "sha256": "bd073a5c72281ecce3eb69f854b2448d00ec65dea6a075a043aa1b49fc008f50"
+      },
+      {
+        "mode": "on",
+        "public_fp64_checks": 42,
+        "bytes": 3686400,
+        "sha256": "bd073a5c72281ecce3eb69f854b2448d00ec65dea6a075a043aa1b49fc008f50"
+      }
+    ]
+  },
+  "long_context": [
+    {
+      "case": "cold",
+      "full_message_equal": true,
+      "usage": {
+        "completion_tokens": 328,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens": 62002,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 62330
+      },
+      "original_timings": {
+        "cache_n": 0,
+        "draft_n": 333,
+        "draft_n_accepted": 216,
+        "predicted_ms": 4543.7791,
+        "predicted_n": 328,
+        "predicted_per_second": 71.96652671781514,
+        "predicted_per_token_ms": 13.895348929663609,
+        "prompt_ms": 108420.726,
+        "prompt_n": 62002,
+        "prompt_per_second": 571.8648296083168,
+        "prompt_per_token_ms": 1.7486649785490789
+      },
+      "candidate_timings": {
+        "cache_n": 0,
+        "draft_n": 333,
+        "draft_n_accepted": 216,
+        "predicted_ms": 4253.7796,
+        "predicted_n": 328,
+        "predicted_per_second": 76.87281212218893,
+        "predicted_per_token_ms": 13.008500305810397,
+        "prompt_ms": 111280.5494,
+        "prompt_n": 62002,
+        "prompt_per_second": 557.1683491346961,
+        "prompt_per_token_ms": 1.7947896745266283
+      },
+      "ttft_seconds": 111.4141477000012
+    },
+    {
+      "case": "warm",
+      "full_message_equal": true,
+      "usage": {
+        "completion_tokens": 387,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens": 62002,
+        "prompt_tokens_details": {
+          "cached_tokens": 61995
+        },
+        "total_tokens": 62389
+      },
+      "original_timings": {
+        "cache_n": 61995,
+        "draft_n": 390,
+        "draft_n_accepted": 257,
+        "predicted_ms": 5403.6839,
+        "predicted_n": 387,
+        "predicted_per_second": 71.43274979500559,
+        "predicted_per_token_ms": 13.999181088082901,
+        "prompt_ms": 93.5428,
+        "prompt_n": 7,
+        "prompt_per_second": 74.83205548690012,
+        "prompt_per_token_ms": 13.363257142857142
+      },
+      "candidate_timings": {
+        "cache_n": 61995,
+        "draft_n": 390,
+        "draft_n_accepted": 257,
+        "predicted_ms": 5066.8388,
+        "predicted_n": 387,
+        "predicted_per_second": 76.18162235593522,
+        "predicted_per_token_ms": 13.126525388601037,
+        "prompt_ms": 107.29990000000001,
+        "prompt_n": 7,
+        "prompt_per_second": 65.23771224390703,
+        "prompt_per_token_ms": 15.328557142857145
+      },
+      "ttft_seconds": 0.23408779999954277
+    },
+    {
+      "case": "recall",
+      "full_message_equal": true,
+      "usage": {
+        "completion_tokens": 23,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens": 62039,
+        "prompt_tokens_details": {
+          "cached_tokens": 61995
+        },
+        "total_tokens": 62062
+      },
+      "original_timings": {
+        "cache_n": 61995,
+        "draft_n": 18,
+        "draft_n_accepted": 17,
+        "predicted_ms": 247.2424,
+        "predicted_n": 23,
+        "predicted_per_second": 88.98150155474951,
+        "predicted_per_token_ms": 11.238290909090908,
+        "prompt_ms": 565.3888999999999,
+        "prompt_n": 44,
+        "prompt_per_second": 77.82253949449662,
+        "prompt_per_token_ms": 12.849747727272726
+      },
+      "candidate_timings": {
+        "cache_n": 61995,
+        "draft_n": 18,
+        "draft_n_accepted": 17,
+        "predicted_ms": 218.92780000000002,
+        "predicted_n": 23,
+        "predicted_per_second": 100.48975050222036,
+        "predicted_per_token_ms": 9.951263636363636,
+        "prompt_ms": 746.0202,
+        "prompt_n": 44,
+        "prompt_per_second": 58.97963620824208,
+        "prompt_per_token_ms": 16.955004545454546
+      },
+      "ttft_seconds": 0.8296747999993386
+    }
+  ],
+  "agent_stress": {
+    "long_cases": [
+      "final-agent-long-0"
+    ],
+    "generated_tokens": 22528,
+    "all_four_codes_correct": true,
+    "turns": {
+      "final-agent-long-0": {
+        "finish_reason": "length",
+        "usage": {
+          "completion_tokens": 22528,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens": 62346,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 84874
+        },
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 21108,
+          "draft_n_accepted": 21107,
+          "predicted_ms": 101676.8824,
+          "predicted_n": 22528,
+          "predicted_per_second": 221.55478677422548,
+          "predicted_per_token_ms": 4.513556283570826,
+          "prompt_ms": 136191.0042,
+          "prompt_n": 62346,
+          "prompt_per_second": 457.7835398617319,
+          "prompt_per_token_ms": 2.184438523722452
+        },
+        "wall_seconds": 237.96845369999937,
+        "ttft_seconds": 136.2907768999994
+      },
+      "final-agent-tool-call": {
+        "finish_reason": "tool_calls",
+        "usage": {
+          "completion_tokens": 20,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens": 84925,
+          "prompt_tokens_details": {
+            "cached_tokens": 84873
+          },
+          "total_tokens": 84945
+        },
+        "timings": {
+          "cache_n": 84873,
+          "draft_n": 15,
+          "draft_n_accepted": 15,
+          "predicted_ms": 269.52389999999997,
+          "predicted_n": 20,
+          "predicted_per_second": 70.49467598235259,
+          "predicted_per_token_ms": 14.18546842105263,
+          "prompt_ms": 813.5479,
+          "prompt_n": 52,
+          "prompt_per_second": 63.91756404263351,
+          "prompt_per_token_ms": 15.645151923076924
+        },
+        "wall_seconds": 1.234009399999195,
+        "ttft_seconds": 1.233679699998902
+      },
+      "final-agent-tool-result": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 47,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens": 84996,
+          "prompt_tokens_details": {
+            "cached_tokens": 84944
+          },
+          "total_tokens": 85043
+        },
+        "timings": {
+          "cache_n": 84944,
+          "draft_n": 51,
+          "draft_n_accepted": 35,
+          "predicted_ms": 528.047,
+          "predicted_n": 47,
+          "predicted_per_second": 87.11345770357562,
+          "predicted_per_token_ms": 11.479282608695653,
+          "prompt_ms": 322.8704,
+          "prompt_n": 52,
+          "prompt_per_second": 161.05533365709584,
+          "prompt_per_token_ms": 6.209046153846154
+        },
+        "wall_seconds": 0.9737418999993679,
+        "ttft_seconds": 0.44510280000031344
+      },
+      "final-agent-followup-0": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 33,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens": 85067,
+          "prompt_tokens_details": {
+            "cached_tokens": 85042
+          },
+          "total_tokens": 85100
+        },
+        "timings": {
+          "cache_n": 85042,
+          "draft_n": 33,
+          "draft_n_accepted": 25,
+          "predicted_ms": 328.0573,
+          "predicted_n": 33,
+          "predicted_per_second": 97.54393516010771,
+          "predicted_per_token_ms": 10.251790625,
+          "prompt_ms": 255.72240000000002,
+          "prompt_n": 25,
+          "prompt_per_second": 97.76226095171951,
+          "prompt_per_token_ms": 10.228896
+        },
+        "wall_seconds": 0.7258898999989469,
+        "ttft_seconds": 0.3968115999996371
+      },
+      "final-agent-followup-1": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 33,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens": 85124,
+          "prompt_tokens_details": {
+            "cached_tokens": 85099
+          },
+          "total_tokens": 85157
+        },
+        "timings": {
+          "cache_n": 85099,
+          "draft_n": 29,
+          "draft_n_accepted": 29,
+          "predicted_ms": 246.62400000000002,
+          "predicted_n": 33,
+          "predicted_per_second": 129.75217334890357,
+          "predicted_per_token_ms": 7.707000000000001,
+          "prompt_ms": 245.8257,
+          "prompt_n": 25,
+          "prompt_per_second": 101.69807306559078,
+          "prompt_per_token_ms": 9.833028
+        },
+        "wall_seconds": 0.6551646000007167,
+        "ttft_seconds": 0.408298599999398
+      },
+      "final-agent-followup-2": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 33,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens": 85181,
+          "prompt_tokens_details": {
+            "cached_tokens": 85156
+          },
+          "total_tokens": 85214
+        },
+        "timings": {
+          "cache_n": 85156,
+          "draft_n": 29,
+          "draft_n_accepted": 29,
+          "predicted_ms": 248.3733,
+          "predicted_n": 33,
+          "predicted_per_second": 128.83832521450574,
+          "predicted_per_token_ms": 7.761665625,
+          "prompt_ms": 218.6327,
+          "prompt_n": 25,
+          "prompt_per_second": 114.34703043048913,
+          "prompt_per_token_ms": 8.745308
+        },
+        "wall_seconds": 0.5610522000006313,
+        "ttft_seconds": 0.3125177000001713
+      }
+    }
+  },
+  "observed_peak_vram_mib": {
+    "baseline-a": 11120.0,
+    "original-final": 11118.0,
+    "tuned3-off-a": 11116.0,
+    "tuned3-off-b": 11120.0,
+    "tuned3-a": 11120.0,
+    "tuned3-b": 11120.0,
+    "tuned3-final": 11122.0
+  },
+  "limitations": [
+    "Full 256K whole-model stress was not run; logical capacity and retrieval settings are preserved.",
+    "Fixed repeated-text Agent stress is a cache-lifetime fixture, not representative prose throughput.",
+    "Long-context equality uses the same clean-start request sequence on the saved original executable and candidate. The earlier baseline-a sequence ran short queries first and produced different long-form wording.",
+    "Initial quality fixture needed a larger output allowance; the original model answered a determinant incorrectly with reasoning disabled. The final determinant fixture uses production xhigh reasoning."
+  ],
+  "disabled_switch": "Set NINFER_VEC5070_DISABLE=1 before starting the engine"
+}
