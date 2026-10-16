@@ -23,6 +23,10 @@ ninfer_add_test(ninfer_host_kv_clamp_test
   SOURCES "${CMAKE_CURRENT_LIST_DIR}/../host/test_host_kv_clamp.cpp"
   LIBRARIES ninfer_core)
 
+ninfer_add_test(ninfer_lexical_page_index_test
+  SOURCES "${CMAKE_CURRENT_LIST_DIR}/../host/test_lexical_page_index.cpp"
+  LIBRARIES ninfer_core)
+
 ninfer_add_test(ninfer_device_buffer_visibility_test
   SOURCES "${CMAKE_CURRENT_LIST_DIR}/../test_device_buffer_visibility.cu"
   LIBRARIES ninfer_core)

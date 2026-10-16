@@ -1859,6 +1859,11 @@ std::vector<std::uint32_t> ProgramImpl::select_retrieval_pages(const SequenceSta
     // The ledger is only needed by the lexical fallback below; an empty ledger is not a reason to skip
     // the content path (which reads the index, not the ledger).
     if (sequence.ledger.empty()) { return selected; }
+    static const bool incremental = [] {
+        const char* value = std::getenv("NINFER_INCREMENTAL_LEXICAL");
+        return value != nullptr && value[0] == '1';
+    }();
+    if (incremental) { return sequence.lexical_pages.select(sequence.ledger, begin, end, budget); }
     constexpr std::size_t kQueryWindow = 256;
     const std::size_t query_begin =
         sequence.ledger.size() > kQueryWindow ? sequence.ledger.size() - kQueryWindow : 0;
@@ -2001,6 +2006,10 @@ std::uint32_t ProgramImpl::demote_kv_pages_to_host(KVAddressSpaceStore& addresse
                                                    std::uint32_t target_free,
                                                    std::span<const std::uint32_t> preferred) {
     if (host_kv_extents == nullptr || !addresses.valid(address) || target_free == 0) { return 0; }
+    static const bool batch_demote = [] {
+        const char* value = std::getenv("NINFER_DEMOTE_BATCH");
+        return value != nullptr && value[0] == '1';
+    }();
     const std::uint32_t mapped = addresses.mapped_pages(address);
     const auto is_preferred = [&](std::uint32_t page) {
         return !preferred.empty() && std::binary_search(preferred.begin(), preferred.end(), page);
@@ -2035,6 +2044,48 @@ std::uint32_t ProgramImpl::demote_kv_pages_to_host(KVAddressSpaceStore& addresse
             continue;
         }
         if (!pages.host_resident(logical)) {
+            // Opt-in: coalesce only the next consecutive eligible pages, in the existing order.
+            // Payload, attention selection, compute-stream ordering and full-page protection stay
+            // unchanged. If a larger Host extent cannot be reserved, restore lookahead writers
+            // and fall through to the original one-page path (fragmented/full Host arenas).
+            if (batch_demote && target_free - demoted > 1) {
+                std::vector<LogicalKVPageHandle> batch{logical};
+                const auto limit = std::min<std::uint32_t>(64U, target_free - demoted);
+                while (batch.size() < limit && current + batch.size() < mapped) {
+                    const auto next_page = current + static_cast<std::uint32_t>(batch.size());
+                    if (!second_pass && is_preferred(next_page)) { break; }
+                    const auto next = addresses.logical_page(address, next_page);
+                    if (!pages.valid(next) || !pages.device_resident(next) ||
+                        pages.source_pins(next) != 0 || pages.host_resident(next) ||
+                        pages.committed_columns(next) != static_cast<std::uint32_t>(kPagedKVPageSize) ||
+                        std::find(batch.begin(), batch.end(), next) != batch.end()) {
+                        break;
+                    }
+                    batch.push_back(next);
+                }
+                if (batch.size() > 1) {
+                    std::vector<std::uint8_t> writers;
+                    writers.reserve(batch.size());
+                    for (auto item : batch) { writers.push_back(pages.writer_references(item)); }
+                    for (auto item : batch) { pages.set_writer(item, false); }
+                    auto reserved = host_kv_extents->prepare(pages, batch);
+                    if (reserved) {
+                        const auto sources = host_kv_extents->device_sources(*reserved);
+                        pages.physical_pool().copy_to_host(
+                            sources, host_kv_extents->writable_view(*reserved), device.stream);
+                        (void)host_kv_extents->publish(std::move(*reserved));
+                        for (auto item : batch) {
+                            pages.release_active_reference(item);
+                            if (pages.drop_device_replica(item)) { ++demoted; }
+                        }
+                        page = current + static_cast<std::uint32_t>(batch.size());
+                        continue;
+                    }
+                    for (std::size_t i = 0; i < batch.size(); ++i) {
+                        if (writers[i] != 0) { pages.set_writer(batch[i], true); }
+                    }
+                }
+            }
             // The content is not on the Host yet: copy it there first. The Host extent store pins
             // through `can_pin_source`, which requires the writer reference to be clear; an active
             // sequence keeps one on every mapped page and these pages are outside the window.
@@ -2522,6 +2573,7 @@ void ProgramImpl::commit_sequence_kv(SequenceState& sequence, std::uint32_t main
 
 void ProgramImpl::trim_sequence_kv(SequenceState& sequence, std::uint32_t main_tokens,
                                    std::uint32_t backend_tokens) {
+    sequence.lexical_pages.reset();
     if (!sequence.kv || main_tokens > capacity || backend_tokens > main_tokens) {
         throw std::logic_error("KV trim request is outside the sequence bundle");
     }

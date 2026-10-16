@@ -242,6 +242,7 @@ void ProgramImpl::start_sequence(std::uint32_t lane, SequenceState& sequence,
     const std::uint32_t prompt_tokens      = staged.prompt_tokens;
     const std::uint32_t base               = staged.base;
     const std::uint32_t initial_mtp_extent = staged.initial_mtp_extent;
+    sequence.lexical_pages.reset();
     RetrievalCheckpoint retrieval;
     if (request_plan.reuse != ReusePath::Root) {
         retrieval = transaction.has_source

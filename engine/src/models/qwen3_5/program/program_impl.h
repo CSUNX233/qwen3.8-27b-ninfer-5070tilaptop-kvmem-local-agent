@@ -17,6 +17,7 @@
 #include "models/qwen3_5/program/storage/draft_context.h"
 #include "models/qwen3_5/program/storage/host_kv_store.h"
 #include "models/qwen3_5/program/storage/kv_store.h"
+#include "models/qwen3_5/program/storage/lexical_page_index.h"
 #include "models/qwen3_5/program/storage/state_store.h"
 #include "models/qwen3_5/program/prefix/hybrid_cache.h"
 #include "models/qwen3_5/program/prefix_identity.h"
@@ -456,6 +457,7 @@ struct SequenceState {
     std::uint32_t execution_frontier = 0;
     std::uint32_t ledger_frontier    = 0;
     std::vector<TokenId> ledger;
+    mutable LexicalPageIndex lexical_pages;
     qwen3_5::detail::ResidentPrefixIdentity prefix_identity;
     qwen3_5::detail::PrefixShortlistDigests prefix_digests;
     std::int32_t rope_delta               = 0;

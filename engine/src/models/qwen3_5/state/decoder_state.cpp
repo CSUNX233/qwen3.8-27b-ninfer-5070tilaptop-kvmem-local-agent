@@ -8,6 +8,7 @@
 #include <utility>
 #include <cuda_runtime.h>
 #include <cstdint>
+#include <cstdlib>
 #include <vector>
 
 namespace ninfer::models::qwen3_5 {
@@ -229,11 +230,27 @@ void PagedKVCache::install_selection(std::span<const std::uint32_t> words) {
             throw std::runtime_error("PagedKVCache: retrieval bitmap allocation failed");
         }
         selection_words_ = words.size();
+        selection_host_.clear();
     }
-    if (cudaMemcpy(selection_device_, words.data(), words.size_bytes(), cudaMemcpyHostToDevice) !=
+    static const bool diff_upload = [] {
+        const char* value = std::getenv("NINFER_SELECTION_DIFF");
+        return value != nullptr && value[0] == '1';
+    }();
+    std::size_t first = 0, end = words.size();
+    if (diff_upload && selection_host_.size() == words.size()) {
+        while (first < end && selection_host_[first] == words[first]) { ++first; }
+        while (end > first && selection_host_[end - 1] == words[end - 1]) { --end; }
+    }
+    // Keep the original synchronous ordering for changed data. An identical selection needs no
+    // transfer/barrier: its last upload completed before the original install returned. Graph
+    // arguments keep the same device pointer, including clear -> re-enable with identical bits.
+    if (end > first &&
+        cudaMemcpy(selection_device_ + first, words.data() + first,
+                   (end - first) * sizeof(std::uint32_t), cudaMemcpyHostToDevice) !=
         cudaSuccess) {
         throw std::runtime_error("PagedKVCache: retrieval bitmap upload failed");
     }
+    if (diff_upload) { selection_host_.assign(words.begin(), words.end()); }
     selected_blocks_ = selection_device_;
 }
 std::size_t DecoderStateLayout::kv_payload_bytes() const noexcept {

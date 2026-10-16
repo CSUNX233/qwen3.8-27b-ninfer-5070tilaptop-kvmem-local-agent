@@ -118,6 +118,7 @@ private:
     const std::uint32_t* selected_blocks_ = nullptr;
     std::uint32_t* selection_device_      = nullptr;
     std::size_t selection_words_          = 0;
+    std::vector<std::uint32_t> selection_host_;
 };
 
 struct DecoderStateLayout {

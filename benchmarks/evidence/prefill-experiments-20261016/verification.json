@@ -1,0 +1,169 @@
+{
+  "date": "2026-10-16",
+  "base_commit": "8dade0dfa91ba19e6531e6f1082be99090873344",
+  "production_engine_sha256": "275ea27ba01b57ca3f3a14361e5f7a4d8c4b04575475f1fe536ca5dedb6c8bd1",
+  "candidate_sha256": "dd54ca16f58472e7357ba26e5a631740a831699f829fad7c1ad3cd60d777fa08",
+  "batch_candidate_sha256": "6437201a0d7642213bd3b8db45b2f7bf94f7bfc1f6af0aab0c29436c2ade9688",
+  "kv_dtype": "rk4v4",
+  "device_kv": 39168,
+  "retrieve_tokens": 6144,
+  "host_kv_mib": 7168,
+  "sink_tokens": 12288,
+  "recent_tokens": 19456,
+  "prefill_chunk": 128,
+  "mtp_draft_tokens": 3,
+  "reasoning_effort": "xhigh",
+  "smoke_full_messages_equal": true,
+  "agent_full_messages_equal": true,
+  "history_passed": true,
+  "history_full_messages_equal_stable": true,
+  "daily_engine_and_launcher_unchanged": true,
+  "arms": [
+    {
+      "arm": "agent-A-off",
+      "cold_prompt_tokens": 64639,
+      "cold_prefill_ms": 86398.528,
+      "continuation_prefill_ms": [
+        414.2966,
+        662.1510000000001,
+        409.4466,
+        395.9848,
+        413.0333,
+        386.91130000000004
+      ],
+      "weighted_decode_tps": 84.90414434177285,
+      "request_elapsed_seconds": 104.375,
+      "gpu_peak_mib": 11160.0,
+      "gpu_min_free_mib": 785.0,
+      "passed": true,
+      "message_sha256": [
+        "166e29232878591c3e4a4efed75024fb17b430493880c1efaeb29714f5dafe08",
+        "2e9961832de84be35928976e9c3f08f9847984188a2f411e3267514c9a2bf20c",
+        "d79dd8d73e3a80be93a9570d2e444caf142fe090a5577396752f27c52740d3b6",
+        "78230f97c73c6267fa7c4ac72d970a15a6bdcb1a08e4c4877664378bfb685132",
+        "54bd52402e787f6caaa8729115c126a940c634daad3f91847120dfaaf9fe9815",
+        "08d468afd5d76d1fabacc915fffa0a7a4e728237a49d1285c9ac1d2f5e90bf25",
+        "85ed7edb1088e044403c0ed4ab104a3eddebcb7257591f1cff9bbeca97385a0a"
+      ],
+      "runtime_reservation": "1014.6 MiB",
+      "startup_cuda_free": "84.0 MiB"
+    },
+    {
+      "arm": "agent-B-lexical",
+      "cold_prompt_tokens": 64639,
+      "cold_prefill_ms": 85108.3785,
+      "continuation_prefill_ms": [
+        420.1704,
+        717.083,
+        418.8449,
+        394.7737,
+        426.1255,
+        393.21410000000003
+      ],
+      "weighted_decode_tps": 84.04281719322405,
+      "request_elapsed_seconds": 103.375,
+      "gpu_peak_mib": 11160.0,
+      "gpu_min_free_mib": 785.0,
+      "passed": true,
+      "message_sha256": [
+        "166e29232878591c3e4a4efed75024fb17b430493880c1efaeb29714f5dafe08",
+        "2e9961832de84be35928976e9c3f08f9847984188a2f411e3267514c9a2bf20c",
+        "d79dd8d73e3a80be93a9570d2e444caf142fe090a5577396752f27c52740d3b6",
+        "78230f97c73c6267fa7c4ac72d970a15a6bdcb1a08e4c4877664378bfb685132",
+        "54bd52402e787f6caaa8729115c126a940c634daad3f91847120dfaaf9fe9815",
+        "08d468afd5d76d1fabacc915fffa0a7a4e728237a49d1285c9ac1d2f5e90bf25",
+        "85ed7edb1088e044403c0ed4ab104a3eddebcb7257591f1cff9bbeca97385a0a"
+      ],
+      "runtime_reservation": "1014.6 MiB",
+      "startup_cuda_free": "84.0 MiB"
+    },
+    {
+      "arm": "agent-C-both",
+      "cold_prompt_tokens": 64639,
+      "cold_prefill_ms": 85704.6987,
+      "continuation_prefill_ms": [
+        419.5083,
+        640.5041,
+        412.3094,
+        396.32869999999997,
+        423.26390000000004,
+        397.60040000000004
+      ],
+      "weighted_decode_tps": 82.24138485965318,
+      "request_elapsed_seconds": 104.15600000000268,
+      "gpu_peak_mib": 11160.0,
+      "gpu_min_free_mib": 785.0,
+      "passed": true,
+      "message_sha256": [
+        "166e29232878591c3e4a4efed75024fb17b430493880c1efaeb29714f5dafe08",
+        "2e9961832de84be35928976e9c3f08f9847984188a2f411e3267514c9a2bf20c",
+        "d79dd8d73e3a80be93a9570d2e444caf142fe090a5577396752f27c52740d3b6",
+        "78230f97c73c6267fa7c4ac72d970a15a6bdcb1a08e4c4877664378bfb685132",
+        "54bd52402e787f6caaa8729115c126a940c634daad3f91847120dfaaf9fe9815",
+        "08d468afd5d76d1fabacc915fffa0a7a4e728237a49d1285c9ac1d2f5e90bf25",
+        "85ed7edb1088e044403c0ed4ab104a3eddebcb7257591f1cff9bbeca97385a0a"
+      ],
+      "runtime_reservation": "1014.6 MiB",
+      "startup_cuda_free": "84.0 MiB"
+    },
+    {
+      "arm": "agent-D-batch",
+      "cold_prompt_tokens": 64639,
+      "cold_prefill_ms": 88115.0738,
+      "continuation_prefill_ms": [
+        417.6219,
+        671.0445000000001,
+        422.3986,
+        396.18940000000003,
+        415.3561,
+        399.497
+      ],
+      "weighted_decode_tps": 85.42902579773418,
+      "request_elapsed_seconds": 106.06299999999464,
+      "gpu_peak_mib": 11164.0,
+      "gpu_min_free_mib": 781.0,
+      "passed": true,
+      "message_sha256": [
+        "166e29232878591c3e4a4efed75024fb17b430493880c1efaeb29714f5dafe08",
+        "2e9961832de84be35928976e9c3f08f9847984188a2f411e3267514c9a2bf20c",
+        "d79dd8d73e3a80be93a9570d2e444caf142fe090a5577396752f27c52740d3b6",
+        "78230f97c73c6267fa7c4ac72d970a15a6bdcb1a08e4c4877664378bfb685132",
+        "54bd52402e787f6caaa8729115c126a940c634daad3f91847120dfaaf9fe9815",
+        "08d468afd5d76d1fabacc915fffa0a7a4e728237a49d1285c9ac1d2f5e90bf25",
+        "85ed7edb1088e044403c0ed4ab104a3eddebcb7257591f1cff9bbeca97385a0a"
+      ],
+      "runtime_reservation": "1014.6 MiB",
+      "startup_cuda_free": "82.0 MiB"
+    },
+    {
+      "arm": "agent-A-repeat",
+      "cold_prompt_tokens": 64639,
+      "cold_prefill_ms": 86448.5193,
+      "continuation_prefill_ms": [
+        426.8588,
+        1018.4029999999999,
+        436.2838,
+        422.4807,
+        438.1633,
+        419.1471
+      ],
+      "weighted_decode_tps": 82.24652284565941,
+      "request_elapsed_seconds": 105.75,
+      "gpu_peak_mib": 11160.0,
+      "gpu_min_free_mib": 785.0,
+      "passed": true,
+      "message_sha256": [
+        "166e29232878591c3e4a4efed75024fb17b430493880c1efaeb29714f5dafe08",
+        "2e9961832de84be35928976e9c3f08f9847984188a2f411e3267514c9a2bf20c",
+        "d79dd8d73e3a80be93a9570d2e444caf142fe090a5577396752f27c52740d3b6",
+        "78230f97c73c6267fa7c4ac72d970a15a6bdcb1a08e4c4877664378bfb685132",
+        "54bd52402e787f6caaa8729115c126a940c634daad3f91847120dfaaf9fe9815",
+        "08d468afd5d76d1fabacc915fffa0a7a4e728237a49d1285c9ac1d2f5e90bf25",
+        "85ed7edb1088e044403c0ed4ab104a3eddebcb7257591f1cff9bbeca97385a0a"
+      ],
+      "runtime_reservation": "1014.6 MiB",
+      "startup_cuda_free": "84.0 MiB"
+    }
+  ],
+  "agent_matches_prior_stable": true
+}
