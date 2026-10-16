@@ -19,6 +19,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
+#include <fstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -39,6 +41,53 @@ std::uint32_t kv_trace_head_pages() {
         return value > 0 ? static_cast<std::uint32_t>(value) : 0U;
     }();
     return pages;
+}
+
+// Explicit, local fixture diagnostic. This may write prompt token IDs, so it must never be
+// enabled against private sessions. No storage, readback, or file is created by default.
+const char* kv_audit_directory() {
+    static const char* directory = std::getenv("NINFER_KV_AUDIT_DIR");
+    return directory != nullptr && directory[0] != '\0' ? directory : nullptr;
+}
+
+void kv_audit_selection(const SequenceState& sequence, std::uint32_t span_pages,
+                        const KVAddressSpaceStore& addresses, const LogicalKVPageStore& pages,
+                        std::span<const std::uint32_t> preferred,
+                        std::span<const std::uint32_t> installed_bits,
+                        const HostKVArena* arena, std::uint64_t generation) {
+    const char* directory = kv_audit_directory();
+    if (directory == nullptr || !sequence.kv) { return; }
+    // A diagnostic I/O failure must not change serving success or selection.
+    try {
+        const auto base = std::filesystem::path(directory) /
+            ("selection-" + std::to_string(sequence.lane) + "-" + std::to_string(generation));
+        std::ofstream ledger(base.string() + ".i32", std::ios::binary | std::ios::trunc);
+        static_assert(sizeof(TokenId) == 4);
+        ledger.write(reinterpret_cast<const char*>(sequence.ledger.data()),
+                     static_cast<std::streamsize>(sequence.ledger.size() * sizeof(TokenId)));
+        std::ofstream log(base.string() + ".txt", std::ios::trunc);
+        log << "generation " << generation << "\nledger_tokens " << sequence.ledger.size()
+            << "\nspan_pages " << span_pages << "\npool_usable "
+            << pages.physical_pool().usable_pages() << "\npool_allocated "
+            << pages.physical_pool().allocated_pages() << "\nhost_capacity "
+            << (arena ? arena->capacity_bytes() : 0) << "\nhost_occupied "
+            << (arena ? arena->occupied_bytes() : 0) << "\npreferred";
+        for (const auto page : preferred) { log << ' ' << page; }
+        log << "\nmask";
+        for (std::uint32_t page = 0; page < span_pages; ++page) {
+            if (installed_bits[page >> 5U] & (1U << (page & 31U))) { log << ' ' << page; }
+        }
+        log << "\nhost";
+        const std::uint32_t mapped = addresses.mapped_pages(sequence.kv->text);
+        for (std::uint32_t page = 0; page < std::min(mapped, span_pages); ++page) {
+            const auto logical = addresses.logical_page(sequence.kv->text, page);
+            if (pages.valid(logical) && pages.host_replica_current(logical)) { log << ' ' << page; }
+        }
+        log << '\n';
+        if (!ledger || !log) { throw std::runtime_error("fixture audit write failed"); }
+    } catch (const std::exception& error) {
+        std::fprintf(stderr, "[kv-audit] %s\n", error.what());
+    }
 }
 
 void kv_trace_head(const char* tag, const KVAddressSpaceStore& addresses,
@@ -1631,8 +1680,14 @@ RetrievalCheckpoint ProgramImpl::capture_retrieval() {
     retrieval_probe.drain_readback();
     auto out = std::make_shared<ops::detail::KvMemContextSnapshot>();
     if (retrieval_index) { out->index = retrieval_index->snapshot(device.stream); }
+    if (std::getenv("NINFER_KVMEM_AUDIT") && out->index && !out->index->layer_ends.empty()) {
+        const auto [lo, hi] = std::minmax_element(out->index->layer_ends.begin(), out->index->layer_ends.end());
+        std::fprintf(stderr, "kvmem_index: CHECKPOINT layers=%zu end_min=%d end_max=%d blocks=%d\n",
+            out->index->layer_ends.size(), *lo, *hi, out->index->blocks_written);
+    }
     out->ranking = retrieval_probe.page_ranking;
     out->kept = retrieval_probe.kept;
+    out->query = retrieval_probe.query;
     return out;
 }
 
@@ -1648,6 +1703,8 @@ void ProgramImpl::restore_retrieval(const RetrievalCheckpoint& checkpoint) {
     }
     retrieval_probe.page_ranking = checkpoint ? checkpoint->ranking : ops::KvMemPageRanking{};
     retrieval_probe.kept = checkpoint ? checkpoint->kept : std::vector<std::int32_t>{};
+    retrieval_probe.query = checkpoint ? checkpoint->query : nullptr;
+    retrieval_probe.pending_query.reset();
     retrieval_probe.armed = false;
     retrieval_probe.scored_this_chunk = false;
     retrieval_probe.scored_last_chunk = false;
@@ -2087,7 +2144,8 @@ std::uint32_t ring_lease_growth_cap(const DeviceKVPagePool& pool,
 void install_resident_selection(qwen3_5::PagedKVCache* cache, std::uint32_t span_pages,
                                 const KVAddressSpaceStore& addresses,
                                 const LogicalKVPageStore& pages,
-                                const KVAddressSpaceHandle& address) {
+                                const KVAddressSpaceHandle& address,
+                                std::vector<std::uint32_t>* audit_bits = nullptr) {
     if (cache == nullptr || span_pages == 0 || !addresses.valid(address)) { return; }
     const std::size_t words = (static_cast<std::size_t>(span_pages) + 31U) / 32U;
     std::vector<std::uint32_t> bits(words, 0U);
@@ -2098,6 +2156,7 @@ void install_resident_selection(qwen3_5::PagedKVCache* cache, std::uint32_t span
         if (resident) { bits[page >> 5] |= (1U << (page & 31U)); }
     }
     cache->install_selection(bits);
+    if (audit_bits != nullptr) { *audit_bits = std::move(bits); }
 }
 } // namespace
 
@@ -2315,6 +2374,12 @@ void ProgramImpl::ensure_sequence_kv_mapped(SequenceState& sequence, std::uint32
                       text_kv_pages->physical_pool().usable_pages() <
                           text_kv_addresses->logical_page_capacity();
     std::vector<std::uint32_t> preferred;
+    static thread_local const ProgramImpl* audited_program = nullptr;
+    static thread_local std::uint64_t audited_generation = 0;
+    const bool audit_selection = ring && kv_audit_directory() != nullptr &&
+        (audited_program != this || audited_generation != retrieval_probe.generation) &&
+        main_tokens >= sequence.ledger.size() &&
+        !retrieval_probe.kept.empty();
     if (ring) {
         // Keep a few pages of slack so the pool never runs at exactly 100%: the restore path always
         // needs a free Device page to work with.
@@ -2348,6 +2413,15 @@ void ProgramImpl::ensure_sequence_kv_mapped(SequenceState& sequence, std::uint32
                 const std::uint32_t target2 = want_free > free_after ? want_free - free_after : 0U;
                 (void)demote_kv_pages_to_host(addresses, pages, address, sink_pages, target2,
                                               prefer);
+                if (kv_audit_directory() != nullptr && free_pages(pages) < need) {
+                    std::fprintf(stderr,
+                        "[kv-audit] ring short total=%u mapped=%u need=%u free=%u "
+                        "usable=%u allocated=%u host_used=%zu host_capacity=%zu\n",
+                        total, mapped, need, free_pages(pages), pages.physical_pool().usable_pages(),
+                        pages.physical_pool().allocated_pages(),
+                        host_kv_arena ? host_kv_arena->occupied_bytes() : 0,
+                        host_kv_arena ? host_kv_arena->capacity_bytes() : 0);
+                }
             } else {
                 (void)demote_kv_pages_to_host(addresses, pages, address, sink_pages, 0U, prefer);
             }
@@ -2394,8 +2468,16 @@ void ProgramImpl::ensure_sequence_kv_mapped(SequenceState& sequence, std::uint32
                                         preferred);
         // The mask IS the resident set, so a page that could not be demoted or restored can only be
         // hidden; it can never expose a stale Device slot.
+        std::vector<std::uint32_t> audit_bits;
         install_resident_selection(decoder ? &decoder->text_kv : nullptr, text_total,
-                                   *text_kv_addresses, *text_kv_pages, sequence.kv->text);
+                                   *text_kv_addresses, *text_kv_pages, sequence.kv->text,
+                                   audit_selection ? &audit_bits : nullptr);
+        if (audit_selection && !audit_bits.empty()) {
+            kv_audit_selection(sequence, text_total, *text_kv_addresses, *text_kv_pages, preferred,
+                               audit_bits, host_kv_arena.get(), retrieval_probe.generation);
+            audited_program = this;
+            audited_generation = retrieval_probe.generation;
+        }
         if (has_backend) {
             install_resident_selection(backend_kv_cache(), backend_total, *backend_kv_addresses,
                                        *backend_kv_pages, *sequence.kv->backend);

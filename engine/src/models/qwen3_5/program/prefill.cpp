@@ -685,6 +685,11 @@ void ProgramImpl::start_sequence(std::uint32_t lane, SequenceState& sequence,
         }
 
         restore_retrieval(retrieval);
+        // Admission established exact token-prefix identity, including this user question.
+        // Refresh before the first suffix chunk maps historical pages.
+        (void)ops::detail::kvmem_rescore_cached_query(staged.prompt.query_span_begin,
+            staged.prompt.query_span_end, base, static_cast<std::int32_t>(kPagedKVPageSize),
+            device.stream,staged.prompt.token_ids);
         sequence.retrieval = retrieval;
         sequence.ring_keep.clear();
         sequence.ring_scored_mapped = 0;
@@ -890,6 +895,13 @@ runtime::ExecutionTiming ProgramImpl::resolve_pending_raw(
     try {
         timing.resume_submit();
         const std::span<const ops::GdnReplayFoldRow> fold_span(fold_rows.data(), lanes.size());
+        if (speculative_backend == SpeculativeBackend::Mtp && lanes.size() == 1 &&
+            !cancelled.front() && ops::detail::kvmem_decode_index_enabled() &&
+            retrieval_index && retrieval_harvest) {
+            retrieval_index->append_committed(*retrieval_harvest,
+                requests[lanes.front()].pending.base_E, record_width,
+                accepted_tokens.front(), device.stream);
+        }
         {
             // Each state shard folds its own layers on its own device's stream.
             RankBinding bind(device, state_images->shard(0).rank);
@@ -1222,8 +1234,8 @@ runtime::PrefillStepResult ProgramImpl::advance_prefill(SequenceState& sequence,
                 // deliberately OVERWRITES any previous value, because a stale span from another
                 // request would score the wrong tokens -- the exact failure class this instrument
                 // exists to remove.
-                ops::detail::kvmem_score_set_query_span(staged.prompt.query_span_begin,
-                                                        staged.prompt.query_span_end);
+                ops::detail::kvmem_score_set_query_identity(staged.prompt.query_span_begin,
+                                                        staged.prompt.query_span_end,staged.prompt.token_ids);
                 schedule_state.text_kv_base           = staged.cursor;
                 selectors                             = state_selectors(sequence);
                 schedule_state.state_source_slot      = selectors.source;

@@ -369,6 +369,21 @@ void MeanKIndex::append_round(const RawKShadowHarvest& store, std::int32_t token
     }
 }
 
+void MeanKIndex::append_committed(const RawKShadowHarvest& store, std::int32_t token_base,
+                                 std::int32_t verified_width, std::int32_t committed,
+                                 cudaStream_t stream) {
+    if (verified_width < 1 || verified_width > store.tokens() || committed < 0 ||
+        committed > verified_width || store.layers() != layers_ ||
+        store.kv_size() != heads_ * head_dim_) {
+        throw std::invalid_argument("mean-K committed harvest geometry is invalid");
+    }
+    if (committed == 0 || total_bytes_ == 0) { return; }
+    for (int layer = 0; layer < layers_; ++layer) {
+        append_one(store.staging_for_round(layer).data, layer, committed, token_base, store.tokens(),
+                   heads_ * head_dim_ * store.tokens(), stream);
+    }
+}
+
 void MeanKIndex::append_layer(const Tensor& raw_key, std::int32_t layer_index,
                               std::int32_t round_width, std::int32_t token_base,
                               cudaStream_t stream) {

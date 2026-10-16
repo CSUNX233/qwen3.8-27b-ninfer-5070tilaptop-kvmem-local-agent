@@ -23,6 +23,9 @@ try {
     $env:NINFER_HOST_PAGEABLE='1'
     $env:NINFER_KV_LEASE_RING='1'
     $env:NINFER_KVMEM_HARVEST_TEXT='1'
+    # Qualified rk4v4 semantic-history repairs. Explicit 0 remains available for diagnosis.
+    if (-not $env:NINFER_KVMEM_INDEX_DECODE) { $env:NINFER_KVMEM_INDEX_DECODE='1' }
+    if (-not $env:NINFER_KVMEM_CACHE_QUERY) { $env:NINFER_KVMEM_CACHE_QUERY='1' }
     $engineArgs=@($model,'--model-id',$cfg.ModelId,'--chat-template',(Join-Path $PSScriptRoot 'templates/chat_template_qwen3.8-enhanced.jinja'),
         '--max-context',[string]$cfg.MaxContext,'--kv-capacity',[string]$cfg.DeviceKV,'--max-concurrency','1','--max-shared-prefixes','0',
         '--kv-dtype','rk4v4','--host-kv-mib',[string]$cfg.HostKVMiB,'--cuda-graph-allowance-mib','64','--prefill-chunk','128',

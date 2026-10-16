@@ -943,11 +943,15 @@ void TextContext::attn_mix(const BlockParameters& w, Tensor& x, int fidx, Phase 
     // the component throws on that mismatch by design, and the engine turned it into a worker crash
     // (HTTP 500 on turn 2, measured 2026-10-02). Pass nullptr for every other phase so the static hook
     // state can never leak into a pass it does not describe.
-    execution::text_set_kvmem_hook(fidx, T, ph == Phase::Prefill ? kvmem_harvest_ : nullptr);
+    execution::text_set_kvmem_hook(fidx, T, kvmem_harvest_, ph == Phase::Prefill);
     kvmem_round_width_ = T;   // what the round really scored, for the tail-side oracle log
     text_qk_norm_rope(rope_for_op, *config_.rope_parameters, *config_.attention,
                       config_.rms_norm_eps, p.query_norm, p.key_norm, q, k, qn, kn, rope_yarn_,
                       s);
+
+    // The following MTP head can have the same width as target decode. Shape checks alone
+    // cannot prevent it overwriting the final target layer's pre-RoPE staging.
+    execution::text_set_kvmem_hook(-1, 0, nullptr);
 
     Tensor a = results.attention.view({dimension(config_.attention->head_dim),
                                        dimension(config_.attention->num_attention_heads), T});
@@ -1785,6 +1789,14 @@ PrefillChunkResult TextContext::prefill_chunk(const qwen3_5::PreparedPromptData&
 // WHY NOTHING HAPPENS WHEN THE SWITCH IS OFF: raw_k_shadow_harvest_for() returns null unless
 // NINFER_TERNARY_KVMEM is set, and every line below is then skipped. No allocation, no copy, no index
 // read: the OFF arm is the engine as it was.
+void TextContext::kvmem_decode_begin() {
+    if (!ops::detail::kvmem_score_enabled() ||
+        !ops::detail::kvmem_decode_index_enabled() || batch_text_kv_ == nullptr) { return; }
+    kvmem_harvest_ = ops::raw_k_shadow_harvest_for(prefill_chunk_,
+        dimension(config_.attention->head_dim) * dimension(config_.attention->num_key_value_heads),
+        static_cast<std::int32_t>(batch_text_kv_->layers()));
+}
+
 void TextContext::kvmem_round_begin() {
     kvmem_harvest_     = nullptr;
     kvmem_round_width_ = 0;
@@ -1821,6 +1833,7 @@ void TextContext::kvmem_round_end() {
     if (kvmem_harvest_ == nullptr) { return; }
     auto* harvest = static_cast<ops::RawKShadowHarvest*>(kvmem_harvest_);
     kvmem_harvest_ = nullptr;   // the hook must not write into a finished round
+    ops::detail::kvmem_query_publish();
     const std::int32_t layers = static_cast<std::int32_t>(batch_text_kv_->layers());
     const std::int32_t kv_heads =
         static_cast<std::int32_t>(dimension(config_.attention->num_key_value_heads));

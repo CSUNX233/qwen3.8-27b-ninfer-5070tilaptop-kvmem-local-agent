@@ -2,7 +2,15 @@
 
 给部署者或 Agent 的完整操作顺序、版本表、启动设置和踩坑处理，见 [部署与维护交接手册](DEPLOYMENT_AGENT_GUIDE.md)。
 
-验证环境：Windows x64、RTX 5070 Ti Laptop 12GB、i7-14650HX、32GB RAM，驱动 617.14。现有配置使用 36K Device KV、7 GiB Host KV 和 256K 逻辑容量；不要把内存容量直接等同于可用上下文或召回质量。
+验证环境：Windows x64、RTX 5070 Ti Laptop 12GB、i7-14650HX、32GB RAM，驱动 617.14。公开起步配置使用 36K Device KV、3840 检索、7 GiB Host KV 和 256K 逻辑容量；不要把内存容量直接等同于可用上下文或召回质量。
+
+## 先从较小页池部署，再逐档增加
+
+**新设备 / 新部署先用 `DeviceKV=36864`、`RetrieveTokens=3840` 的完整默认组合。** 这是相对进阶档较保守的起点，不是所有 12GB 设备都能无条件启动的保证。先关闭不需要的独显应用，为实际引擎单独禁用 CUDA 系统内存回退；确认权重和 Graph 正常加载，再验收短任务、完全相同请求的缓存重复、工具结果续接和对应目标长度的召回。
+
+维护者当前的 **`39168 / 6144` 是进阶组合**，不是安装默认值。其他条件保持 `SinkTokens=12288`、`RecentTokens=19456`、Host KV 7168 MiB、rk4v4、MTP3、chunk128、xhigh；本机此档启动时 CUDA 可用约 84 MiB，不能把 `nvidia-smi` 的整卡空闲量当成同一口径。128K 藏针首次/重复为 5/5，200K 均为 4/5，不代表全长全召回。8192 检索档仅完成短检查，长文测试未完成，不建议直接部署。[实测与边界](BENCHMARKS.md#语义历史修复与检索预算2026-10-16)
+
+每次只增加一档并记录配置、启动 CUDA 余量、GPU 峰值、缓存续接和召回；出现分配失败或页池耗尽时恢复上一档，再定位原因。**不要只把 DeviceKV 调小而维持装不下的 sink/recent/retrieve/MTP/尾页预算**；若默认组合也放不下，先查实际占用，必须缩窗口时说明召回影响并单独验证，不能称为无损适配。扩大 DeviceKV 也不会自动扩大逻辑上下文上限。
 
 ## 显卡模式与显存准备
 
@@ -43,7 +51,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1 -ModelPath "D:\M
 
 先等待当前任务结束，用这份安装的 `stop.cmd` 关闭服务；备份自己的 `config/local.json`。Git 安装使用 `git pull --ff-only` 获取源码，ZIP 安装则解压新源码并保留原来的模型路径、私有配置和 `runtime/dsh-home`。不要把旧的 `config/downloads.json` 覆盖到新版本。
 
-在项目目录重新执行原 `setup.ps1 -ModelPath "<现有模型.ninfer>"` 命令（API-only 安装仍可加 `-SkipDsh`），再运行 `start.cmd`。安装器保留本地配置并按哈希替换旧引擎；需要联网下载约 0.8 GiB 的新引擎归档，模型无需重下。v0.1.1 的 exe SHA-256 见 [来源记录](../SOURCE_PROVENANCE.json)。只 `git pull` 不会替换已经下载的 exe。
+在项目目录重新执行原 `setup.ps1 -ModelPath "<现有模型.ninfer>"` 命令（API-only 安装仍可加 `-SkipDsh`），再运行 `start.cmd`。安装器保留本地配置并按哈希替换旧引擎；需要联网下载约 0.8 GiB 的新引擎归档，模型无需重下。当前 v0.1.2 的 exe SHA-256 见 [来源记录](../SOURCE_PROVENANCE.json)。从 v0.1.1 升级同样执行此流程；旧 Release 保留。只 `git pull` 不会替换已经下载的 exe，也不会重设自己的页池。
 
 用户会话、浏览器 profile 和权重无需清空；原有会话首次换用新插件可能重算变化的前缀。该版本 KVMem 内容检索明确要求单并发与 Legacy 缓存，Hybrid/多并发配置会直接报不支持。引擎 ZIP 和 Source code ZIP 用途不同，不要将整个引擎 ZIP 当作源码或完整安装包。
 

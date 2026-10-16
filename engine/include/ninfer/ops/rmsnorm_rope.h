@@ -67,4 +67,10 @@ void rmsnorm_rope(const Tensor& positions, const Tensor& q_norm_weight, const Te
                   const Tensor& q_in, const Tensor& k_in, Tensor& q_out, Tensor& k_out,
                   cudaStream_t stream);
 
+// Same represented normalization/rotation, with an additional disjoint BF16 [256,K,T]
+// output containing the normalized key before rotation. Capture-safe; owns no allocation.
+void rmsnorm_rope_capture_key(const Tensor& positions, const Tensor& q_norm_weight,
+    const Tensor& k_norm_weight, const Tensor& q_in, const Tensor& k_in,
+    Tensor& q_out, Tensor& k_out, Tensor& pre_rope_key, cudaStream_t stream);
+
 } // namespace ninfer::ops

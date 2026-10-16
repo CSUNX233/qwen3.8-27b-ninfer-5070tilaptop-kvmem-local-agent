@@ -552,6 +552,20 @@ ProgramImpl::ProgramImpl(const execution::Parameters& parameters_in, const Seque
         mtp_controller.emplace();
         mtp_controller->reset(draft_window);
     }
+    // Allocate before capture; later graph bodies only borrow these stable addresses.
+    bind_retrieval_workspace();
+    if (ops::detail::kvmem_score_enabled() && ops::detail::kvmem_decode_index_enabled()) {
+        if (max_concurrency != 1 || is_masked_draft_backend(speculative_backend)) {
+            throw std::invalid_argument("decode indexing currently requires one lane and ordinary/MTP decode");
+        }
+        if (prefill_chunk < widest_verify_window() + 1U) {
+            throw std::invalid_argument("decode indexing staging is narrower than target verification");
+        }
+        const auto& cfg = parameters.model.config().text;
+        (void)ops::raw_k_shadow_harvest_for(prefill_chunk,
+            dimension(cfg.attention->head_dim) * dimension(cfg.attention->num_key_value_heads),
+            static_cast<std::int32_t>(decoder->text_kv.layers()));
+    }
     if (use_cuda_graph) {
         StartupPhaseScope graph_phase(startup_observer, StartupPhase::CudaGraphPrepare);
         const std::size_t free_before = device.free_bytes();

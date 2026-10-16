@@ -3,41 +3,51 @@
   "upstream": "https://github.com/iamwavecut/ninfer-all",
   "upstream_base_reported_by_bundle": "v0.11.0-rtx3090; KVMem integration reference 65dbd4f2",
   "original_git_history_available": false,
-  "engine_binary_sha256": "34fd593d76bd332c1b8470ce5ffe4fd9e7e9820229558cffd1cf9ddaa386224b",
+  "engine_binary_sha256": "275ea27ba01b57ca3f3a14361e5f7a4d8c4b04575475f1fe536ca5dedb6c8bd1",
   "copy_count": 2407,
   "locally_recorded_modified_files": [
     "docs/serving.md",
+    "include/ninfer/ops/rmsnorm_rope.h",
     "src/core/CMakeLists.txt",
     "src/core/mapped_host_buffer.cpp",
     "src/core/mapped_host_buffer.h",
+    "src/models/qwen3_5/execution/attention.cpp",
+    "src/models/qwen3_5/execution/attention.h",
     "src/models/qwen3_5/execution/text.cpp",
+    "src/models/qwen3_5/execution/text.h",
+    "src/models/qwen3_5/program/decode.cpp",
     "src/models/qwen3_5/program/planning/request_plan.cpp",
+    "src/models/qwen3_5/program/prefill.cpp",
+    "src/models/qwen3_5/program/program_impl.cpp",
+    "src/models/qwen3_5/program/program_impl.h",
+    "src/models/qwen3_5/program/speculative/mtp.cpp",
     "src/models/qwen3_5/program/storage/context.cpp",
     "src/models/qwen3_5/program/storage/kv_store.h",
+    "src/models/qwen3_5/program/transactions/capture.cpp",
+    "src/models/qwen3_5/program/transactions/commit.cpp",
     "src/models/qwen3_5/program/transactions/materialization.cpp",
+    "src/ops/kvmem/kvmem_retrieve.h",
+    "src/ops/kvmem/kvmem_retrieve_launch.cu",
     "src/ops/kvmem/kvmem_score.h",
     "src/ops/kvmem/kvmem_select.cpp",
     "src/ops/kvmem/kvmem_select.h",
     "src/ops/kvmem/mean_k_index.cpp",
     "src/ops/kvmem/mean_k_index.h",
-    "src/ops/linear/gguf/ggml_bridge_vec.cuh",
-    "tests/models/qwen3_5/test_context_store.cpp",
-    "tests/ops/test_kvmem_score_schedule.cpp",
-    "tests/ops/test_mean_k_host_storage.cpp",
-    "tests/ops/test_mean_k_prefetch.cpp",
-    "tests/ops/tests.cmake",
-    "src/models/qwen3_5/execution/attention.cpp",
-    "src/models/qwen3_5/program/prefill.cpp",
-    "src/models/qwen3_5/program/program_impl.cpp",
-    "src/models/qwen3_5/program/program_impl.h",
-    "src/models/qwen3_5/program/transactions/capture.cpp",
-    "src/models/qwen3_5/program/transactions/commit.cpp",
-    "src/ops/kvmem/kvmem_retrieve.h",
-    "src/ops/kvmem/kvmem_retrieve_launch.cu",
     "src/ops/kvmem/mean_k_index_launch.cu",
     "src/ops/kvmem/mean_k_index_launch.h",
     "src/ops/kvmem/raw_k_harvest.cpp",
-    "src/ops/kvmem/raw_k_harvest.h"
+    "src/ops/kvmem/raw_k_harvest.h",
+    "src/ops/linear/gguf/ggml_bridge_vec.cuh",
+    "src/ops/rmsnorm_rope/kernel.cuh",
+    "src/ops/rmsnorm_rope/launch.cu",
+    "src/ops/rmsnorm_rope/launch.h",
+    "src/ops/rmsnorm_rope/rmsnorm_rope.cpp",
+    "tests/models/qwen3_5/test_context_store.cpp",
+    "tests/ops/test_kvmem_decode_query.cpp",
+    "tests/ops/test_kvmem_score_schedule.cpp",
+    "tests/ops/test_mean_k_host_storage.cpp",
+    "tests/ops/test_mean_k_prefetch.cpp",
+    "tests/ops/tests.cmake"
   ],
   "excluded": [
     "models/weights",
@@ -54,10 +64,10 @@
     "contribution": "Provided the foundation distribution downloaded by the maintainer and resolved the reported infinite-loop issue.",
     "source": "Maintainer attribution supplied for this publication; not a claim of sole upstream authorship."
   },
-  "release_source_url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/tree/v0.1.1",
+  "release_source_url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/tree/v0.1.2",
   "previous_release": {
-    "tag": "v0.1.0",
-    "engine_sha256": "940e68278ae91c60e7ed8e70fc495efec1686fb16b7362f0002d6498e609413d",
+    "tag": "v0.1.1",
+    "engine_sha256": "34fd593d76bd332c1b8470ce5ffe4fd9e7e9820229558cffd1cf9ddaa386224b",
     "assets_unchanged": true
   },
   "retrieval_context_patch": {
@@ -65,5 +75,24 @@
     "evidence": "benchmarks/evidence/screenshot-kv-audit/native-verification.json",
     "release_tag": "v0.1.1",
     "build_scope": "Incremental rebuild of affected translation units; original remaining static libraries retained. Not a clean full build."
+  },
+  "semantic_history_patch": {
+    "release_tag": "v0.1.2",
+    "engine_sha256": "275ea27ba01b57ca3f3a14361e5f7a4d8c4b04575475f1fe536ca5dedb6c8bd1",
+    "evidence": "benchmarks/evidence/semantic-history-v012/verification.json",
+    "build_scope": "All affected Host consumers and selected CUDA units rebuilt; remaining original static libraries retained. Not a clean full build.",
+    "repairs": [
+      "committed target decode history index",
+      "cached query refresh with exact question-end guard",
+      "fused pre-RoPE key capture"
+    ],
+    "installed_default": {
+      "device_kv": 36864,
+      "retrieve": 3840
+    },
+    "maintainer_advanced": {
+      "device_kv": 39168,
+      "retrieve": 6144
+    }
   }
 }

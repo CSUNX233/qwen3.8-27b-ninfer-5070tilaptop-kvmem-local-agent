@@ -168,6 +168,11 @@ public:
     // Checkpoint restoration must precede appending a divergent suffix.
     void append_round(const RawKShadowHarvest& store, std::int32_t token_base,
                       cudaStream_t stream);
+    // Graph staging contains the whole verification window. Only the consumer-committed
+    // prefix is history; rejected drafts and the unexecuted bonus token are never indexed.
+    void append_committed(const RawKShadowHarvest& store, std::int32_t token_base,
+                          std::int32_t verified_width, std::int32_t committed,
+                          cudaStream_t stream);
 
     // Same, for a caller that has one layer's staging in hand (the unit-test path, and the shape a
     // future per-layer consumer wants). `layer_index` is the FULL-ATTENTION index (0..layers-1),

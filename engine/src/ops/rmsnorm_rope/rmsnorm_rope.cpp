@@ -110,9 +110,9 @@ void rmsnorm_rope(const Tensor& positions, const Tensor& norm_weight, Tensor& x,
     detail::rmsnorm_rope_single_launch(positions, norm_weight, x, tokens, stream);
 }
 
-void rmsnorm_rope(const Tensor& positions, const Tensor& q_norm_weight, const Tensor& k_norm_weight,
+static void text_impl(const Tensor& positions, const Tensor& q_norm_weight, const Tensor& k_norm_weight,
                   const Tensor& q_in, const Tensor& k_in, Tensor& q_out, Tensor& k_out,
-                  cudaStream_t stream) {
+                  cudaStream_t stream, Tensor* pre_rope_key) {
     const std::int32_t tokens      = q_in.ne[2];
     const std::int32_t query_heads = q_in.ne[1];
     const std::int32_t key_heads   = k_in.ne[1];
@@ -132,8 +132,29 @@ void rmsnorm_rope(const Tensor& positions, const Tensor& q_norm_weight, const Te
     require_tensor(k_norm_weight, DType::BF16, {kTextHeadDim, 1, 1, 1}, "text k norm weight");
     require_tensor(positions, DType::I32, {tokens, 1, 1, 1}, "text positions");
     require_text_nonoverlap(positions, q_norm_weight, k_norm_weight, q_in, k_in, q_out, k_out);
+    if (pre_rope_key) {
+        require_tensor(*pre_rope_key, DType::BF16, {kTextHeadDim, key_heads, tokens, 1}, "pre-RoPE key");
+        for (const Tensor* other : {&positions, &q_norm_weight, &k_norm_weight, &q_in, &k_in,
+                                    static_cast<const Tensor*>(&q_out), static_cast<const Tensor*>(&k_out)}) {
+            if (overlaps(*pre_rope_key, *other)) {
+                throw std::invalid_argument("rmsnorm_rope: captured key overlaps an operand");
+            }
+        }
+    }
     detail::rmsnorm_rope_text_launch(positions, q_norm_weight, k_norm_weight, q_in, k_in, q_out,
-                                     k_out, tokens, stream);
+                                     k_out, tokens, stream, pre_rope_key ? pre_rope_key->data : nullptr);
+}
+
+void rmsnorm_rope(const Tensor& positions, const Tensor& q_norm_weight, const Tensor& k_norm_weight,
+                  const Tensor& q_in, const Tensor& k_in, Tensor& q_out, Tensor& k_out,
+                  cudaStream_t stream) {
+    text_impl(positions, q_norm_weight, k_norm_weight, q_in, k_in, q_out, k_out, stream, nullptr);
+}
+
+void rmsnorm_rope_capture_key(const Tensor& positions, const Tensor& q_norm_weight,
+    const Tensor& k_norm_weight, const Tensor& q_in, const Tensor& k_in,
+    Tensor& q_out, Tensor& k_out, Tensor& pre_rope_key, cudaStream_t stream) {
+    text_impl(positions, q_norm_weight, k_norm_weight, q_in, k_in, q_out, k_out, stream, &pre_rope_key);
 }
 
 } // namespace ninfer::ops

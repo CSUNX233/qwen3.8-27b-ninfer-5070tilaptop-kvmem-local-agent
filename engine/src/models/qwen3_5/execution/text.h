@@ -132,6 +132,8 @@ public:
     // the methods then do nothing at all, which is what keeps the OFF arm bit-identical.
     void kvmem_round_begin();
     void kvmem_round_end();
+    // Installs preallocated, graph-stable target staging, without scoring decode tokens as queries.
+    void kvmem_decode_begin();
 
     [[nodiscard]] const LinearParameters* proposal_head() const noexcept { return proposal_head_; }
 

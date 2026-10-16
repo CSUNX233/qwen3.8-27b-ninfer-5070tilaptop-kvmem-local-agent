@@ -46,6 +46,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <span>
+#include <stdexcept>
 #include <vector>
 
 #include <cuda_runtime.h>
@@ -82,6 +84,39 @@ inline bool kvmem_score_enabled() noexcept {
     return on;
 }
 
+// Qualification switches: leave the production preset unchanged until end-to-end tests pass.
+inline bool kvmem_decode_index_enabled() noexcept {
+    static const bool enabled = [] {
+        const char* value = std::getenv("NINFER_KVMEM_INDEX_DECODE");
+        return value && value[0] == '1';
+    }();
+    return enabled;
+}
+
+inline bool kvmem_cached_query_enabled() noexcept {
+    static const bool enabled = [] {
+        const char* value = std::getenv("NINFER_KVMEM_CACHE_QUERY");
+        return value && value[0] == '1';
+    }();
+    return enabled;
+}
+
+// Immutable checkpoint-owned query. Only the exact pre-RoPE BF16 rows that the existing
+// scorer used are retained. Across chunk boundaries this is the final scoring chunk, as
+// in the original policy; no tool output or decode token is substituted for the question.
+struct KvMemCachedQuery {
+    std::vector<std::int32_t> identity;
+    std::unique_ptr<MappedHostBuffer> storage;
+    std::vector<bool> layers_written;
+    cudaEvent_t ready = nullptr;
+    int begin = -1, end = -1, origin = -1, tokens = 0;
+    int layers = 0, heads = 0, kv_heads = 0, dim = 0;
+    std::size_t layer_bytes = 0;
+    ~KvMemCachedQuery() {
+        if (ready) { (void)cudaEventSynchronize(ready); (void)cudaEventDestroy(ready); }
+    }
+};
+
 inline std::int32_t kvmem_score_env_i32(const char* name, std::int32_t fallback) noexcept {
     const char* v = std::getenv(name);
     if (v == nullptr || v[0] == '\0') { return fallback; }
@@ -91,6 +126,12 @@ inline std::int32_t kvmem_score_env_i32(const char* name, std::int32_t fallback)
 
 // ---- 探针状态（进程级单例，与 mean-K 索引同寿命）---------------------------------------------
 struct KvMemScoreProbe {
+    std::vector<std::int32_t> query_identity;
+    std::shared_ptr<const KvMemCachedQuery> query;
+    std::shared_ptr<KvMemCachedQuery> pending_query;
+    void* query_upload = nullptr;
+    std::size_t query_upload_bytes = 0;
+    bool replaying_query = false;
     // device 缓冲
     float*        score            = nullptr;  // [capacity_blocks]，每 chunk 前清零（打分器只 ADD）
     std::int32_t* block_tokens_dev = nullptr;  // [capacity_blocks]，尾块带真实填充（device 侧）
@@ -149,6 +190,7 @@ struct KvMemScoreProbe {
         if (score_ready != nullptr) { (void)cudaEventDestroy(score_ready); }
         if (score != nullptr) { (void)cudaFree(score); }
         if (block_tokens_dev != nullptr) { (void)cudaFree(block_tokens_dev); }
+        if (query_upload != nullptr) { (void)cudaFree(query_upload); }
     }
 };
 
@@ -164,6 +206,7 @@ struct KvMemContextSnapshot {
     std::shared_ptr<const MeanKIndexSnapshot> index;
     KvMemPageRanking ranking;
     std::vector<std::int32_t> kept;
+    std::shared_ptr<const KvMemCachedQuery> query;
 };
 
 // Read the last published ranking without re-sorting the same scores at every ring mapping update.
@@ -187,6 +230,18 @@ inline void kvmem_score_set_query_span(std::int32_t begin, std::int32_t end) noe
     KvMemScoreProbe& p = kvmem_score_probe();
     p.abs_query_begin = begin;
     p.abs_query_end   = end;
+}
+
+inline void kvmem_score_set_query_identity(std::int32_t begin, std::int32_t end,
+                                          std::span<const std::int32_t> prompt) {
+    kvmem_score_set_query_span(begin,end);
+    auto& p=kvmem_score_probe();
+    p.query_identity.clear();
+    if (kvmem_cached_query_enabled() && begin>=0 && end>begin &&
+        end-begin<=kvmem_score_env_i32("NINFER_TERNARY_KVMEM_SCORE_MAXQ",256) &&
+        static_cast<std::size_t>(end)<=prompt.size()) {
+        p.query_identity.assign(prompt.begin()+begin,prompt.begin()+end);
+    }
 }
 
 // 本 chunk 的**绝对** token 起点（= 该序列此刻已写入 KV 的 token 数，即 text_kv_base）。只有它已知，
@@ -215,6 +270,7 @@ inline void kvmem_score_begin(std::int32_t requested_capacity, std::int32_t hist
     KvMemScoreProbe& p = kvmem_score_probe();
     if (p.failed) { return; }
     p.drain_readback();
+    p.pending_query.reset();
 
     // LOCAL (D-12, 2026-10-02): a round that ends up NOT scoring -- because its chunk does not contain
     // the query span (see kvmem_score_accumulate) -- must not leave the PREVIOUS round's selection
@@ -230,7 +286,8 @@ inline void kvmem_score_begin(std::int32_t requested_capacity, std::int32_t hist
     //   一旦在这里清空，继承被抹掉 ⇒ `select_retrieval_pages` 退回词法 IDF ⇒ 词面不相交的问句必丢
     //   （实测把 turn2 由 6/6 打到 3/6）。"陈旧选择"在这里是**承重**的，不是需要清理的脏状态。
     //   契约不变：**只有 finish() 真的打了分才会覆盖 kept**；本轮没打分 ⇒ 保留上一次的选择。
-    if (requested_capacity <= 0 || history_blocks <= 0 || block_tokens <= 0) { p.armed = false; return; }
+    if (requested_capacity <= 0 || history_blocks < 0 || block_tokens <= 0 ||
+        (history_blocks == 0 && !kvmem_cached_query_enabled())) { p.armed = false; return; }
 
     if (p.score == nullptr || p.capacity_blocks < requested_capacity) {
         // 只在**首个 chunk** 分配；prefill 不在 CUDA graph 捕获期（捕获期禁 cudaMalloc，坑表 §3.7）
@@ -299,7 +356,7 @@ inline void kvmem_score_accumulate(std::int32_t fidx, const void* q, std::int32_
     if (!kvmem_score_enabled()) { return; }
     KvMemScoreProbe& p = kvmem_score_probe();
     if (!p.armed || p.failed) { return; }
-    if (n_query_tokens <= 0 || p.n_blocks <= 0) { return; }
+    if (n_query_tokens <= 0) { return; }
 
     // ★ query span（2026-09-26 语义档）：NINFER_TERNARY_KVMEM_SCORE_QUERY_TAIL=N ⇒ 只把本 chunk 的
     //   **最后 N 个 token** 当检索 query（官方 kvmem_set_query_span 的等价物）。MAXQ 的门限看
@@ -405,6 +462,44 @@ inline void kvmem_score_accumulate(std::int32_t fidx, const void* q, std::int32_
     p.query_span_begin  = span_begin;
     p.query_span_tokens = span_tokens;    // 供 finish 的 oracle 自检用（正确口径 = span 的 token 数）
 
+    if (kvmem_cached_query_enabled() && !p.replaying_query && abs_span_known && span_applied &&
+        p.abs_query_end - p.abs_query_begin <= maxq &&
+        p.query_identity.size()==static_cast<std::size_t>(p.abs_query_end-p.abs_query_begin) &&
+        fidx >= 0 && fidx < p.layers_total) {
+        try {
+            if (!p.pending_query) {
+                auto saved = std::make_shared<KvMemCachedQuery>();
+                saved->begin = p.abs_query_begin; saved->end = p.abs_query_end;
+                saved->identity=p.query_identity;
+                saved->origin = p.abs_chunk_begin + span_begin; saved->tokens = span_tokens;
+                saved->layers = p.layers_total; saved->heads = p.n_heads;
+                saved->kv_heads = p.n_kv_heads; saved->dim = p.head_dim;
+                saved->layer_bytes = static_cast<std::size_t>(span_tokens) * p.n_heads * p.head_dim * 2;
+                saved->storage = std::make_unique<MappedHostBuffer>(saved->layers * saved->layer_bytes);
+                saved->layers_written.assign(saved->layers, false);
+                if (cudaEventCreateWithFlags(&saved->ready, cudaEventDisableTiming) != cudaSuccess) {
+                    throw std::runtime_error("cached query event allocation failed");
+                }
+                p.pending_query = std::move(saved);
+            }
+            auto& saved = *p.pending_query;
+            auto* dst = static_cast<unsigned char*>(saved.storage->host_data()) + fidx * saved.layer_bytes;
+            const auto* src = static_cast<const unsigned char*>(q) +
+                static_cast<std::size_t>(span_begin) * p.n_heads * p.head_dim * 2;
+            if (cudaMemcpyAsync(dst, src, saved.layer_bytes, cudaMemcpyDeviceToHost, stream) != cudaSuccess ||
+                cudaEventRecord(saved.ready, stream) != cudaSuccess) {
+                (void)cudaStreamSynchronize(stream);
+                throw std::runtime_error("cached query transfer failed");
+            }
+            saved.layers_written[fidx] = true;
+        } catch (const std::exception& error) {
+            std::fprintf(stderr, "kvmem_score: cached query failed: %s\n", error.what());
+            kvmem_score_fail("cached query");
+            return;
+        }
+    }
+    if (p.n_blocks <= 0) { return; }
+
     ops::MeanKIndex* index = ops::mean_k_index_for(p.layers_total, p.n_kv_heads, p.head_dim,
                                                   p.capacity_blocks);
     if (index == nullptr || index->blocks_written() <= 0) { return; }
@@ -488,6 +583,18 @@ inline void kvmem_score_submit_readback(cudaStream_t stream) noexcept {
     p.readback_pending = true;
 }
 
+inline void kvmem_query_publish() {
+    auto& p = kvmem_score_probe();
+    if (!p.pending_query || p.failed) { return; }
+    const auto& saved = *p.pending_query;
+    if (std::all_of(saved.layers_written.begin(), saved.layers_written.end(), [](bool x) { return x; }) &&
+        cudaEventSynchronize(saved.ready) == cudaSuccess) {
+        p.query = std::move(p.pending_query);
+    } else {
+        p.pending_query.reset();
+    }
+}
+
 // Consumed within the same round, after index work has been submitted. Nothing can overwrite the
 // score buffers or query metadata between submit and consumption. Only this result's event is waited
 // on; index append remains ordered on the original stream for its next GPU consumer.
@@ -563,6 +670,58 @@ inline void kvmem_score_finish(const char* label) noexcept {
                  p.abs_chunk_begin, p.query_span_begin, p.query_span_begin + p.query_span_tokens,
                  (q_used > 0 && sum_score > 0.5 * q_used && sum_score < 2.0 * q_used) ? 1 : 0,
                  static_cast<double>(ops::kvmem_retrieve_scale(p.head_dim)));
+}
+
+// Reuse is permitted only inside a checkpoint whose exact token prefix includes the entire
+// cached question. Prefix identity is checked by Program admission before reaching this call.
+// Score all currently committed, indexed history; this does not replay model layers.
+// A checkpoint exactly at the user-turn boundary has no post-question history to
+// add. Keep its original ranking: rescoring would add the query's own tail block
+// to its scoring domain and can change an otherwise identical cached request.
+inline bool kvmem_rescore_cached_query(std::int32_t query_begin, std::int32_t query_end,
+                                      std::uint32_t cached_tokens, std::int32_t block_tokens,
+                                      cudaStream_t stream, std::span<const std::int32_t> prompt) {
+    kvmem_score_set_query_identity(query_begin,query_end,prompt);
+    auto& p = kvmem_score_probe();
+    const auto saved = p.query;
+    if (!kvmem_cached_query_enabled() || !saved || query_begin != saved->begin ||
+        query_end != saved->end || query_end < 0 || p.query_identity!=saved->identity ||
+        saved->identity.empty() || cached_tokens <= static_cast<std::uint32_t>(query_end)) {
+        return false;
+    }
+    auto* index = ops::mean_k_index_for(saved->layers, saved->kv_heads, saved->dim, p.capacity_blocks);
+    if (!index || index->blocks_written() <= 0) { return false; }
+    if (p.query_upload_bytes < saved->layer_bytes) {
+        if (p.query_upload) { (void)cudaFree(p.query_upload); p.query_upload = nullptr; }
+        if (cudaMalloc(&p.query_upload, saved->layer_bytes) != cudaSuccess) {
+            p.query_upload_bytes = 0;
+            throw std::runtime_error("cached query upload allocation failed");
+        }
+        p.query_upload_bytes = saved->layer_bytes;
+    }
+    p.replaying_query = true;
+    kvmem_score_set_query_span(saved->begin, saved->end);
+    kvmem_score_set_chunk_origin(saved->origin);
+    kvmem_score_begin(p.capacity_blocks, index->blocks_written(), index->tail_fill(),
+        block_tokens, saved->layers, saved->heads, saved->kv_heads, saved->dim, stream);
+    try {
+        for (int layer = 0; layer < saved->layers; ++layer) {
+            if (saved->storage->copy_to_device_async(p.query_upload, saved->layer_bytes,
+                    layer * saved->layer_bytes, stream) != cudaSuccess) {
+                throw std::runtime_error("cached query upload failed");
+            }
+            kvmem_score_accumulate(layer, p.query_upload, saved->tokens, saved->tokens, stream);
+        }
+        kvmem_score_submit_readback(stream);
+        (void)index->end_scoring_round(stream);
+        kvmem_score_finish("cached_question_refresh");
+        p.replaying_query = false;
+    } catch (...) {
+        (void)cudaStreamSynchronize(stream);
+        p.replaying_query = false;
+        throw;
+    }
+    return !p.failed && p.scored_last_chunk;
 }
 
 // 逐块分数导出（给离线判据用：核对"含针的块"有没有被选中）。只在 switch 打开且本 chunk 打过时写。

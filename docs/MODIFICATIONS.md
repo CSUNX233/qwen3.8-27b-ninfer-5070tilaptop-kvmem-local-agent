@@ -9,6 +9,8 @@
 | 检索分数异步回传 | 减少 GPU 结束后再启动 CPU 选页的串行等待 | `ops/kvmem/kvmem_select.*`、`kvmem_score.h` |
 | 双 scratch 预取索引 | 一个缓冲打分时提前上传下一层索引；最终 scratch 共 32 MiB | `ops/kvmem/mean_k_index.*`、`execution/text.cpp` |
 | 检索上下文与检查点 | Program 独占工作区；RAM 分片 COW 快照；索引与排名恢复；绝对 token 追加、真实 count 与选页版本 | `program_impl.*`、`storage/context.cpp`、`prefill.cpp`、`transactions/`、`ops/kvmem/` |
+| decode历史索引与缓存问句 | 仅追加主模型已提交历史，隔离MTP头；合法缓存问句重评分，精确问句末尾保留原排名 | `decode.cpp`、`prefill.cpp`、`speculative/mtp.cpp`、`kvmem_score.h`、`mean_k_index.*` |
+| 融合采集旋转前K | 非查询评分分块恢复norm/RoPE融合并同核采集，独立FP64及精确Q/K位验证 | `execution/attention.cpp`、`ops/rmsnorm_rope/` |
 | 5070 Ti 小矩阵调度 | 只改变指定 IQ2_S / IQ3_XXS / Q2_K、T=1/4 的线程与行分组 | `engine/src/ops/linear/gguf/ggml_bridge_vec.cuh` |
 | dsh 接入与公开部署 | 相对路径、隔离 home、固定依赖和哈希、严格守卫、搜索/浏览器、收尾提醒、工具验证执行规则 | 根目录脚本、`scripts/`、`integrations/` |
 
@@ -25,3 +27,5 @@
 2026-10-15 本地进一步安装原生检索修复，验证引擎 SHA-256 为 `34fd593d76bd332c1b8470ce5ffe4fd9e7e9820229558cffd1cf9ddaa386224b`。原始 KV 编码、采样、xhigh、MTP 3、Device/Host 页预算及 5070 Ti 内核调度保持原样；修正的是检索索引的状态语义。新快照在普通 RAM，未新增 GPU buffer。本轮源码、框架补丁、9 项回归测试和脱敏证据随 v0.1.1 发布，安装器下载相同哈希的新引擎；v0.1.0 资产不覆盖。此次以状态正确性和缓存续接稳定性为目标，没有统计上成立的总体提速结论。
 
 参考 [kvmem/kvmem](https://github.com/kvmem/kvmem/tree/0af10ece3d78edb905c62357e52a62147df69d58) 的上下文截断、检索恢复与 tail checkpoint 契约，独立实现本引擎的 Program/COW 方案，没有移植该仓库源码。[ActKV](https://arxiv.org/abs/2609.31395) 使用面向动作的 KV 压缩；其平均准确率并非与 FullKV 等同，本轮没有采用淘汰或自适应缩减预算。验证与已知边界见 [实测](BENCHMARKS.md#原生检索上下文修复2026-10-15) 和 [部署手册](DEPLOYMENT_AGENT_GUIDE.md)。
+
+2026-10-16的v0.1.2进一步发布生成历史索引、缓存问句保护与融合采集；当前引擎哈希以SOURCE_PROVENANCE.json为准。公开默认保持36864/3840起步，39168/6144作为进阶档单独报告显存与召回。诊断导出仅显式环境变量开启，日常不启用。新一轮预填充实验另行验证，不混入本次已验证包。[实测及成本](BENCHMARKS.md#语义历史修复与检索预算2026-10-16)

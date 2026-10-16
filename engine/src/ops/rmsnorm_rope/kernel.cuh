@@ -44,12 +44,13 @@ __global__ __launch_bounds__(256) void rmsnorm_rope_d128_kernel(
 // Text form: D=256 heads, rotary width 64, out of place. One warp owns one head; HeadsPerBlock
 // warps share a block. The Q and K heads of one token are laid out as one combined range so a
 // single grid covers both tensors and no head group is left half empty.
-template <int QHeads, int KHeads, int HeadsPerBlock>
+template <int QHeads, int KHeads, int HeadsPerBlock, bool CaptureKey = false>
 __global__ __launch_bounds__(HeadsPerBlock * 32) void rmsnorm_rope_d256_text_kernel(
     const std::int32_t* __restrict__ positions, const __nv_bfloat162* __restrict__ q_norm,
     const __nv_bfloat162* __restrict__ k_norm, const __nv_bfloat162* __restrict__ q_in,
     const __nv_bfloat162* __restrict__ k_in, __nv_bfloat162* __restrict__ q_out,
-    __nv_bfloat162* __restrict__ k_out, std::int32_t tokens) {
+    __nv_bfloat162* __restrict__ k_out, std::int32_t tokens,
+    __nv_bfloat162* __restrict__ pre_rope_key) {
     pdl::enter();
     constexpr int kPairs    = 128;
     constexpr int kHalfPair = 16;
@@ -73,6 +74,14 @@ __global__ __launch_bounds__(HeadsPerBlock * 32) void rmsnorm_rope_d256_text_ker
 
     const std::int64_t base = (static_cast<std::int64_t>(token) * heads + head) * kPairs;
     const auto normalized   = detail::rmsnorm_rope_d256_normalize(input, weight, base, lane);
+    if constexpr (CaptureKey) {
+        if (!query) {
+#pragma unroll
+            for (int k = 0; k < 4; ++k) {
+                pre_rope_key[base + lane + k * 32] = normalized.pair[k];
+            }
+        }
+    }
 #pragma unroll
     for (int k = 1; k < 4; ++k) { output[base + lane + k * 32] = normalized.pair[k]; }
 

@@ -93,6 +93,7 @@ auto mtp_decode_batch_body(MtpBatchContext& state, std::int32_t batch_size,
                          &state.text_cache, &state.mtp_cache);
         card.set_stage_runtime(state.execution.stages);
         card.set_rope_yarn(state.execution.rope_yarn);
+        if (batch_size == 1) { card.kvmem_decode_begin(); }
         card.set_mtp_attention_window(state.execution.mtp_attention_window);
         Tensor anchors            = frame.anchors.slice(0, 0, batch_size);
         Tensor frontiers          = frame.base_frontiers.slice(0, 0, batch_size);

@@ -25,6 +25,11 @@
 下载、venv、缓存、日志尽量放项目所在 D 盘；沿用隔离的 runtime/dsh-home。
 新部署按固定版本与 SHA-256 获取依赖，使用 npm ci，不擅自升级到 latest。
 保留 xhigh、采样、量化、检索预算、MTP 和缓存策略，先建立可复现基线。
+新部署先从完整保守组合 DeviceKV=36864 / RetrieveTokens=3840 起步，
+配套 sink=12288、recent=19456、HostKV=7168MiB、rk4v4、MTP3、chunk128。
+不要直接复制维护者进阶档39168/6144，更不要只缩页池而保持装不下的窗口。
+先清理实际独显占用，通过启动、短任务、缓存和工具续接，记录CUDA余量；
+之后逐档加大，并验证相应长度的召回与峰值，失败恢复上一档。
 CUDA 驱动系统内存回退强烈建议仅对实际引擎 exe 禁用；保留 7 GiB Host KV。
 核显/独显混合模式和 Edge 核显偏好由用户配置；公开脚本不自动改驱动或显卡模式。
 不要批量杀掉 node/Edge/Python，不修改全局代理，不清空模型或会话。
@@ -41,11 +46,11 @@ CUDA 驱动系统内存回退强烈建议仅对实际引擎 exe 禁用；保留 
 
 ## 2. 版本清单与实际来源
 
-**源码 `main` 与引擎 Release 是两层版本。** 当前安装器下载包含检索上下文修复的 `v0.1.1` 引擎；后续 dsh 模块、脚本和文档可由新的源码提交提供。报告问题时同时记录 `git rev-parse HEAD` 与引擎 SHA-256，不能只说“最新版”。
+**源码 `main` 与引擎 Release 是两层版本。** 当前安装器下载包含检索上下文、decode 历史索引和缓存问句保护的 `v0.1.2` 引擎；后续 dsh 模块、脚本和文档可由新的源码提交提供。报告问题时同时记录 `git rev-parse HEAD` 与引擎 SHA-256，不能只说“最新版”。
 
 | 组件 | 当前固定值 / 验证值 | 核对位置与说明 |
 |---|---|---|
-| 发布引擎 | `v0.1.1`，Windows x64 / `sm120a` | [下载清单](../config/downloads.json)；实际 exe 哈希见下方 |
+| 发布引擎 | `v0.1.2`，Windows x64 / `sm120a` | [下载清单](../config/downloads.json)；实际 exe 哈希见下方 |
 | 原源码链 | 分享包报告 `v0.11.0-rtx3090`，KVMem 参考 `65dbd4f2` | [来源记录](../SOURCE_PROVENANCE.json)；缺少原完整 Git 历史，不当作当前二进制版本 |
 | CUDA 构建工具链 | `13.0.48`；MSVC v143 `14.44.35207` | [源码编译](BUILD.md)；运行预编译包无需完整 CUDA Toolkit |
 | cuBLAS | `13.0.0.19`，`cublas64_13.dll` / `cublasLt64_13.dll` | NVIDIA 固定归档，安装器逐文件校验 |
@@ -64,7 +69,7 @@ CUDA 驱动系统内存回退强烈建议仅对实际引擎 exe 禁用；保留 
 本版引擎 `ninfer-serve.exe` 的 SHA-256：
 
 ```text
-34fd593d76bd332c1b8470ce5ffe4fd9e7e9820229558cffd1cf9ddaa386224b
+275ea27ba01b57ca3f3a14361e5f7a4d8c4b04575475f1fe536ca5dedb6c8bd1
 ```
 
 模型精确文件：`ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF` 的 **`Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf`**，转换成含 `text,mtp` 的 **v3 `.ninfer`**。模型 revision、tokenizer 来源与转换命令见 [MODELS.md](MODELS.md)。公开包不包含权重；不能把 GGUF 路径直接传给服务器，也不能将不带 MTP 的文件套用这套启动参数。
@@ -120,7 +125,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1 -ModelPath "D:\M
 
 ## 5. 启动设置：哪些值在哪里生效
 
-先用原预设建立基线。`config/local.json` 为本安装的配置，Git 忽略；样例在 [config/example.json](../config/example.json)。默认使用这个标准位置：目前 dsh 配置生成器读取的就是它，不能假设 `start.ps1 -Config` 会让 dsh 同步读取另一个 JSON。
+**先用较小页池的完整默认组合 `36864 / 3840` 建立基线，清理实际显存占用并先验收；通过后再逐档增加。** 维护者 `39168 / 6144` 是单机进阶档，CUDA 启动余量约 84 MiB；不是所有 12GB 设备的起点。只改小页池却保留过大的窗口会引发内部页耗尽。[预算与验证顺序](INSTALL.md#先从较小页池部署再逐档增加)
+
+`config/local.json` 为本安装的配置，Git 忽略；样例在 [config/example.json](../config/example.json)。默认使用这个标准位置：目前 dsh 配置生成器读取的就是它，不能假设 `start.ps1 -Config` 会让 dsh 同步读取另一个 JSON。
 
 | 设置 | 默认值 | 实际含义 / 修改位置 |
 |---|---|---|
@@ -156,6 +163,7 @@ presence `1.0` 是当前部署的存在惩罚；它与乘法式 `repetition_pena
 |---|---|
 | `CUDA_MODULE_LOADING` | `LAZY` |
 | `NINFER_KVMEM_INDEX_HOST` | `1`，检索索引放 Host RAM |
+| `NINFER_KVMEM_INDEX_DECODE` / `NINFER_KVMEM_CACHE_QUERY` | `1` / `1`；补已提交 decode 历史索引、对合法缓存问句恢复重评分；显式 `0` 可作诊断对照 |
 | `NINFER_KV_RING` / `NINFER_KV_REUSE_HOSTBACKED` | `1` / `1` |
 | `NINFER_KV_WINDOW` / `NINFER_KV_SINK` / `NINFER_KV_RETRIEVE` | 分别取 JSON 的 recent / sink / retrieve |
 | `NINFER_HOST_PAGEABLE` / `NINFER_KV_LEASE_RING` / `NINFER_KVMEM_HARVEST_TEXT` | 都为 `1` |

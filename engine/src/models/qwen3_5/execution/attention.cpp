@@ -117,6 +117,7 @@ struct KvmemHook {
     void*         harvest = nullptr;   // ops::RawKShadowHarvest*, opaque here on purpose
     std::int32_t  layer   = -1;        // full-attention layer index for the call in progress
     std::int32_t  tokens  = 0;         // chunk width (== q_layer_stride == round tokens)
+    bool score_query = false;
     bool          fused_noted = false; // the "fused branch cannot be harvested" line prints once
     bool          shape_noted = false; // the "this pass is not the armed round" line prints once
 };
@@ -190,17 +191,20 @@ void kvmem_harvest_pre_rope(const Tensor& query, const Tensor& key, cudaStream_t
     Tensor shadow = harvest->staging_for_round(hook.layer);
     ops::raw_k_shadow_copy(key, shadow, stream);
     // The query half: score what this chunk is ASKING with, in the same content frame.
-    ops::detail::kvmem_score_accumulate(hook.layer, query.data, hook.tokens, hook.tokens, stream);
+    if (hook.score_query) {
+        ops::detail::kvmem_score_accumulate(hook.layer, query.data, hook.tokens, hook.tokens, stream);
+    }
 }
 
 } // namespace
 
 void text_set_kvmem_hook(std::int32_t layer_index, std::int32_t chunk_tokens,
-                         void* harvest) noexcept {
+                         void* harvest, bool score_query) noexcept {
     KvmemHook& hook = kvmem_hook();
     hook.harvest = harvest;
     hook.layer   = layer_index;
     hook.tokens  = chunk_tokens;
+    hook.score_query = score_query;
     if (harvest == nullptr) {
         hook.fused_noted = false;
         return;
@@ -227,8 +231,18 @@ void text_qk_norm_rope(const Tensor& positions, const RopeConfig& rope,
     // width guard -- which is why text requests built no index at all. NINFER_KVMEM_HARVEST_TEXT=1
     // opts in; default keeps the shipped behaviour.
     const bool fused_ok = fused_text_qk_norm_rope(positions, rope, attention, query.ne[2]) &&
-                          !(kvmem_text_harvest_bypass() && kvmem_text_harvest_armed());
+                          !(kvmem_text_harvest_bypass() && kvmem_text_harvest_armed() &&
+                            kvmem_hook().score_query);
     if (!yarn.active() && fused_ok) {
+        if (kvmem_text_harvest_armed() && !kvmem_hook().score_query) {
+            const auto& hook = kvmem_hook();
+            auto& harvest = *static_cast<ops::RawKShadowHarvest*>(hook.harvest);
+            Tensor captured = harvest.staging_for_round(hook.layer).view(
+                {normalized_key.ne[0], normalized_key.ne[1], normalized_key.ne[2], 1});
+            ops::rmsnorm_rope_capture_key(positions, q_norm_weight, k_norm_weight,
+                query, key, normalized_query, normalized_key, captured, stream);
+            return;
+        }
         ops::rmsnorm_rope(positions, q_norm_weight, k_norm_weight, query, key, normalized_query,
                           normalized_key, stream);
         // LOCAL (KVMem content scoring): the fused Op materialises no pre-RoPE tensor

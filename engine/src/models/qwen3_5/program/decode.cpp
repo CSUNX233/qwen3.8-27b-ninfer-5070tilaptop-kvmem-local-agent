@@ -43,6 +43,7 @@ auto ordinary_batch_body(OrdinaryBatchContext& state, std::int32_t batch_size,
                          &state.text_cache);
         card.set_stage_runtime(state.execution.stages);
         card.set_rope_yarn(state.execution.rope_yarn);
+        if (batch_size == 1) { card.kvmem_decode_begin(); }
 
         Tensor tokens             = ordinary.tokens.slice(0, 0, batch_size);
         Tensor cache_positions    = ordinary.cache_positions.slice(0, 0, batch_size);
@@ -1071,6 +1072,10 @@ runtime::ExecutionTiming ProgramImpl::resolve_non_speculative_pending(
         sequence.ledger_frontier    = request.pending.prompt_tokens + 1;
         break;
     case PendingKind::Ordinary:
+        if (ops::detail::kvmem_decode_index_enabled() && retrieval_index && retrieval_harvest) {
+            retrieval_index->append_committed(*retrieval_harvest, request.pending.base_E,
+                                               1, accepted_tokens, device.stream);
+        }
         advance_rebuild_work(sequence, request.pending.base_E + request.pending.produced,
                              prefill_chunk);
         sequence.execution_frontier = request.pending.base_E + request.pending.produced;

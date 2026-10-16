@@ -33,6 +33,6 @@ void text_qk_norm_rope(const Tensor& positions, const RopeConfig& rope,
 // dependency; nullptr disarms the hook. No-op for every phase other than the prefill the round was
 // opened for.
 void text_set_kvmem_hook(std::int32_t layer_index, std::int32_t chunk_tokens,
-                         void* harvest) noexcept;
+                         void* harvest, bool score_query = true) noexcept;
 
 } // namespace ninfer::models::qwen3_5::execution
