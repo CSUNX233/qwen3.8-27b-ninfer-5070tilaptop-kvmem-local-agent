@@ -2051,6 +2051,22 @@ private:
                 !request->budget) {
                 continue;
             }
+            if constexpr (requires {
+                instance_.program->ring_host_kv_shortfall(*request->sequence);
+                resources_.reclaim_device_kv_for_lease(*instance_.program, 0U, 0U, std::size_t{});
+            }) {
+                const std::size_t missing =
+                    instance_.program->ring_host_kv_shortfall(*request->sequence);
+                if (missing != 0) {
+                    const auto released = resources_.reclaim_device_kv_for_lease(
+                        *instance_.program, 0U, 0U, missing);
+                    if (released != 0) {
+                        publish_diagnostic(diagnostics_, DiagnosticLevel::Info,
+                            "Ring Host KV pressure: released %u idle retained cache owner(s) "
+                            "for %zu bytes of missing headroom", released, missing);
+                    }
+                }
+            }
             if (const auto shortfall =
                     instance_.program->device_kv_lease_shortfall(*request->sequence)) {
                 const std::uint32_t released = resources_.reclaim_device_kv_for_lease(

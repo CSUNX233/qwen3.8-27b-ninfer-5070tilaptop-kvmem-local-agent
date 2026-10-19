@@ -14,9 +14,9 @@
 | 5070 Ti 小矩阵调度 | 只改变指定 IQ2_S / IQ3_XXS / Q2_K、T=1/4 的线程与行分组 | `engine/src/ops/linear/gguf/ggml_bridge_vec.cuh` |
 | dsh 接入与公开部署 | 相对路径、隔离 home、固定依赖和哈希、严格守卫、搜索/浏览器、收尾提醒、工具验证执行规则 | 根目录脚本、`scripts/`、`integrations/` |
 
-最新 CUDA 调度只匹配 compute capability 1200 且 46 SM 的设备以及实际验证过的形状，共 11 个路由；其他形状保留原调度。每行数学、量化解码、累加和归约顺序保持原样，无新增 GPU buffer。启动前设置 `NINFER_VEC5070_DISABLE=1` 可以关闭这项调度；必须重启，不能对已经捕获的 CUDA Graph 热切换。
+既有小矩阵 CUDA 调度只匹配 compute capability 1200 且 46 SM 的设备以及实际验证过的形状，共 11 个路由；其他形状保留原调度。每行数学、量化解码、累加和归约顺序保持原样，无新增 GPU buffer。启动前设置 `NINFER_VEC5070_DISABLE=1` 可以关闭这项调度；必须重启，不能对已经捕获的 CUDA Graph 热切换。
 
-未改变权重、主模型量化、rk4v4、context、MTP 3、检索选择预算、生产采样和默认 ngram copy draft。`--lm-head-draft` 没有启用，避免额外常驻 proposal 权重。没有启用本地 profiling 探针。
+v0.1.0–v0.1.2 的上述优化未改变权重、主模型量化、rk4v4、context、MTP 3、检索选择预算、生产采样和默认 ngram copy draft。v0.1.3 将公开默认 KV 改为 NVFP4，并提供 `KVDType=rk4v4` 回退选项；权重、采样及页预算继续保留。`--lm-head-draft` 没有启用，避免额外常驻 proposal 权重。没有启用本地 profiling 探针。
 
 2026-10-15 增加的 dsh 工具验证执行规则属于提示词引导，保留 xhigh 和输出额度；不修改引擎、不保证解决所有死循环。接入方式与开关见 [集成说明](../integrations/README.md)，独立开发任务结果见 [实测报告](BENCHMARKS.md#dsh-工具验证执行规则2026-10-15)。CUDA 系统内存回退的禁用建议由用户在驱动的程序设置中手动配置，公开脚本不自动修改。
 
@@ -29,3 +29,5 @@
 参考 [kvmem/kvmem](https://github.com/kvmem/kvmem/tree/0af10ece3d78edb905c62357e52a62147df69d58) 的上下文截断、检索恢复与 tail checkpoint 契约，独立实现本引擎的 Program/COW 方案，没有移植该仓库源码。[ActKV](https://arxiv.org/abs/2609.31395) 使用面向动作的 KV 压缩；其平均准确率并非与 FullKV 等同，本轮没有采用淘汰或自适应缩减预算。验证与已知边界见 [实测](BENCHMARKS.md#原生检索上下文修复2026-10-15) 和 [部署手册](DEPLOYMENT_AGENT_GUIDE.md)。
 
 2026-10-16的v0.1.2进一步发布生成历史索引、缓存问句保护与融合采集；当前引擎哈希以SOURCE_PROVENANCE.json为准。公开默认保持36864/3840起步，39168/6144作为进阶档单独报告显存与召回。诊断导出仅显式环境变量开启，日常不启用。新一轮预填充实验另行验证，不混入本次已验证包。[实测及成本](BENCHMARKS.md#语义历史修复与检索预算2026-10-16)
+
+2026-10-19本地增加[SM120 NVFP4 prompt 调度](NVFP4_SM120.md)：8 warp、成对解码、跳过全屏蔽页，保留原内核和启动开关 `NINFER_NVFP4_SM120=0`。不更改 KV 编码、Q 量化、检索预算或 decode/small-T 内核；稀疏跳页可能有浮点尾差，不承诺逐位相同。独立数值/Graph 和 128K/200K 召回通过；初次累计长输出失败另由[Host压力修复](KV_HOST_PRESSURE.md)处理：释放重复Host副本，补上Host-only闲置owner的既有LRU回收。保留活动历史、预算和复用保护；共享引用、pins、部分尾页及异步H2D受保护。完整v2通过累计512行、六工具及18/18召回，已部署本机并备份旧exe。本次随v0.1.3发布当前exe、源码、脱敏证据和新下载清单，旧v0.1.2资产保持原样。默认NVFP4相对旧RK4V4多占一些显存；紧张时可通过`KVDType=rk4v4`重启切换，同一exe保留通用修复。仍为本机增量构建，未合入后续只读评估的上游修复。

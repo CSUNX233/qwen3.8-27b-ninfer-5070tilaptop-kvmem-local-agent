@@ -1,0 +1,793 @@
+{
+  "date": "2026-10-19",
+  "generated_at": "2026-10-19T20:37:28.045298+08:00",
+  "device": {
+    "name": "NVIDIA GeForce RTX 5070 Ti Laptop GPU",
+    "compute_capability": "12.0",
+    "SM_count": 46,
+    "driver": "617.14",
+    "memory_total_MiB": 12227
+  },
+  "source_base_commit": "8dade0dfa91ba19e6531e6f1082be99090873344",
+  "source_branch": "codex/nvfp4-sm120-20261019",
+  "incremental_build": true,
+  "toolchain": {
+    "cuda": "13.0.48",
+    "msvc": "14.44.35207"
+  },
+  "binaries_sha256": {
+    "ninfer-serve.exe": "4915e66b173964a5c234c81a635881fe578854fce814a6a45f2eab7e3b08e8bb",
+    "ninfer-serve-sm120.exe": "7ee6162ddb262fc54e04abf20d1ef923e36c45ced4aa18de0619b9aeb4e20abb"
+  },
+  "sources_sha256": {
+    "engine/src/ops/softmax_attention/dense/causal_cache/prompt_nvfp4.cu": "e5bd12770ca2848d6c03be900bde9a286db3c17e3659d0a9fd98bf8abff979b0",
+    "engine/src/ops/softmax_attention/dense/causal_cache/prompt_nvfp4_sm120.cuh": "11fbed6cc3595adb50fec980d4a174ce62353335160899d139e0bcf45ee41ade",
+    "benchmarks/qualification/nvfp4_prompt_sm120.cu": "174a0d11559f23e5623a4cfd0b32d36a4e8c5e72de068d64c1d0314661326b69"
+  },
+  "baseline": {
+    "executable": "ninfer-serve.exe",
+    "NINFER_NVFP4_SM120": "0"
+  },
+  "candidate": {
+    "executable": "ninfer-serve-sm120.exe",
+    "NINFER_NVFP4_SM120": "1"
+  },
+  "qualification": {
+    "passed": true,
+    "exact_decode_values": 260096,
+    "shape_cases": 13,
+    "graph_replays_per_case": 5,
+    "oracle_positions_per_nonempty_case": 4,
+    "max_candidate_oracle_relative_l2": 0.0017824976,
+    "max_baseline_oracle_relative_l2": 0.0020707071,
+    "max_candidate_vs_baseline_relative_l2": 0.0011225446
+  },
+  "comparisons": [
+    {
+      "label": "recall-131072-cold",
+      "baseline_prompt_s": 535.1715713,
+      "candidate_prompt_s": 434.234597,
+      "prompt_time_reduction_pct": 18.86067566235089,
+      "speedup": 1.2324480246330993,
+      "baseline_cache": 0,
+      "candidate_cache": 0,
+      "baseline_decode_tps": 88.16325824080192,
+      "candidate_decode_tps": 80.67602149024877,
+      "baseline_score": "10/10",
+      "candidate_score": "10/10"
+    },
+    {
+      "label": "recall-131072-warm",
+      "baseline_prompt_s": 0.1197339,
+      "candidate_prompt_s": 0.0938244,
+      "prompt_time_reduction_pct": 21.639235003620538,
+      "speedup": 1.2761488482740098,
+      "baseline_cache": 131074,
+      "candidate_cache": 131074,
+      "baseline_decode_tps": 81.11562349049635,
+      "candidate_decode_tps": 82.7914120632753,
+      "baseline_score": "10/10",
+      "candidate_score": "10/10"
+    },
+    {
+      "label": "recall-204800-cold",
+      "baseline_prompt_s": 1204.6885706,
+      "candidate_prompt_s": 883.4751595,
+      "prompt_time_reduction_pct": 26.663605759953235,
+      "speedup": 1.3635794483251682,
+      "baseline_cache": 0,
+      "candidate_cache": 0,
+      "baseline_decode_tps": 80.99520409372903,
+      "candidate_decode_tps": 70.65874657597259,
+      "baseline_score": "10/10",
+      "candidate_score": "10/10"
+    },
+    {
+      "label": "recall-204800-warm",
+      "baseline_prompt_s": 0.1177008,
+      "candidate_prompt_s": 0.1078054,
+      "prompt_time_reduction_pct": 8.407249568397168,
+      "speedup": 1.0917894650917301,
+      "baseline_cache": 204849,
+      "candidate_cache": 204849,
+      "baseline_decode_tps": 81.70835810228138,
+      "candidate_decode_tps": 75.74423097697512,
+      "baseline_score": "10/10",
+      "candidate_score": "10/10"
+    }
+  ],
+  "candidate_agent": {
+    "tools": [],
+    "series": {
+      "requested": 512,
+      "complete_rows": 375,
+      "complete": false,
+      "sequential": true,
+      "additional_requests": 0,
+      "last_finish_reason": "error",
+      "error": "RuntimeError({'code': None, 'message': 'Device KV page pool exhausted (ring: pages the pool cannot hold are host-backed and claimed on demand)', 'param': None, 'type': 'internal_error'})"
+    },
+    "recall": {
+      "executed": false
+    },
+    "error": "RuntimeError({'code': None, 'message': 'Device KV page pool exhausted (ring: pages the pool cannot hold are host-backed and claimed on demand)', 'param': None, 'type': 'internal_error'})"
+  },
+  "baseline_agent": {
+    "tools": [
+      {
+        "id": "JOB-01",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-02",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-03",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-04",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-05",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-06",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "series": {
+      "requested": 512,
+      "complete_rows": 512,
+      "complete": true,
+      "sequential": true,
+      "additional_requests": 0,
+      "completion_tokens": 9506,
+      "last_finish_reason": "stop"
+    },
+    "recall": {
+      "correct": 18,
+      "total": 18,
+      "checks": {
+        "ASTER-71": true,
+        "BRIDGE-39": true,
+        "CIRRUS-82": true,
+        "DELTA-26": true,
+        "EMBER-54": true,
+        "FROST-93": true,
+        "GROVE-48": true,
+        "HARBOR-65": true,
+        "READY_TOTAL": true,
+        "TRANSFER_TOTAL": true,
+        "GENERATED_CODE": true,
+        "JOB-01": true,
+        "JOB-02": true,
+        "JOB-03": true,
+        "JOB-04": true,
+        "JOB-05": true,
+        "JOB-06": true,
+        "DELTA_TOTAL": true
+      },
+      "parsed": {
+        "ASTER-71": "348819-DELTA",
+        "BRIDGE-39": "769747-GARDEN",
+        "CIRRUS-82": "890714-TIMBER",
+        "DELTA-26": "346193-INVOICE",
+        "EMBER-54": "784300-KERNEL",
+        "FROST-93": "598258-QUARTZ",
+        "GROVE-48": "755498-BRIDGE",
+        "HARBOR-65": "324408-GARDEN",
+        "READY_TOTAL": 213,
+        "TRANSFER_TOTAL": 99,
+        "GENERATED_CODE": "GEN-51019-KIRRA",
+        "JOB-01": "84E4BC547904",
+        "JOB-02": "035AF42278F9",
+        "JOB-03": "BA9AE283161E",
+        "JOB-04": "F123FDDABAB3",
+        "JOB-05": "5ACD69DE268C",
+        "JOB-06": "5DAFC45A8022",
+        "DELTA_TOTAL": 35
+      },
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 949,
+        "completion_tokens_details": {
+          "reasoning_tokens": 613
+        },
+        "prompt_tokens": 216833,
+        "prompt_tokens_details": {
+          "cached_tokens": 216718
+        },
+        "total_tokens": 217782
+      }
+    }
+  },
+  "candidate_fresh_agent": {
+    "tools": [
+      {
+        "id": "JOB-01",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-02",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-03",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-04",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-05",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-06",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "series": {
+      "requested": 512,
+      "complete_rows": 512,
+      "complete": true,
+      "sequential": true,
+      "additional_requests": 0,
+      "completion_tokens": 9902,
+      "last_finish_reason": "stop"
+    },
+    "recall": {
+      "correct": 18,
+      "total": 18,
+      "checks": {
+        "ASTER-71": true,
+        "BRIDGE-39": true,
+        "CIRRUS-82": true,
+        "DELTA-26": true,
+        "EMBER-54": true,
+        "FROST-93": true,
+        "GROVE-48": true,
+        "HARBOR-65": true,
+        "READY_TOTAL": true,
+        "TRANSFER_TOTAL": true,
+        "GENERATED_CODE": true,
+        "JOB-01": true,
+        "JOB-02": true,
+        "JOB-03": true,
+        "JOB-04": true,
+        "JOB-05": true,
+        "JOB-06": true,
+        "DELTA_TOTAL": true
+      },
+      "parsed": {
+        "ASTER-71": "348819-DELTA",
+        "BRIDGE-39": "769747-GARDEN",
+        "CIRRUS-82": "890714-TIMBER",
+        "DELTA-26": "346193-INVOICE",
+        "EMBER-54": "784300-KERNEL",
+        "FROST-93": "598258-QUARTZ",
+        "GROVE-48": "755498-BRIDGE",
+        "HARBOR-65": "324408-GARDEN",
+        "READY_TOTAL": 213,
+        "TRANSFER_TOTAL": 99,
+        "GENERATED_CODE": "GEN-04731-KQZVM",
+        "JOB-01": "84E4BC547904",
+        "JOB-02": "035AF42278F9",
+        "JOB-03": "BA9AE283161E",
+        "JOB-04": "F123FDDABAB3",
+        "JOB-05": "5ACD69DE268C",
+        "JOB-06": "5DAFC45A8022",
+        "DELTA_TOTAL": 35
+      },
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1037,
+        "completion_tokens_details": {
+          "reasoning_tokens": 700
+        },
+        "prompt_tokens": 217298,
+        "prompt_tokens_details": {
+          "cached_tokens": 217183
+        },
+        "total_tokens": 218335
+      }
+    }
+  },
+  "fresh_agent_pair": {
+    "same_final_executable": true,
+    "fresh_process_each": true,
+    "identical_request": true,
+    "baseline_prompt_s": 683.2153733,
+    "candidate_prompt_s": 359.219144,
+    "baseline_wall_sum_s": 852.4049457999936,
+    "candidate_wall_sum_s": 529.5105744999892,
+    "baseline_long_decode_tps": 65.33203211354282,
+    "candidate_long_decode_tps": 66.84099282763202,
+    "failed_content_is_prefix_of_fresh_content": true,
+    "same_reasoning_as_failed_attempt": true,
+    "baseline_usage": {
+      "completion_tokens": 9506,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1407
+      },
+      "prompt_tokens": 206552,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "total_tokens": 216058
+    },
+    "candidate_usage": {
+      "completion_tokens": 9902,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1802
+      },
+      "prompt_tokens": 206552,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "total_tokens": 216454
+    }
+  },
+  "gpu_samples": {
+    "baseline": {
+      "sample_interval_s": 5,
+      "sample_count": 359,
+      "peak_used_MiB": 11181.0,
+      "minimum_driver_free_MiB": 764.0
+    },
+    "candidate": {
+      "sample_interval_s": 5,
+      "sample_count": 275,
+      "peak_used_MiB": 11176.0,
+      "minimum_driver_free_MiB": 769.0
+    },
+    "candidate-agent": {
+      "sample_interval_s": 5,
+      "sample_count": 94,
+      "peak_used_MiB": 11176.0,
+      "minimum_driver_free_MiB": 769.0
+    },
+    "baseline-agent": {
+      "sample_interval_s": 5,
+      "sample_count": 169,
+      "peak_used_MiB": 11176.0,
+      "minimum_driver_free_MiB": 769.0
+    },
+    "candidate-fresh-agent": {
+      "sample_interval_s": 5,
+      "sample_count": 105,
+      "peak_used_MiB": 11176.0,
+      "minimum_driver_free_MiB": 769.0
+    }
+  },
+  "decode_control": {
+    "rows": [
+      {
+        "phase": 0,
+        "switch": 0,
+        "seed": 2026101901,
+        "output_sha256": "9060c0638de72f6b29972f82f4eef8263731ebb4bfcd4a95b81469f87e40054a",
+        "completion_tokens": 3072,
+        "prompt_tokens": 4615,
+        "finish_reason": "length",
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 4633,
+          "draft_n_accepted": 2154,
+          "predicted_ms": 38658.3285,
+          "predicted_n": 3072,
+          "predicted_per_second": 79.43954431449357,
+          "predicted_per_token_ms": 12.588189026375774,
+          "prompt_ms": 4897.1784,
+          "prompt_n": 4615,
+          "prompt_per_second": 942.3793913654442,
+          "prompt_per_token_ms": 1.0611437486457205
+        },
+        "gpu_before": "54, 117.47 W, 2085 MHz, 11001 MHz, 10 %, Not Active, Not Active",
+        "gpu_after": "74, 138.77 W, 2520 MHz, 9001 MHz, 99 %, Not Active, Not Active",
+        "mtp_acceptance": 0.46492553421109434
+      },
+      {
+        "phase": 0,
+        "switch": 0,
+        "seed": 2026101902,
+        "output_sha256": "c428733c8aff0ba2b7984550fce179ad092872c05e23fe575eed3fa7e79718cd",
+        "completion_tokens": 3072,
+        "prompt_tokens": 4615,
+        "finish_reason": "length",
+        "timings": {
+          "cache_n": 4610,
+          "draft_n": 5104,
+          "draft_n_accepted": 2145,
+          "predicted_ms": 39706.386600000005,
+          "predicted_n": 3072,
+          "predicted_per_second": 77.34272148551537,
+          "predicted_per_token_ms": 12.929464864864867,
+          "prompt_ms": 80.0577,
+          "prompt_n": 5,
+          "prompt_per_second": 62.45495436416485,
+          "prompt_per_token_ms": 16.01154
+        },
+        "gpu_before": "74, 138.77 W, 2520 MHz, 9001 MHz, 99 %, Not Active, Not Active",
+        "gpu_after": "76, 138.67 W, 2512 MHz, 9001 MHz, 99 %, Not Active, Not Active",
+        "mtp_acceptance": 0.4202586206896552
+      },
+      {
+        "phase": 1,
+        "switch": 1,
+        "seed": 2026101901,
+        "output_sha256": "9060c0638de72f6b29972f82f4eef8263731ebb4bfcd4a95b81469f87e40054a",
+        "completion_tokens": 3072,
+        "prompt_tokens": 4615,
+        "finish_reason": "length",
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 4633,
+          "draft_n_accepted": 2154,
+          "predicted_ms": 38933.2789,
+          "predicted_n": 3072,
+          "predicted_per_second": 78.87853493891058,
+          "predicted_per_token_ms": 12.677720253988928,
+          "prompt_ms": 4981.7854,
+          "prompt_n": 4615,
+          "prompt_per_second": 926.3747089547454,
+          "prompt_per_token_ms": 1.0794767930660887
+        },
+        "gpu_before": "58, 53.01 W, 262 MHz, 11001 MHz, 0 %, Not Active, Not Active",
+        "gpu_after": "75, 138.82 W, 2505 MHz, 9001 MHz, 99 %, Not Active, Not Active",
+        "mtp_acceptance": 0.46492553421109434
+      },
+      {
+        "phase": 1,
+        "switch": 1,
+        "seed": 2026101902,
+        "output_sha256": "c428733c8aff0ba2b7984550fce179ad092872c05e23fe575eed3fa7e79718cd",
+        "completion_tokens": 3072,
+        "prompt_tokens": 4615,
+        "finish_reason": "length",
+        "timings": {
+          "cache_n": 4610,
+          "draft_n": 5104,
+          "draft_n_accepted": 2145,
+          "predicted_ms": 39959.2904,
+          "predicted_n": 3072,
+          "predicted_per_second": 76.85321659265502,
+          "predicted_per_token_ms": 13.011817127971344,
+          "prompt_ms": 87.975,
+          "prompt_n": 5,
+          "prompt_per_second": 56.834327934072185,
+          "prompt_per_token_ms": 17.595
+        },
+        "gpu_before": "75, 138.82 W, 2505 MHz, 9001 MHz, 99 %, Not Active, Not Active",
+        "gpu_after": "77, 138.51 W, 2505 MHz, 9001 MHz, 99 %, Not Active, Not Active",
+        "mtp_acceptance": 0.4202586206896552
+      },
+      {
+        "phase": 2,
+        "switch": 1,
+        "seed": 2026101901,
+        "output_sha256": "9060c0638de72f6b29972f82f4eef8263731ebb4bfcd4a95b81469f87e40054a",
+        "completion_tokens": 3072,
+        "prompt_tokens": 4615,
+        "finish_reason": "length",
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 4633,
+          "draft_n_accepted": 2154,
+          "predicted_ms": 38734.0004,
+          "predicted_n": 3072,
+          "predicted_per_second": 79.28434884820211,
+          "predicted_per_token_ms": 12.612829827417778,
+          "prompt_ms": 4949.9166,
+          "prompt_n": 4615,
+          "prompt_per_second": 932.3389408217505,
+          "prompt_per_token_ms": 1.0725713109425785
+        },
+        "gpu_before": "72, 116.07 W, 2640 MHz, 11001 MHz, 70 %, Not Active, Not Active",
+        "gpu_after": "77, 138.62 W, 2490 MHz, 9001 MHz, 99 %, Not Active, Not Active",
+        "mtp_acceptance": 0.46492553421109434
+      },
+      {
+        "phase": 2,
+        "switch": 1,
+        "seed": 2026101902,
+        "output_sha256": "c428733c8aff0ba2b7984550fce179ad092872c05e23fe575eed3fa7e79718cd",
+        "completion_tokens": 3072,
+        "prompt_tokens": 4615,
+        "finish_reason": "length",
+        "timings": {
+          "cache_n": 4610,
+          "draft_n": 5104,
+          "draft_n_accepted": 2145,
+          "predicted_ms": 39678.4211,
+          "predicted_n": 3072,
+          "predicted_per_second": 77.39723292568212,
+          "predicted_per_token_ms": 12.92035854770433,
+          "prompt_ms": 80.07169999999999,
+          "prompt_n": 5,
+          "prompt_per_second": 62.44403453404887,
+          "prompt_per_token_ms": 16.014339999999997
+        },
+        "gpu_before": "77, 138.62 W, 2490 MHz, 9001 MHz, 99 %, Not Active, Not Active",
+        "gpu_after": "78, 138.51 W, 2497 MHz, 9001 MHz, 99 %, Not Active, Not Active",
+        "mtp_acceptance": 0.4202586206896552
+      },
+      {
+        "phase": 3,
+        "switch": 0,
+        "seed": 2026101901,
+        "output_sha256": "9060c0638de72f6b29972f82f4eef8263731ebb4bfcd4a95b81469f87e40054a",
+        "completion_tokens": 3072,
+        "prompt_tokens": 4615,
+        "finish_reason": "length",
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 4633,
+          "draft_n_accepted": 2154,
+          "predicted_ms": 38878.8321,
+          "predicted_n": 3072,
+          "predicted_per_second": 78.98899823176531,
+          "predicted_per_token_ms": 12.659990915011397,
+          "prompt_ms": 4949.0055,
+          "prompt_n": 4615,
+          "prompt_per_second": 932.5105821765604,
+          "prompt_per_token_ms": 1.072373889490791
+        },
+        "gpu_before": "73, 116.17 W, 2610 MHz, 11001 MHz, 82 %, Not Active, Not Active",
+        "gpu_after": "76, 138.84 W, 2512 MHz, 9001 MHz, 99 %, Not Active, Not Active",
+        "mtp_acceptance": 0.46492553421109434
+      },
+      {
+        "phase": 3,
+        "switch": 0,
+        "seed": 2026101902,
+        "output_sha256": "c428733c8aff0ba2b7984550fce179ad092872c05e23fe575eed3fa7e79718cd",
+        "completion_tokens": 3072,
+        "prompt_tokens": 4615,
+        "finish_reason": "length",
+        "timings": {
+          "cache_n": 4610,
+          "draft_n": 5104,
+          "draft_n_accepted": 2145,
+          "predicted_ms": 39763.3558,
+          "predicted_n": 3072,
+          "predicted_per_second": 77.23191210134232,
+          "predicted_per_token_ms": 12.948015564962551,
+          "prompt_ms": 83.658,
+          "prompt_n": 5,
+          "prompt_per_second": 59.76714719453011,
+          "prompt_per_token_ms": 16.7316
+        },
+        "gpu_before": "76, 138.84 W, 2512 MHz, 9001 MHz, 99 %, Not Active, Not Active",
+        "gpu_after": "78, 138.22 W, 2467 MHz, 9001 MHz, 98 %, Not Active, Not Active",
+        "mtp_acceptance": 0.4202586206896552
+      }
+    ],
+    "by_seed": {
+      "2026101901": {
+        "identical_outputs": true,
+        "identical_off_outputs": true,
+        "identical_on_outputs": true,
+        "identical_completion_counts": true
+      },
+      "2026101902": {
+        "identical_outputs": true,
+        "identical_off_outputs": true,
+        "identical_on_outputs": true,
+        "identical_completion_counts": true
+      }
+    },
+    "weighted_decode_tps_off": 78.26407479676229,
+    "weighted_decode_tps_on": 78.11576694107025,
+    "on_vs_off_pct": -0.1894967212953902,
+    "scope": "Short fully retained prefix; same final executable; original xhigh/sampling/MTP3; ABBA order; not a long-context quality test."
+  },
+  "deployment": {
+    "time": "2026-10-19T20:36:35.135670",
+    "original_sha256": "275ea27ba01b57ca3f3a14361e5f7a4d8c4b04575475f1fe536ca5dedb6c8bd1",
+    "candidate_sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d",
+    "smoke_passed": true
+  },
+  "restoration": {
+    "production_sha256": "275ea27ba01b57ca3f3a14361e5f7a4d8c4b04575475f1fe536ca5dedb6c8bd1",
+    "production_unchanged": true,
+    "service_pid": 17832,
+    "smoke_passed": true,
+    "finish_reason": "stop",
+    "response": "{\"ready\":true}",
+    "usage": {
+      "completion_tokens": 54,
+      "completion_tokens_details": {
+        "reasoning_tokens": 48
+      },
+      "prompt_tokens": 64,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "total_tokens": 118
+    },
+    "timings": {
+      "cache_n": 0,
+      "draft_n": 54,
+      "draft_n_accepted": 37,
+      "predicted_ms": 583.7073,
+      "predicted_n": 54,
+      "predicted_per_second": 90.79893295835086,
+      "predicted_per_token_ms": 11.013345283018868,
+      "prompt_ms": 182.04909999999998,
+      "prompt_n": 64,
+      "prompt_per_second": 351.55350946530365,
+      "prompt_per_token_ms": 2.8445171874999997
+    },
+    "candidate_deployed": false,
+    "reason": "Candidate prefill improves; accumulated-cache long output hit Device KV page pool exhaustion. Fresh-process qualification does not clear this failure."
+  },
+  "restoration_is_historical": true,
+  "host_pressure_followup": {
+    "evidence": "host-pressure.json",
+    "earliest_found_failure": {
+      "time": "2026-10-16 11:15:46.208",
+      "request": 15,
+      "kv": "nvfp4",
+      "binary_sha256": "34fd593d76bd332c1b8470ce5ffe4fd9e7e9820229558cffd1cf9ddaa386224b",
+      "inactive_nonresident_pages": 3330,
+      "precedes_sm120_optimization": true
+    },
+    "executable_sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d",
+    "cumulative_passed": true,
+    "series": {
+      "requested": 512,
+      "complete_rows": 512,
+      "complete": true,
+      "sequential": true,
+      "additional_requests": 0,
+      "completion_tokens": 9902,
+      "last_finish_reason": "stop"
+    },
+    "tools": [
+      {
+        "id": "JOB-01",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-02",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-03",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-04",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-05",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      },
+      {
+        "id": "JOB-06",
+        "valid": true,
+        "after_long_output": true,
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "recall": {
+      "correct": 18,
+      "total": 18,
+      "checks": {
+        "ASTER-71": true,
+        "BRIDGE-39": true,
+        "CIRRUS-82": true,
+        "DELTA-26": true,
+        "EMBER-54": true,
+        "FROST-93": true,
+        "GROVE-48": true,
+        "HARBOR-65": true,
+        "READY_TOTAL": true,
+        "TRANSFER_TOTAL": true,
+        "GENERATED_CODE": true,
+        "JOB-01": true,
+        "JOB-02": true,
+        "JOB-03": true,
+        "JOB-04": true,
+        "JOB-05": true,
+        "JOB-06": true,
+        "DELTA_TOTAL": true
+      },
+      "parsed": {
+        "ASTER-71": "348819-DELTA",
+        "BRIDGE-39": "769747-GARDEN",
+        "CIRRUS-82": "890714-TIMBER",
+        "DELTA-26": "346193-INVOICE",
+        "EMBER-54": "784300-KERNEL",
+        "FROST-93": "598258-QUARTZ",
+        "GROVE-48": "755498-BRIDGE",
+        "HARBOR-65": "324408-GARDEN",
+        "READY_TOTAL": 213,
+        "TRANSFER_TOTAL": 99,
+        "GENERATED_CODE": "GEN-04731-KQZVM",
+        "JOB-01": "84E4BC547904",
+        "JOB-02": "035AF42278F9",
+        "JOB-03": "BA9AE283161E",
+        "JOB-04": "F123FDDABAB3",
+        "JOB-05": "5ACD69DE268C",
+        "JOB-06": "5DAFC45A8022",
+        "DELTA_TOTAL": 35
+      },
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1026,
+        "completion_tokens_details": {
+          "reasoning_tokens": 689
+        },
+        "prompt_tokens": 217388,
+        "prompt_tokens_details": {
+          "cached_tokens": 217273
+        },
+        "total_tokens": 218414
+      }
+    },
+    "reclaimed_duplicate_pages": 41,
+    "idle_owner_evictions": [
+      {
+        "owners": 1,
+        "missing_headroom": 229376
+      }
+    ],
+    "deployment": {
+      "time": "2026-10-19T20:36:35.135670",
+      "original_sha256": "275ea27ba01b57ca3f3a14361e5f7a4d8c4b04575475f1fe536ca5dedb6c8bd1",
+      "candidate_sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d",
+      "smoke_passed": true
+    }
+  },
+  "limitations": [
+    "Single synthetic fixture/seed at each input length; one sequential paired round.",
+    "The two executables were built from the same code baseline/toolchain, with a formatting-only kernel rebuild between them; their hashes differ.",
+    "CUDA microbenchmarks are not whole-model performance.",
+    "Sparse attention is numerically close, not bitwise identical.",
+    "No full 256K run, other GPU, clean full build, or dsh/browser end-to-end qualification.",
+    "GPU memory is sampled every 5 seconds and cannot exclude transient peaks.",
+    "Candidate agent completion may include explicit continuation requests as recorded."
+  ]
+}

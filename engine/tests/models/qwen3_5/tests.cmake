@@ -66,8 +66,13 @@ ninfer_add_test(ninfer_qwen3_5_context_store_test
   SOURCES "${CMAKE_CURRENT_LIST_DIR}/test_context_store.cpp"
   LIBRARIES ninfer_engine ninfer_core)
 
+ninfer_add_test(ninfer_qwen3_5_ring_host_pressure_test
+  SOURCES "${CMAKE_CURRENT_LIST_DIR}/test_ring_host_pressure.cpp"
+  LIBRARIES ninfer_engine ninfer_core)
+
 set_tests_properties(
   ninfer_qwen3_5_context_store_test
+  ninfer_qwen3_5_ring_host_pressure_test
   PROPERTIES SKIP_RETURN_CODE 77)
 
 ninfer_add_test(ninfer_qwen3_5_prefix_real_test

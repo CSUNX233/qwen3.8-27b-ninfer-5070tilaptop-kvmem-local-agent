@@ -746,6 +746,9 @@ public:
     [[nodiscard]] std::optional<DeviceKVLeaseShortfall>
     device_kv_lease_shortfall(SequenceHandle sequence) const noexcept;
     [[nodiscard]] bool resume_device_kv_lease(SequenceHandle sequence) noexcept;
+    [[nodiscard]] std::size_t ring_host_kv_shortfall(SequenceHandle sequence);
+    [[nodiscard]] std::size_t retained_host_kv_bytes(const ContinuationHandle&) const noexcept;
+    [[nodiscard]] std::size_t retained_host_kv_bytes(const SharedPrefixHandle&) const noexcept;
     [[nodiscard]] DeviceKVPages
     retained_device_kv_pages(const ContinuationHandle& continuation) const noexcept;
     [[nodiscard]] DeviceKVPages

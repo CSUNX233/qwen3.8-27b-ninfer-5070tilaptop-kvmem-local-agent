@@ -1147,23 +1147,29 @@ public:
     // answer is not cut short while retained cache holds the pool. Releases idle retained owners
     // (catalogued, no active reuse edge, no open context transaction, no explicit client credit),
     // least recently used first over one private-and-shared recency order, skipping owners that
-    // hold no Device pages of a pool still short. Stops once the requested pages are covered or
+    // hold no pages of a tier still short. Host-only owners are eligible under ring Host pressure;
+    // the Program reports exclusive Host bytes, excluding pages shared with the active history.
+    // Stops once the requested pages/bytes are covered or
     // no eligible owner remains. Returns the owners released.
     std::uint32_t reclaim_device_kv_for_lease(Program& program, std::uint32_t main_pages,
-                                              std::uint32_t backend_pages) {
+                                              std::uint32_t backend_pages,
+                                              std::size_t host_bytes = 0) {
         if (!std::holds_alternative<std::monostate>(transaction_)) { return 0; }
         std::uint64_t freed_main    = 0;
         std::uint64_t freed_backend = 0;
         std::uint32_t released      = 0;
-        while (freed_main < main_pages || freed_backend < backend_pages) {
+        std::size_t freed_host = 0;
+        while (freed_main < main_pages || freed_backend < backend_pages || freed_host < host_bytes) {
             const bool need_main    = freed_main < main_pages;
             const bool need_backend = freed_backend < backend_pages;
+            const bool need_host = freed_host < host_bytes;
 
             struct Victim {
                 bool shared           = false;
                 std::uint32_t slot    = 0;
                 std::uint32_t main    = 0;
                 std::uint32_t backend = 0;
+                std::size_t host = 0;
             };
 
             std::optional<Victim> victim;
@@ -1171,8 +1177,9 @@ public:
                 std::numeric_limits<std::uint64_t>::max(),
                 std::numeric_limits<std::uint64_t>::max()};
             const auto consider = [&](bool shared, std::uint32_t slot, std::uint64_t recency,
-                                      std::uint64_t id, auto pages) {
-                if (!((need_main && pages.main != 0) || (need_backend && pages.backend != 0))) {
+                                      std::uint64_t id, auto pages, std::size_t host) {
+                if (!((need_main && pages.main != 0) || (need_backend && pages.backend != 0) ||
+                      (need_host && host != 0))) {
                     return;
                 }
                 const std::tuple<std::uint64_t, std::uint64_t> key{recency, id};
@@ -1181,7 +1188,8 @@ public:
                     victim = Victim{.shared  = shared,
                                     .slot    = slot,
                                     .main    = pages.main,
-                                    .backend = pages.backend};
+                                    .backend = pages.backend,
+                                    .host = host};
                 }
             };
             for (std::uint32_t slot = 0; slot < catalog_count_; ++slot) {
@@ -1190,14 +1198,22 @@ public:
                     private_has_active_edge(slot)) {
                     continue;
                 }
+                std::size_t host = 0;
+                if constexpr (requires { program.retained_host_kv_bytes(*entry.handle); }) {
+                    if (need_host) { host = program.retained_host_kv_bytes(*entry.handle); }
+                }
                 consider(false, slot, owner_recency_epoch(entry), entry.id,
-                         program.retained_device_kv_pages(*entry.handle));
+                         program.retained_device_kv_pages(*entry.handle), host);
             }
             for (std::uint32_t slot = 0; slot < shared_catalog_count_; ++slot) {
                 const SharedCatalogEntry& entry = shared_catalog_[slot];
                 if (!shared_automatic_reclaimable(entry, slot)) { continue; }
+                std::size_t host = 0;
+                if constexpr (requires { program.retained_host_kv_bytes(*entry.handle); }) {
+                    if (need_host) { host = program.retained_host_kv_bytes(*entry.handle); }
+                }
                 consider(true, slot, shared_recency_epoch(entry), entry.id,
-                         program.retained_device_kv_pages(*entry.handle));
+                         program.retained_device_kv_pages(*entry.handle), host);
             }
             if (!victim) { break; }
             const bool evicted = victim->shared
@@ -1206,6 +1222,8 @@ public:
             if (!evicted) { break; }
             freed_main += victim->main;
             freed_backend += victim->backend;
+            // Host ownership is exact and disjoint for exclusive pages. Saturate at the target.
+            freed_host += std::min(victim->host, host_bytes - std::min(freed_host, host_bytes));
             ++released;
         }
         return released;

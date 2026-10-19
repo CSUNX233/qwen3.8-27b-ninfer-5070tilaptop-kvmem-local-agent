@@ -1,6 +1,7 @@
 // Modified in the CSUNX233 RTX 5070 Ti Laptop distribution. See ../docs/MODIFICATIONS.md.
 #include "models/qwen3_5/program/program_impl.h"
 #include "models/qwen3_5/program/context_work.h"
+#include "models/qwen3_5/program/storage/ring_host_pressure.h"
 #include "core/device.h"
 // LOCAL (KVMem content scoring): the published content ranking consumed by select_retrieval_pages.
 #include "ops/kvmem/kvmem_score.h"
@@ -2319,6 +2320,47 @@ bool ProgramImpl::resume_device_kv_lease(SequenceHandle sequence) noexcept {
     return true;
 }
 
+std::size_t ProgramImpl::ring_host_kv_shortfall(SequenceHandle sequence) {
+    static const bool enabled = [] {
+        const char* value = std::getenv("NINFER_KV_HOST_PRESSURE_RECLAIM");
+        return value == nullptr || std::strcmp(value, "0") != 0;
+    }();
+    if (!enabled || !valid_sequence(sequence) || has_context_transaction() ||
+        !host_kv_arena || !host_kv_extents || proto_kv_window_pages() == 0 ||
+        !text_kv_pages || !text_kv_addresses ||
+        text_kv_pages->physical_pool().usable_pages() >= text_kv_addresses->logical_page_capacity()) {
+        return 0;
+    }
+    const auto& state = active_sequence(ContractAccess::lane(sequence).value);
+    if (!state.kv) { return 0; }
+    // Match the ring's eight-page cushion. Free Device pages and reclaimable Host duplicates
+    // count as headroom, so ordinary retrieval never evicts an idle owner unnecessarily.
+    std::size_t wanted = 8U * host_kv_extents->page_layout(*text_kv_pages).page_stride;
+    const bool backend = state.kv->backend && backend_kv_pages && backend_kv_addresses;
+    if (backend) { wanted += 8U * host_kv_extents->page_layout(*backend_kv_pages).page_stride; }
+    std::size_t available = host_kv_arena->free_bytes();
+    if (available >= wanted) { return 0; }
+    available += ring_host_headroom(*text_kv_addresses, *text_kv_pages, *host_kv_extents);
+    if (backend) {
+        available += ring_host_headroom(*backend_kv_addresses, *backend_kv_pages, *host_kv_extents);
+    }
+    if (available >= wanted) { return 0; }
+    device.synchronize();
+    return wanted - available;
+}
+
+std::size_t ProgramImpl::retained_host_kv_bytes(const ContinuationHandle& owner) const noexcept {
+    if (!valid_continuation(owner)) { return 0; }
+    try { return owner_exclusive_resources(continuation_states[ContractAccess::index(owner)]).host.kv_bytes; }
+    catch (...) { return 0; }
+}
+
+std::size_t ProgramImpl::retained_host_kv_bytes(const SharedPrefixHandle& owner) const noexcept {
+    if (!valid_shared_prefix(owner)) { return 0; }
+    try { return owner_exclusive_resources(shared_prefix_states[ContractAccess::index(owner)]).host.kv_bytes; }
+    catch (...) { return 0; }
+}
+
 DeviceKVPages
 ProgramImpl::retained_device_kv_pages(const ContinuationHandle& continuation) const noexcept {
     if (!valid_continuation(continuation)) { return {}; }
@@ -2413,6 +2455,37 @@ void ProgramImpl::ensure_sequence_kv_mapped(SequenceState& sequence, std::uint32
                 const std::uint32_t target2 = want_free > free_after ? want_free - free_after : 0U;
                 (void)demote_kv_pages_to_host(addresses, pages, address, sink_pages, target2,
                                               prefer);
+                // A restored Device page may still occupy Host. A full Host arena therefore
+                // does not imply that the logical histories exceed the combined tier budget.
+                // Keep all histories and cache owners; reclaim only redundant Host replicas.
+                static const bool reclaim_host_duplicates = [] {
+                    const char* value = std::getenv("NINFER_KV_HOST_DUPLICATE_RECLAIM");
+                    return value == nullptr || std::strcmp(value, "0") != 0;
+                }();
+                while (free_pages(pages) < want_free && host_kv_arena && host_kv_extents &&
+                       !host_kv_arena->can_allocate(host_kv_extents->page_layout(pages), 1U)) {
+                    const std::size_t host_before = host_kv_arena->occupied_bytes();
+                    const std::uint32_t reclaimed =
+                        reclaim_host_duplicates && !has_context_transaction()
+                            ? reclaim_ring_host_duplicates(device, addresses, pages,
+                                                           *host_kv_extents,
+                                                           want_free - free_pages(pages))
+                            : 0U;
+                    std::fprintf(stderr,
+                        "[ring-host-pressure] mapped=%u need=%u free=%u host_used=%zu "
+                        "host_capacity=%zu stride=%zu reclaimed_duplicates=%u\n",
+                        mapped, need, free_pages(pages), host_before,
+                        host_kv_arena->capacity_bytes(),
+                        host_kv_extents->page_layout(pages).page_stride, reclaimed);
+                    if (reclaimed == 0) { break; }
+                    advance_resource_revision();
+                    (void)demote_other_addresses_to_host(addresses, pages, address,
+                                                         want_free - free_pages(pages));
+                    if (free_pages(pages) < want_free) {
+                        (void)demote_kv_pages_to_host(addresses, pages, address, sink_pages,
+                                                      want_free - free_pages(pages), prefer);
+                    }
+                }
                 if (kv_audit_directory() != nullptr && free_pages(pages) < need) {
                     std::fprintf(stderr,
                         "[kv-audit] ring short total=%u mapped=%u need=%u free=%u "

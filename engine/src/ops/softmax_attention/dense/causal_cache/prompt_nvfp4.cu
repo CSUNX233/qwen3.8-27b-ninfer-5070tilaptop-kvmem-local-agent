@@ -5,18 +5,62 @@
 #include "ops/common/math.h"
 #include "ops/kv_cache/append/launch.h"
 #include "ops/softmax_attention/dense/causal_cache/prompt_nvfp4.cuh"
+#include "ops/softmax_attention/dense/causal_cache/prompt_nvfp4_sm120.cuh"
 #include "ops/kv_cache/plane_types.h"
 
 #include <cstdint>
+#include <cstdlib>
+#include <mutex>
+#include <unordered_map>
 
 namespace ninfer::ops::detail {
 namespace {
+
+bool use_nvfp4_sm120_schedule() {
+    static const bool enabled = [] {
+        const char* value = std::getenv("NINFER_NVFP4_SM120");
+        return value == nullptr || value[0] != '0';
+    }();
+    if (!enabled) return false;
+    static std::mutex mutex;
+    static std::unordered_map<int, bool> results;
+    int device = 0;
+    CUDA_CHECK(cudaGetDevice(&device));
+    const std::scoped_lock lock(mutex);
+    if (const auto it = results.find(device); it != results.end()) return it->second;
+    cudaDeviceProp props{};
+    CUDA_CHECK(cudaGetDeviceProperties(&props, device));
+    const bool use = props.major == 12 && props.minor == 0 && props.multiProcessorCount == 46;
+    results.emplace(device, use);
+    return use;
+}
 
 template <typename Geometry, typename CacheView, typename Metadata>
 void causal_attention_prompt_nvfp4_attention_launch_for(const Tensor& q, const Tensor& positions,
                                                         float scale, const CacheView& cache,
                                                         Metadata metadata, Tensor& out,
                                                         cudaStream_t stream) {
+    if (use_nvfp4_sm120_schedule()) {
+        configure_cuda_device_once([&] {
+            return cudaFuncSetAttribute(
+                causal_attention_prompt_nvfp4_sm120_kernel<Geometry, Metadata>,
+                cudaFuncAttributeMaxDynamicSharedMemorySize, kCausalPromptNvfp4Sm120SmemBytes);
+        });
+        const auto tokens = static_cast<std::int32_t>(q.ne[2]);
+        const dim3 grid(static_cast<unsigned>(div_up(tokens, kCausalPromptNvfp4Sm120Br)),
+                        static_cast<unsigned>(Geometry::QHeads), 1u);
+        causal_attention_prompt_nvfp4_sm120_kernel<Geometry, Metadata>
+            <<<grid, kCausalPromptNvfp4Sm120Threads, kCausalPromptNvfp4Sm120SmemBytes, stream>>>(
+                static_cast<const __nv_bfloat16*>(q.data),
+                static_cast<const std::uint8_t*>(cache.k_pages.data),
+                static_cast<const std::uint8_t*>(cache.v_pages.data),
+                static_cast<const std::uint8_t*>(cache.k_scale_pages.data),
+                static_cast<const std::uint8_t*>(cache.v_scale_pages.data), metadata,
+                static_cast<const std::int32_t*>(positions.data), scale,
+                static_cast<__nv_bfloat16*>(out.data), tokens);
+        CUDA_CHECK(cudaGetLastError());
+        return;
+    }
     configure_cuda_device_once([&] {
         return cudaFuncSetAttribute(
             causal_attention_prompt_nvfp4_kernel<Geometry, Metadata>,

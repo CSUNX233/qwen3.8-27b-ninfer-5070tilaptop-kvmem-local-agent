@@ -1,0 +1,4228 @@
+{
+  "created": "2026-10-19T20:36:52.647476",
+  "source_base": "8dade0dfa91ba19e6531e6f1082be99090873344",
+  "executable_sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d",
+  "duplicates_only_executable_sha256": "0fd08f6310348c4828ce093b022a57f552f967739fe7231879219a85ac7d7c60",
+  "source_sha256": {
+    "engine/src/models/qwen3_5/program/storage/context.cpp": "6501b7b81484aa46de128d219d40455c4994dfe612a7544b3a77a2374a506d4c",
+    "engine/src/models/qwen3_5/program/storage/ring_host_pressure.h": "f2b0726a4c71acb2c241a90a14fd22e8f16c9e8d1e98bbc4d0cb5e1d9dcd9e54",
+    "engine/src/models/qwen3_5/program/program.cpp": "1a208f6623ef8cc290cbce1de89c899c8ebb9e6c8685bf116b7d92f8913d514b",
+    "engine/src/models/qwen3_5/program/program.h": "cf8598aba6ccf8f7504653c0403a013875cf173424a8606239cc2553534c6fdb",
+    "engine/src/models/qwen3_5/program/program_impl.h": "d8b84ed0adfcbc0d7c168b7fb8b18a0e3460977da83648b0ed97f4c621ad9309",
+    "engine/src/runtime/engine/context_cache/resource_manager.h": "5e9058be86dd87851db4bf490b1346ef7f68789ef04ec680181a983ce6c07d4f",
+    "engine/src/runtime/engine/engine_core.h": "68d9444c6c161a3eb05433865f290429d83c2bc3dda966e851e1f77343f026a5",
+    "engine/tests/test_resource_manager.cpp": "f6cf35e9296c957ffca0cde9cee6d1505cdead53323684882b5f93d7c66ddac6",
+    "engine/tests/models/qwen3_5/test_ring_host_pressure.cpp": "0282fe4be5883cbdfb42bd9ccf697e10c57f76f3e743f28735962a0a63ac2c74",
+    "engine/tests/models/qwen3_5/tests.cmake": "e2dfcad985fbc864705155c7271e22d2690651839f9d16b22c5711bab05ea62d"
+  },
+  "earliest_found_failure": {
+    "time": "2026-10-16 11:15:46.208",
+    "request": 15,
+    "kv": "nvfp4",
+    "binary_sha256": "34fd593d76bd332c1b8470ce5ffe4fd9e7e9820229558cffd1cf9ddaa386224b",
+    "inactive_nonresident_pages": 3330,
+    "precedes_sm120_optimization": true
+  },
+  "previous_failure": {
+    "time": "2026-10-19 18:06:11.717",
+    "rows": 375,
+    "inactive_nonresident_pages": 3222
+  },
+  "same_executable_control_vs_duplicates_only": true,
+  "final_v2_rebuilt": true,
+  "optimization_enabled_all": true,
+  "reclaim_switch": [
+    0,
+    1,
+    1
+  ],
+  "results": {
+    "pool-control": {
+      "mode": "pool-control",
+      "reclaim": 0,
+      "start": "2026-10-19T18:53:04.608060",
+      "recall_exit": 0,
+      "agent_exit": 1,
+      "end": "2026-10-19T19:24:22.853399",
+      "recalls": [
+        {
+          "correct": 10,
+          "total": 10,
+          "checks": {
+            "ASTER-71": true,
+            "BRIDGE-39": true,
+            "CIRRUS-82": true,
+            "DELTA-26": true,
+            "EMBER-54": true,
+            "FROST-93": true,
+            "GROVE-48": true,
+            "HARBOR-65": true,
+            "READY_TOTAL": true,
+            "TRANSFER_TOTAL": true
+          },
+          "parsed": {
+            "ASTER-71": "347053-WILLOW",
+            "BRIDGE-39": "939145-NOZZLE",
+            "CIRRUS-82": "831190-VALLEY",
+            "DELTA-26": "782320-GARDEN",
+            "EMBER-54": "653027-FILTER",
+            "FROST-93": "218336-BRIDGE",
+            "GROVE-48": "479111-YELLOW",
+            "HARBOR-65": "936533-ISLAND",
+            "READY_TOTAL": 117,
+            "TRANSFER_TOTAL": -32
+          },
+          "label": "recall-131072-cold",
+          "timings": {
+            "cache_n": 0,
+            "draft_n": 1472,
+            "draft_n_accepted": 971,
+            "predicted_ms": 16603.721100000002,
+            "predicted_n": 1349,
+            "predicted_per_second": 81.18662026911545,
+            "predicted_per_token_ms": 12.317300519287835,
+            "prompt_ms": 434903.7718,
+            "prompt_n": 131079,
+            "prompt_per_second": 301.39770795154095,
+            "prompt_per_token_ms": 3.3178752645351275
+          },
+          "usage": {
+            "completion_tokens": 1349,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1165
+            },
+            "prompt_tokens": 131079,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 132428
+          },
+          "finish_reason": "stop"
+        },
+        {
+          "correct": 10,
+          "total": 10,
+          "checks": {
+            "ASTER-71": true,
+            "BRIDGE-39": true,
+            "CIRRUS-82": true,
+            "DELTA-26": true,
+            "EMBER-54": true,
+            "FROST-93": true,
+            "GROVE-48": true,
+            "HARBOR-65": true,
+            "READY_TOTAL": true,
+            "TRANSFER_TOTAL": true
+          },
+          "parsed": {
+            "ASTER-71": "347053-WILLOW",
+            "BRIDGE-39": "939145-NOZZLE",
+            "CIRRUS-82": "831190-VALLEY",
+            "DELTA-26": "782320-GARDEN",
+            "EMBER-54": "653027-FILTER",
+            "FROST-93": "218336-BRIDGE",
+            "GROVE-48": "479111-YELLOW",
+            "HARBOR-65": "936533-ISLAND",
+            "READY_TOTAL": 117,
+            "TRANSFER_TOTAL": -32
+          },
+          "label": "recall-131072-warm",
+          "timings": {
+            "cache_n": 131074,
+            "draft_n": 1531,
+            "draft_n_accepted": 997,
+            "predicted_ms": 16410.917,
+            "predicted_n": 1360,
+            "predicted_per_second": 82.81072897998325,
+            "predicted_per_token_ms": 12.075729948491539,
+            "prompt_ms": 95.3935,
+            "prompt_n": 5,
+            "prompt_per_second": 52.414472684197555,
+            "prompt_per_token_ms": 19.0787
+          },
+          "usage": {
+            "completion_tokens": 1360,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1176
+            },
+            "prompt_tokens": 131079,
+            "prompt_tokens_details": {
+              "cached_tokens": 131074
+            },
+            "total_tokens": 132439
+          },
+          "finish_reason": "stop"
+        },
+        {
+          "correct": 10,
+          "total": 10,
+          "checks": {
+            "ASTER-71": true,
+            "BRIDGE-39": true,
+            "CIRRUS-82": true,
+            "DELTA-26": true,
+            "EMBER-54": true,
+            "FROST-93": true,
+            "GROVE-48": true,
+            "HARBOR-65": true,
+            "READY_TOTAL": true,
+            "TRANSFER_TOTAL": true
+          },
+          "parsed": {
+            "ASTER-71": "348819-DELTA",
+            "BRIDGE-39": "769747-GARDEN",
+            "CIRRUS-82": "890714-TIMBER",
+            "DELTA-26": "346193-INVOICE",
+            "EMBER-54": "784300-KERNEL",
+            "FROST-93": "598258-QUARTZ",
+            "GROVE-48": "755498-BRIDGE",
+            "HARBOR-65": "324408-GARDEN",
+            "READY_TOTAL": 213,
+            "TRANSFER_TOTAL": 99
+          },
+          "label": "recall-204800-cold",
+          "timings": {
+            "cache_n": 0,
+            "draft_n": 1668,
+            "draft_n_accepted": 1006,
+            "predicted_ms": 20738.1175,
+            "predicted_n": 1452,
+            "predicted_per_second": 69.9677779335564,
+            "predicted_per_token_ms": 14.292293246037216,
+            "prompt_ms": 892724.8129,
+            "prompt_n": 204854,
+            "prompt_per_second": 229.4704897184784,
+            "prompt_per_token_ms": 4.357858830679411
+          },
+          "usage": {
+            "completion_tokens": 1452,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1267
+            },
+            "prompt_tokens": 204854,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 206306
+          },
+          "finish_reason": "stop"
+        },
+        {
+          "correct": 10,
+          "total": 10,
+          "checks": {
+            "ASTER-71": true,
+            "BRIDGE-39": true,
+            "CIRRUS-82": true,
+            "DELTA-26": true,
+            "EMBER-54": true,
+            "FROST-93": true,
+            "GROVE-48": true,
+            "HARBOR-65": true,
+            "READY_TOTAL": true,
+            "TRANSFER_TOTAL": true
+          },
+          "parsed": {
+            "ASTER-71": "348819-DELTA",
+            "BRIDGE-39": "769747-GARDEN",
+            "CIRRUS-82": "890714-TIMBER",
+            "DELTA-26": "346193-INVOICE",
+            "EMBER-54": "784300-KERNEL",
+            "FROST-93": "598258-QUARTZ",
+            "GROVE-48": "755498-BRIDGE",
+            "HARBOR-65": "324408-GARDEN",
+            "READY_TOTAL": 213,
+            "TRANSFER_TOTAL": 99
+          },
+          "label": "recall-204800-warm",
+          "timings": {
+            "cache_n": 204849,
+            "draft_n": 1486,
+            "draft_n_accepted": 951,
+            "predicted_ms": 17619.0672,
+            "predicted_n": 1325,
+            "predicted_per_second": 75.14586243249018,
+            "predicted_per_token_ms": 13.307452567975831,
+            "prompt_ms": 101.3784,
+            "prompt_n": 5,
+            "prompt_per_second": 49.32017076615926,
+            "prompt_per_token_ms": 20.27568
+          },
+          "usage": {
+            "completion_tokens": 1325,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1140
+            },
+            "prompt_tokens": 204854,
+            "prompt_tokens_details": {
+              "cached_tokens": 204849
+            },
+            "total_tokens": 206179
+          },
+          "finish_reason": "stop"
+        }
+      ],
+      "agent": {
+        "tools": [],
+        "series": {
+          "requested": 512,
+          "complete_rows": 375,
+          "complete": false,
+          "sequential": true,
+          "additional_requests": 0,
+          "last_finish_reason": "error",
+          "error": "RuntimeError({'code': None, 'message': 'Device KV page pool exhausted (ring: pages the pool cannot hold are host-backed and claimed on demand)', 'param': None, 'type': 'internal_error'})"
+        },
+        "recall": {
+          "executed": false
+        },
+        "error": "RuntimeError({'code': None, 'message': 'Device KV page pool exhausted (ring: pages the pool cannot hold are host-backed and claimed on demand)', 'param': None, 'type': 'internal_error'})"
+      },
+      "pressure": {
+        "events": [
+          {
+            "mapped": 3340,
+            "need": 1,
+            "free": 8,
+            "host_used": 7515906048,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3340,
+            "need": 1,
+            "free": 8,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 1,
+            "free": 7,
+            "host_used": 7515979776,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3341,
+            "need": 1,
+            "free": 7,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 1,
+            "free": 6,
+            "host_used": 7516053504,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3342,
+            "need": 1,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 1,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 1,
+            "free": 8,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 1,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3343,
+            "need": 1,
+            "free": 8,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 1,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 1,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 1,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 1,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 0,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 1,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3344,
+            "need": 1,
+            "free": 7,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 1,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 1,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 0,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 1,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3345,
+            "need": 1,
+            "free": 6,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 1,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 1,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 0,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 1,
+            "free": 2,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3346,
+            "need": 1,
+            "free": 5,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 1,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 1,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 0,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 1,
+            "free": 1,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3347,
+            "need": 1,
+            "free": 4,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 0,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 1,
+            "free": 0,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3348,
+            "need": 1,
+            "free": 3,
+            "host_used": 7516127232,
+            "host_capacity": 7516192768,
+            "stride": 73728,
+            "reclaimed_duplicates": 0
+          }
+        ],
+        "reclaimed_pages": 0,
+        "idle_owner_evictions": [],
+        "pool_exhausted": true
+      },
+      "peak_host_bytes": 7516127232,
+      "sample_interval_s": 5,
+      "long_prompt_tokens": null,
+      "long_rows": 375
+    },
+    "pool-fixed": {
+      "mode": "pool-fixed",
+      "reclaim": 1,
+      "start": "2026-10-19T19:25:28.566750",
+      "recall_exit": 0,
+      "agent_exit": 1,
+      "end": "2026-10-19T19:57:15.244425",
+      "recalls": [
+        {
+          "correct": 10,
+          "total": 10,
+          "checks": {
+            "ASTER-71": true,
+            "BRIDGE-39": true,
+            "CIRRUS-82": true,
+            "DELTA-26": true,
+            "EMBER-54": true,
+            "FROST-93": true,
+            "GROVE-48": true,
+            "HARBOR-65": true,
+            "READY_TOTAL": true,
+            "TRANSFER_TOTAL": true
+          },
+          "parsed": {
+            "ASTER-71": "347053-WILLOW",
+            "BRIDGE-39": "939145-NOZZLE",
+            "CIRRUS-82": "831190-VALLEY",
+            "DELTA-26": "782320-GARDEN",
+            "EMBER-54": "653027-FILTER",
+            "FROST-93": "218336-BRIDGE",
+            "GROVE-48": "479111-YELLOW",
+            "HARBOR-65": "936533-ISLAND",
+            "READY_TOTAL": 117,
+            "TRANSFER_TOTAL": -32
+          },
+          "label": "recall-131072-cold",
+          "timings": {
+            "cache_n": 0,
+            "draft_n": 1472,
+            "draft_n_accepted": 971,
+            "predicted_ms": 16903.4968,
+            "predicted_n": 1349,
+            "predicted_per_second": 79.74681309727582,
+            "predicted_per_token_ms": 12.539686053412463,
+            "prompt_ms": 436355.94800000003,
+            "prompt_n": 131079,
+            "prompt_per_second": 300.39466770371604,
+            "prompt_per_token_ms": 3.3289538980309588
+          },
+          "usage": {
+            "completion_tokens": 1349,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1165
+            },
+            "prompt_tokens": 131079,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 132428
+          },
+          "finish_reason": "stop"
+        },
+        {
+          "correct": 10,
+          "total": 10,
+          "checks": {
+            "ASTER-71": true,
+            "BRIDGE-39": true,
+            "CIRRUS-82": true,
+            "DELTA-26": true,
+            "EMBER-54": true,
+            "FROST-93": true,
+            "GROVE-48": true,
+            "HARBOR-65": true,
+            "READY_TOTAL": true,
+            "TRANSFER_TOTAL": true
+          },
+          "parsed": {
+            "ASTER-71": "347053-WILLOW",
+            "BRIDGE-39": "939145-NOZZLE",
+            "CIRRUS-82": "831190-VALLEY",
+            "DELTA-26": "782320-GARDEN",
+            "EMBER-54": "653027-FILTER",
+            "FROST-93": "218336-BRIDGE",
+            "GROVE-48": "479111-YELLOW",
+            "HARBOR-65": "936533-ISLAND",
+            "READY_TOTAL": 117,
+            "TRANSFER_TOTAL": -32
+          },
+          "label": "recall-131072-warm",
+          "timings": {
+            "cache_n": 131074,
+            "draft_n": 1531,
+            "draft_n_accepted": 997,
+            "predicted_ms": 16588.7789,
+            "predicted_n": 1360,
+            "predicted_per_second": 81.92284725670797,
+            "predicted_per_token_ms": 12.206606990434144,
+            "prompt_ms": 127.4846,
+            "prompt_n": 5,
+            "prompt_per_second": 39.22042348644464,
+            "prompt_per_token_ms": 25.49692
+          },
+          "usage": {
+            "completion_tokens": 1360,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1176
+            },
+            "prompt_tokens": 131079,
+            "prompt_tokens_details": {
+              "cached_tokens": 131074
+            },
+            "total_tokens": 132439
+          },
+          "finish_reason": "stop"
+        },
+        {
+          "correct": 10,
+          "total": 10,
+          "checks": {
+            "ASTER-71": true,
+            "BRIDGE-39": true,
+            "CIRRUS-82": true,
+            "DELTA-26": true,
+            "EMBER-54": true,
+            "FROST-93": true,
+            "GROVE-48": true,
+            "HARBOR-65": true,
+            "READY_TOTAL": true,
+            "TRANSFER_TOTAL": true
+          },
+          "parsed": {
+            "ASTER-71": "348819-DELTA",
+            "BRIDGE-39": "769747-GARDEN",
+            "CIRRUS-82": "890714-TIMBER",
+            "DELTA-26": "346193-INVOICE",
+            "EMBER-54": "784300-KERNEL",
+            "FROST-93": "598258-QUARTZ",
+            "GROVE-48": "755498-BRIDGE",
+            "HARBOR-65": "324408-GARDEN",
+            "READY_TOTAL": 213,
+            "TRANSFER_TOTAL": 99
+          },
+          "label": "recall-204800-cold",
+          "timings": {
+            "cache_n": 0,
+            "draft_n": 1668,
+            "draft_n_accepted": 1006,
+            "predicted_ms": 20790.555399999997,
+            "predicted_n": 1452,
+            "predicted_per_second": 69.79130533472906,
+            "predicted_per_token_ms": 14.328432391454168,
+            "prompt_ms": 883540.2933,
+            "prompt_n": 204854,
+            "prompt_per_second": 231.8558661709424,
+            "prompt_per_token_ms": 4.3130243651576246
+          },
+          "usage": {
+            "completion_tokens": 1452,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1267
+            },
+            "prompt_tokens": 204854,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 206306
+          },
+          "finish_reason": "stop"
+        },
+        {
+          "correct": 10,
+          "total": 10,
+          "checks": {
+            "ASTER-71": true,
+            "BRIDGE-39": true,
+            "CIRRUS-82": true,
+            "DELTA-26": true,
+            "EMBER-54": true,
+            "FROST-93": true,
+            "GROVE-48": true,
+            "HARBOR-65": true,
+            "READY_TOTAL": true,
+            "TRANSFER_TOTAL": true
+          },
+          "parsed": {
+            "ASTER-71": "348819-DELTA",
+            "BRIDGE-39": "769747-GARDEN",
+            "CIRRUS-82": "890714-TIMBER",
+            "DELTA-26": "346193-INVOICE",
+            "EMBER-54": "784300-KERNEL",
+            "FROST-93": "598258-QUARTZ",
+            "GROVE-48": "755498-BRIDGE",
+            "HARBOR-65": "324408-GARDEN",
+            "READY_TOTAL": 213,
+            "TRANSFER_TOTAL": 99
+          },
+          "label": "recall-204800-warm",
+          "timings": {
+            "cache_n": 204849,
+            "draft_n": 1486,
+            "draft_n_accepted": 951,
+            "predicted_ms": 17684.1859,
+            "predicted_n": 1325,
+            "predicted_per_second": 74.8691518787981,
+            "predicted_per_token_ms": 13.35663587613293,
+            "prompt_ms": 134.1583,
+            "prompt_n": 5,
+            "prompt_per_second": 37.26940487468908,
+            "prompt_per_token_ms": 26.83166
+          },
+          "usage": {
+            "completion_tokens": 1325,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1140
+            },
+            "prompt_tokens": 204854,
+            "prompt_tokens_details": {
+              "cached_tokens": 204849
+            },
+            "total_tokens": 206179
+          },
+          "finish_reason": "stop"
+        }
+      ],
+      "agent": {
+        "tools": [
+          {
+            "id": "JOB-01",
+            "valid": true,
+            "after_long_output": true,
+            "finish_reason": "tool_calls"
+          }
+        ],
+        "series": {
+          "requested": 512,
+          "complete_rows": 512,
+          "complete": true,
+          "sequential": true,
+          "additional_requests": 0,
+          "completion_tokens": 9902,
+          "last_finish_reason": "stop"
+        },
+        "recall": {
+          "executed": false
+        },
+        "error": "RuntimeError({'code': None, 'message': 'Device KV page pool exhausted (ring: pages the pool cannot hold are host-backed and claimed on demand)', 'param': None, 'type': 'internal_error'})"
+      },
+      "pressure": {
+        "events": [
+          {
+            "mapped": 3340,
+            "need": 1,
+            "free": 8,
+            "host_used": 7515906048,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 41
+          },
+          {
+            "mapped": 3378,
+            "need": 1,
+            "free": 8,
+            "host_used": 7515168768,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3378,
+            "need": 1,
+            "free": 8,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 1,
+            "free": 7,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 1,
+            "free": 7,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 1,
+            "free": 7,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 0,
+            "free": 7,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3379,
+            "need": 1,
+            "free": 7,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 1,
+            "free": 6,
+            "host_used": 7515316224,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 0,
+            "free": 6,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3380,
+            "need": 1,
+            "free": 6,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 1,
+            "free": 5,
+            "host_used": 7515389952,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 0,
+            "free": 5,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3381,
+            "need": 1,
+            "free": 5,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 1,
+            "free": 4,
+            "host_used": 7515463680,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 0,
+            "free": 4,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3382,
+            "need": 1,
+            "free": 4,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 1
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515537408,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 0,
+            "free": 3,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 1,
+            "free": 3,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3383,
+            "need": 1,
+            "free": 3,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 0,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3384,
+            "need": 1,
+            "free": 2,
+            "host_used": 7515611136,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3385,
+            "need": 0,
+            "free": 1,
+            "host_used": 7515684864,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3385,
+            "need": 0,
+            "free": 1,
+            "host_used": 7515684864,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3385,
+            "need": 0,
+            "free": 1,
+            "host_used": 7515684864,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3385,
+            "need": 0,
+            "free": 1,
+            "host_used": 7515684864,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3385,
+            "need": 0,
+            "free": 1,
+            "host_used": 7515684864,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3385,
+            "need": 0,
+            "free": 1,
+            "host_used": 7515684864,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3385,
+            "need": 0,
+            "free": 1,
+            "host_used": 7515684864,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3385,
+            "need": 0,
+            "free": 1,
+            "host_used": 7515684864,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3385,
+            "need": 0,
+            "free": 0,
+            "host_used": 7515684864,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3385,
+            "need": 0,
+            "free": 0,
+            "host_used": 7515684864,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 1
+          },
+          {
+            "mapped": 3385,
+            "need": 0,
+            "free": 1,
+            "host_used": 7515684864,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3385,
+            "need": 1,
+            "free": 1,
+            "host_used": 7515684864,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3386,
+            "need": 0,
+            "free": 0,
+            "host_used": 7515758592,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3386,
+            "need": 0,
+            "free": 0,
+            "host_used": 7515758592,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3386,
+            "need": 0,
+            "free": 0,
+            "host_used": 7515758592,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3386,
+            "need": 0,
+            "free": 0,
+            "host_used": 7515758592,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3386,
+            "need": 0,
+            "free": 0,
+            "host_used": 7515758592,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3386,
+            "need": 0,
+            "free": 0,
+            "host_used": 7515758592,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3386,
+            "need": 0,
+            "free": 0,
+            "host_used": 7515758592,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3386,
+            "need": 0,
+            "free": 0,
+            "host_used": 7515758592,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3386,
+            "need": 0,
+            "free": 0,
+            "host_used": 7515758592,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3386,
+            "need": 1,
+            "free": 0,
+            "host_used": 7515758592,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          }
+        ],
+        "reclaimed_pages": 43,
+        "idle_owner_evictions": [],
+        "pool_exhausted": true
+      },
+      "peak_host_bytes": 7515463680,
+      "sample_interval_s": 5,
+      "long_prompt_tokens": 206552,
+      "long_rows": 512
+    },
+    "pool-v2": {
+      "mode": "pool-v2",
+      "reclaim": 1,
+      "start": "2026-10-19T20:03:43.345080",
+      "recall_exit": 0,
+      "agent_exit": 0,
+      "end": "2026-10-19T20:35:55.557216",
+      "recalls": [
+        {
+          "correct": 10,
+          "total": 10,
+          "checks": {
+            "ASTER-71": true,
+            "BRIDGE-39": true,
+            "CIRRUS-82": true,
+            "DELTA-26": true,
+            "EMBER-54": true,
+            "FROST-93": true,
+            "GROVE-48": true,
+            "HARBOR-65": true,
+            "READY_TOTAL": true,
+            "TRANSFER_TOTAL": true
+          },
+          "parsed": {
+            "ASTER-71": "347053-WILLOW",
+            "BRIDGE-39": "939145-NOZZLE",
+            "CIRRUS-82": "831190-VALLEY",
+            "DELTA-26": "782320-GARDEN",
+            "EMBER-54": "653027-FILTER",
+            "FROST-93": "218336-BRIDGE",
+            "GROVE-48": "479111-YELLOW",
+            "HARBOR-65": "936533-ISLAND",
+            "READY_TOTAL": 117,
+            "TRANSFER_TOTAL": -32
+          },
+          "label": "recall-131072-cold",
+          "timings": {
+            "cache_n": 0,
+            "draft_n": 1472,
+            "draft_n_accepted": 971,
+            "predicted_ms": 16621.2416,
+            "predicted_n": 1349,
+            "predicted_per_second": 81.10104121222808,
+            "predicted_per_token_ms": 12.330297922848665,
+            "prompt_ms": 437239.391,
+            "prompt_n": 131079,
+            "prompt_per_second": 299.78771972079704,
+            "prompt_per_token_ms": 3.3356936732809985
+          },
+          "usage": {
+            "completion_tokens": 1349,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1165
+            },
+            "prompt_tokens": 131079,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 132428
+          },
+          "finish_reason": "stop"
+        },
+        {
+          "correct": 10,
+          "total": 10,
+          "checks": {
+            "ASTER-71": true,
+            "BRIDGE-39": true,
+            "CIRRUS-82": true,
+            "DELTA-26": true,
+            "EMBER-54": true,
+            "FROST-93": true,
+            "GROVE-48": true,
+            "HARBOR-65": true,
+            "READY_TOTAL": true,
+            "TRANSFER_TOTAL": true
+          },
+          "parsed": {
+            "ASTER-71": "347053-WILLOW",
+            "BRIDGE-39": "939145-NOZZLE",
+            "CIRRUS-82": "831190-VALLEY",
+            "DELTA-26": "782320-GARDEN",
+            "EMBER-54": "653027-FILTER",
+            "FROST-93": "218336-BRIDGE",
+            "GROVE-48": "479111-YELLOW",
+            "HARBOR-65": "936533-ISLAND",
+            "READY_TOTAL": 117,
+            "TRANSFER_TOTAL": -32
+          },
+          "label": "recall-131072-warm",
+          "timings": {
+            "cache_n": 131074,
+            "draft_n": 1531,
+            "draft_n_accepted": 997,
+            "predicted_ms": 16485.7251,
+            "predicted_n": 1360,
+            "predicted_per_second": 82.43495458989547,
+            "predicted_per_token_ms": 12.13077637969095,
+            "prompt_ms": 98.7008,
+            "prompt_n": 5,
+            "prompt_per_second": 50.65815069381403,
+            "prompt_per_token_ms": 19.74016
+          },
+          "usage": {
+            "completion_tokens": 1360,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1176
+            },
+            "prompt_tokens": 131079,
+            "prompt_tokens_details": {
+              "cached_tokens": 131074
+            },
+            "total_tokens": 132439
+          },
+          "finish_reason": "stop"
+        },
+        {
+          "correct": 10,
+          "total": 10,
+          "checks": {
+            "ASTER-71": true,
+            "BRIDGE-39": true,
+            "CIRRUS-82": true,
+            "DELTA-26": true,
+            "EMBER-54": true,
+            "FROST-93": true,
+            "GROVE-48": true,
+            "HARBOR-65": true,
+            "READY_TOTAL": true,
+            "TRANSFER_TOTAL": true
+          },
+          "parsed": {
+            "ASTER-71": "348819-DELTA",
+            "BRIDGE-39": "769747-GARDEN",
+            "CIRRUS-82": "890714-TIMBER",
+            "DELTA-26": "346193-INVOICE",
+            "EMBER-54": "784300-KERNEL",
+            "FROST-93": "598258-QUARTZ",
+            "GROVE-48": "755498-BRIDGE",
+            "HARBOR-65": "324408-GARDEN",
+            "READY_TOTAL": 213,
+            "TRANSFER_TOTAL": 99
+          },
+          "label": "recall-204800-cold",
+          "timings": {
+            "cache_n": 0,
+            "draft_n": 1668,
+            "draft_n_accepted": 1006,
+            "predicted_ms": 20679.8772,
+            "predicted_n": 1452,
+            "predicted_per_second": 70.16482670409668,
+            "predicted_per_token_ms": 14.252155203308062,
+            "prompt_ms": 886397.2538000001,
+            "prompt_n": 204854,
+            "prompt_per_second": 231.10856799452776,
+            "prompt_per_token_ms": 4.32697069034532
+          },
+          "usage": {
+            "completion_tokens": 1452,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1267
+            },
+            "prompt_tokens": 204854,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 206306
+          },
+          "finish_reason": "stop"
+        },
+        {
+          "correct": 10,
+          "total": 10,
+          "checks": {
+            "ASTER-71": true,
+            "BRIDGE-39": true,
+            "CIRRUS-82": true,
+            "DELTA-26": true,
+            "EMBER-54": true,
+            "FROST-93": true,
+            "GROVE-48": true,
+            "HARBOR-65": true,
+            "READY_TOTAL": true,
+            "TRANSFER_TOTAL": true
+          },
+          "parsed": {
+            "ASTER-71": "348819-DELTA",
+            "BRIDGE-39": "769747-GARDEN",
+            "CIRRUS-82": "890714-TIMBER",
+            "DELTA-26": "346193-INVOICE",
+            "EMBER-54": "784300-KERNEL",
+            "FROST-93": "598258-QUARTZ",
+            "GROVE-48": "755498-BRIDGE",
+            "HARBOR-65": "324408-GARDEN",
+            "READY_TOTAL": 213,
+            "TRANSFER_TOTAL": 99
+          },
+          "label": "recall-204800-warm",
+          "timings": {
+            "cache_n": 204849,
+            "draft_n": 1486,
+            "draft_n_accepted": 951,
+            "predicted_ms": 17542.830899999997,
+            "predicted_n": 1325,
+            "predicted_per_second": 75.47242560492333,
+            "predicted_per_token_ms": 13.249872280966764,
+            "prompt_ms": 100.3669,
+            "prompt_n": 5,
+            "prompt_per_second": 49.81722061755419,
+            "prompt_per_token_ms": 20.07338
+          },
+          "usage": {
+            "completion_tokens": 1325,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1140
+            },
+            "prompt_tokens": 204854,
+            "prompt_tokens_details": {
+              "cached_tokens": 204849
+            },
+            "total_tokens": 206179
+          },
+          "finish_reason": "stop"
+        }
+      ],
+      "agent": {
+        "tools": [
+          {
+            "id": "JOB-01",
+            "valid": true,
+            "after_long_output": true,
+            "finish_reason": "tool_calls"
+          },
+          {
+            "id": "JOB-02",
+            "valid": true,
+            "after_long_output": true,
+            "finish_reason": "tool_calls"
+          },
+          {
+            "id": "JOB-03",
+            "valid": true,
+            "after_long_output": true,
+            "finish_reason": "tool_calls"
+          },
+          {
+            "id": "JOB-04",
+            "valid": true,
+            "after_long_output": true,
+            "finish_reason": "tool_calls"
+          },
+          {
+            "id": "JOB-05",
+            "valid": true,
+            "after_long_output": true,
+            "finish_reason": "tool_calls"
+          },
+          {
+            "id": "JOB-06",
+            "valid": true,
+            "after_long_output": true,
+            "finish_reason": "tool_calls"
+          }
+        ],
+        "series": {
+          "requested": 512,
+          "complete_rows": 512,
+          "complete": true,
+          "sequential": true,
+          "additional_requests": 0,
+          "completion_tokens": 9902,
+          "last_finish_reason": "stop"
+        },
+        "recall": {
+          "correct": 18,
+          "total": 18,
+          "checks": {
+            "ASTER-71": true,
+            "BRIDGE-39": true,
+            "CIRRUS-82": true,
+            "DELTA-26": true,
+            "EMBER-54": true,
+            "FROST-93": true,
+            "GROVE-48": true,
+            "HARBOR-65": true,
+            "READY_TOTAL": true,
+            "TRANSFER_TOTAL": true,
+            "GENERATED_CODE": true,
+            "JOB-01": true,
+            "JOB-02": true,
+            "JOB-03": true,
+            "JOB-04": true,
+            "JOB-05": true,
+            "JOB-06": true,
+            "DELTA_TOTAL": true
+          },
+          "parsed": {
+            "ASTER-71": "348819-DELTA",
+            "BRIDGE-39": "769747-GARDEN",
+            "CIRRUS-82": "890714-TIMBER",
+            "DELTA-26": "346193-INVOICE",
+            "EMBER-54": "784300-KERNEL",
+            "FROST-93": "598258-QUARTZ",
+            "GROVE-48": "755498-BRIDGE",
+            "HARBOR-65": "324408-GARDEN",
+            "READY_TOTAL": 213,
+            "TRANSFER_TOTAL": 99,
+            "GENERATED_CODE": "GEN-04731-KQZVM",
+            "JOB-01": "84E4BC547904",
+            "JOB-02": "035AF42278F9",
+            "JOB-03": "BA9AE283161E",
+            "JOB-04": "F123FDDABAB3",
+            "JOB-05": "5ACD69DE268C",
+            "JOB-06": "5DAFC45A8022",
+            "DELTA_TOTAL": 35
+          },
+          "finish_reason": "stop",
+          "usage": {
+            "completion_tokens": 1026,
+            "completion_tokens_details": {
+              "reasoning_tokens": 689
+            },
+            "prompt_tokens": 217388,
+            "prompt_tokens_details": {
+              "cached_tokens": 217273
+            },
+            "total_tokens": 218414
+          }
+        }
+      },
+      "pressure": {
+        "events": [
+          {
+            "mapped": 3340,
+            "need": 1,
+            "free": 8,
+            "host_used": 7515906048,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 41
+          },
+          {
+            "mapped": 3378,
+            "need": 1,
+            "free": 8,
+            "host_used": 7515168768,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          },
+          {
+            "mapped": 3378,
+            "need": 1,
+            "free": 8,
+            "host_used": 7515242496,
+            "host_capacity": 7516192768,
+            "stride": 1179648,
+            "reclaimed_duplicates": 0
+          }
+        ],
+        "reclaimed_pages": 41,
+        "idle_owner_evictions": [
+          {
+            "owners": 1,
+            "missing_headroom": 229376
+          }
+        ],
+        "pool_exhausted": false
+      },
+      "peak_host_bytes": 7515906048,
+      "sample_interval_s": 5,
+      "long_prompt_tokens": 206552,
+      "long_rows": 512
+    }
+  },
+  "tests": {
+    "context-store-test.txt": "ok",
+    "ring-host-pressure-test.txt": "ok: Host-full reproduction, duplicate reclamation, pins, partial tail, old cache, mapped history, payload, asynchronous restore and shared prefix",
+    "resource-manager-test.txt": "ok"
+  },
+  "deployment": {
+    "time": "2026-10-19T20:36:35.135670",
+    "original_sha256": "275ea27ba01b57ca3f3a14361e5f7a4d8c4b04575475f1fe536ca5dedb6c8bd1",
+    "candidate_sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d",
+    "smoke_passed": true
+  },
+  "limitations": [
+    "Single fixed-seed cumulative synthetic sequence; no full 256K or multi-seed claim.",
+    "No end-to-end dsh/browser rerun; inherited API recall/Graph evidence is separate.",
+    "Reclaims redundant replicas, then eligible idle owners under the existing LRU policy; does not enlarge combined capacity or solve every allocation failure.",
+    "Incremental local link against existing archives; no clean full build or full upstream suite."
+  ],
+  "identical_requests": {
+    "recall-131072-cold": true,
+    "recall-131072-warm": true,
+    "recall-204800-cold": true,
+    "recall-204800-warm": true,
+    "long-0": true
+  }
+}

@@ -1100,6 +1100,11 @@ public:
     // Re-opens growth of a space-settled lease once its smallest step fits; the next decode
     // round extends it. False while the step still does not fit.
     [[nodiscard]] bool resume_device_kv_lease(SequenceHandle sequence) noexcept;
+    // Host headroom still missing after crediting free Device slots and redundant Host replicas.
+    // Called at a decode boundary; fences ring transfers before an idle cache owner is released.
+    [[nodiscard]] std::size_t ring_host_kv_shortfall(SequenceHandle sequence);
+    [[nodiscard]] std::size_t retained_host_kv_bytes(const ContinuationHandle&) const noexcept;
+    [[nodiscard]] std::size_t retained_host_kv_bytes(const SharedPrefixHandle&) const noexcept;
     // Device KV pages that releasing this retained owner would return to the pools.
     [[nodiscard]] DeviceKVPages
     retained_device_kv_pages(const ContinuationHandle& continuation) const noexcept;

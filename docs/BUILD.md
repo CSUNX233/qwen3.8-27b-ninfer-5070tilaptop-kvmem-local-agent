@@ -38,6 +38,34 @@ v0.1.2继续使用相同工具链增量重编全部Program/查询快照相关Hos
 
 RTX 50 系、12GB 及以上显存的其他设备欢迎尝试并提交参数与实测；目前明确验证的是 RTX 5070 Ti Laptop 12GB。**非 50 系显卡须自行按实际 CUDA 架构重新编译**，不要原样照搬上面针对本机的 `120a` 参数。按上游对该架构的支持情况配置内核路径，再调整 Device KV / Host KV 等预算，并验证模型正确性和稳定性。欢迎通过 Issue / PR 补齐不同设备的编译步骤、适配修复和测速。
 
+## v0.1.3 NVFP4 调度与独立检查
+
+本轮 [NVFP4 SM120 调度](NVFP4_SM120.md) 复用同一工具链及其余原静态库，额外重编 `prompt_nvfp4.cu` 并保留全部既有 Host/KV、norm/RoPE、检索和小矩阵单元。它是增量构建，没有替代本页的干净全量构建流程；最终含完整 Host 压力修复的同一部署 exe 随 v0.1.3 打包发布。
+
+独立资格程序不需要链接引擎静态库。在已初始化 CUDA 13.0.48 / x64 MSVC 14.44.35207 的开发终端可按等价命令编译（输出目录须先存在）：
+
+```powershell
+& "$env:CUDA_PATH\bin\nvcc.exe" benchmarks/qualification/nvfp4_prompt_sm120.cu `
+  -std=c++20 '--generate-code=arch=compute_120a,code=[compute_120a,sm_120a]' `
+  --use-local-env --extended-lambda --split-compile=2 -lineinfo `
+  -DNOMINMAX -DWIN32_LEAN_AND_MEAN -DNINFER_SM8X_COMPAT=1 -DNINFER_SM120_NVFP4=1 `
+  -Xcompiler=/MD -Xcompiler=/O2 -Xcompiler=/EHsc -Xcompiler=/utf-8 `
+  -Xptxas=-v -Xcudafe=--diag_suppress=177 `
+  -I engine/src -I engine/include -I "$env:CUDA_PATH/include/cccl" `
+  -o runtime/nvfp4_prompt_sm120.exe
+```
+
+本轮实际使用隔离目录里的 portable 工具链与 include 路径；完整编译命令和日志保存在本机维护目录。运行该程序会占用 GPU，应与模型性能测试分开。
+
+## 本地累计缓存压力检查
+
+累计 ring 缓存的 Host 压力回归已注册为 `ninfer_qwen3_5_ring_host_pressure_test`，可运行
+`ctest --test-dir runtime/build -R "qwen3_5_(ring_host_pressure|context_store)_test" --output-on-failure`。
+本机维护另使用相同工具链，将两个测试单独增量链接到原静态库；没有重配旧构建树或声称完成 CTest 全量构建。[问题与验证范围](KV_HOST_PRESSURE.md)。
+
+资源管理器Host-only LRU检查包含在 `ninfer_resource_manager_test`，可运行
+`ctest --test-dir runtime/build -R "^ninfer_resource_manager_test$" --output-on-failure`。本轮独立增量测试运行76项全部通过；完整v2重编全部模型Program单元、runtime engine及paged KV实现，再链接原静态库，仍不是干净全量构建。
+
 ## 打包已验证的引擎
 
 `scripts/package-engine.py` 核对 `SOURCE_PROVENANCE.json` 与下载清单中的 exe 哈希，打包程序、LICENSE、NOTICE 和静态依赖许可，校验 ZIP 内程序哈希及 CRC，更新清单的归档哈希并输出 `dist/SHA256SUMS`。它不编译、不下载依赖，也不上传；先完成构建和资格检查，再更新相应版本及来源记录。

@@ -8,9 +8,23 @@
 
 **新设备 / 新部署先用 `DeviceKV=36864`、`RetrieveTokens=3840` 的完整默认组合。** 这是相对进阶档较保守的起点，不是所有 12GB 设备都能无条件启动的保证。先关闭不需要的独显应用，为实际引擎单独禁用 CUDA 系统内存回退；确认权重和 Graph 正常加载，再验收短任务、完全相同请求的缓存重复、工具结果续接和对应目标长度的召回。
 
-维护者当前的 **`39168 / 6144` 是进阶组合**，不是安装默认值。其他条件保持 `SinkTokens=12288`、`RecentTokens=19456`、Host KV 7168 MiB、rk4v4、MTP3、chunk128、xhigh；本机此档启动时 CUDA 可用约 84 MiB，不能把 `nvidia-smi` 的整卡空闲量当成同一口径。128K 藏针首次/重复为 5/5，200K 均为 4/5，不代表全长全召回。8192 检索档仅完成短检查，长文测试未完成，不建议直接部署。[实测与边界](BENCHMARKS.md#语义历史修复与检索预算2026-10-16)
+维护者的 **`39168 / 6144` 是进阶组合**，不是安装默认值。配套 `SinkTokens=12288`、`RecentTokens=19456`、Host KV 7168 MiB、MTP3、chunk128、xhigh。v0.1.3 当前使用 NVFP4；旧 v0.1.2 的 RK4V4 实测启动 CUDA 可用约 84 MiB，128K 藏针首次/重复 5/5、200K 均 4/5。这是历史结果，不适合作为当前 NVFP4 的显存或质量承诺。8192 检索档长文测试未完成。[历史实测](BENCHMARKS.md#语义历史修复与检索预算2026-10-16) · [当前 NVFP4 实测](NVFP4_SM120.md)
 
 每次只增加一档并记录配置、启动 CUDA 余量、GPU 峰值、缓存续接和召回；出现分配失败或页池耗尽时恢复上一档，再定位原因。**不要只把 DeviceKV 调小而维持装不下的 sink/recent/retrieve/MTP/尾页预算**；若默认组合也放不下，先查实际占用，必须缩窗口时说明召回影响并单独验证，不能称为无损适配。扩大 DeviceKV 也不会自动扩大逻辑上下文上限。
+
+## NVFP4 显存与 RK4V4 切换
+
+v0.1.3 发布当前维护者使用的引擎，默认 `KVDType=nvfp4`。**相对此前 RK4V4 配置，NVFP4 增加了一些显存占用；显存很紧张时可以自行换回 RK4V4。** 两者都由同一个新版 exe 支持，Host 压力回收等通用修复继续保留。NVFP4 专用调度不新增常驻 GPU buffer；本轮显存增量与 KV 格式 / 工作区有关，实际差值随配置变化，不给固定 MiB 承诺。
+
+先等待任务结束，用本安装 `stop.cmd` 关闭，在 `config/local.json` 添加或修改以下字段，再运行 `start.cmd`：
+
+```json
+"KVDType": "rk4v4"
+```
+
+该行放在已有 JSON 对象中，注意相邻字段的逗号。换回 NVFP4 则设为 `"nvfp4"`。启动器只接受这两种值；**旧配置缺少 `KVDType` 时默认 NVFP4**，希望升级后维持 RK4V4 的使用者应先显式添加该字段。无需换 exe、重新转换权重或删除会话；重启后 GPU / Host KV 缓存重建，切换格式可能改变输出，不能承诺相同质量。
+
+维护者当前 NVFP4 进阶档启动日志约 64 MiB CUDA 余量；旧 RK4V4 的约 84 MiB 是另一轮历史记录，不能相减当作严格显存对照，也不能用整卡驱动空闲代替 CUDA 余量。先保留公开 `36864 / 3840` 起步组合；不要因换回 RK4V4 就跳过缓存、工具续接和目标长度验收。[本版更新与验证边界](RELEASE_NOTES.md)
 
 ## 显卡模式与显存准备
 
@@ -51,7 +65,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1 -ModelPath "D:\M
 
 先等待当前任务结束，用这份安装的 `stop.cmd` 关闭服务；备份自己的 `config/local.json`。Git 安装使用 `git pull --ff-only` 获取源码，ZIP 安装则解压新源码并保留原来的模型路径、私有配置和 `runtime/dsh-home`。不要把旧的 `config/downloads.json` 覆盖到新版本。
 
-在项目目录重新执行原 `setup.ps1 -ModelPath "<现有模型.ninfer>"` 命令（API-only 安装仍可加 `-SkipDsh`），再运行 `start.cmd`。安装器保留本地配置并按哈希替换旧引擎；需要联网下载约 0.8 GiB 的新引擎归档，模型无需重下。当前 v0.1.2 的 exe SHA-256 见 [来源记录](../SOURCE_PROVENANCE.json)。从 v0.1.1 升级同样执行此流程；旧 Release 保留。只 `git pull` 不会替换已经下载的 exe，也不会重设自己的页池。
+在项目目录重新执行原 `setup.ps1 -ModelPath "<现有模型.ninfer>"` 命令（API-only 安装仍可加 `-SkipDsh`），再运行 `start.cmd`。安装器保留本地配置并按哈希替换旧引擎；需要联网下载约 0.8 GiB 的新引擎归档，模型无需重下。当前 v0.1.3 的 exe SHA-256 见 [来源记录](../SOURCE_PROVENANCE.json)。从 v0.1.1 / v0.1.2 升级同样执行此流程；旧 Release 保留。只 `git pull` 不会替换已经下载的 exe，也不会重设自己的页池。
 
 用户会话、浏览器 profile 和权重无需清空；原有会话首次换用新插件可能重算变化的前缀。该版本 KVMem 内容检索明确要求单并发与 Legacy 缓存，Hybrid/多并发配置会直接报不支持。引擎 ZIP 和 Source code ZIP 用途不同，不要将整个引擎 ZIP 当作源码或完整安装包。
 

@@ -8,6 +8,7 @@
   "MaxContext": 262144,
   "DeviceKV": 36864,
   "HostKVMiB": 7168,
+  "KVDType": "nvfp4",
   "RecentTokens": 19456,
   "SinkTokens": 12288,
   "RetrieveTokens": 3840,

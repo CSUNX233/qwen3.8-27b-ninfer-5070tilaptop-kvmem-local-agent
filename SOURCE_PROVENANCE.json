@@ -3,7 +3,7 @@
   "upstream": "https://github.com/iamwavecut/ninfer-all",
   "upstream_base_reported_by_bundle": "v0.11.0-rtx3090; KVMem integration reference 65dbd4f2",
   "original_git_history_available": false,
-  "engine_binary_sha256": "275ea27ba01b57ca3f3a14361e5f7a4d8c4b04575475f1fe536ca5dedb6c8bd1",
+  "engine_binary_sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d",
   "copy_count": 2407,
   "locally_recorded_modified_files": [
     "docs/serving.md",
@@ -18,11 +18,14 @@
     "src/models/qwen3_5/program/decode.cpp",
     "src/models/qwen3_5/program/planning/request_plan.cpp",
     "src/models/qwen3_5/program/prefill.cpp",
+    "src/models/qwen3_5/program/program.cpp",
+    "src/models/qwen3_5/program/program.h",
     "src/models/qwen3_5/program/program_impl.cpp",
     "src/models/qwen3_5/program/program_impl.h",
     "src/models/qwen3_5/program/speculative/mtp.cpp",
     "src/models/qwen3_5/program/storage/context.cpp",
     "src/models/qwen3_5/program/storage/kv_store.h",
+    "src/models/qwen3_5/program/storage/ring_host_pressure.h",
     "src/models/qwen3_5/program/transactions/capture.cpp",
     "src/models/qwen3_5/program/transactions/commit.cpp",
     "src/models/qwen3_5/program/transactions/materialization.cpp",
@@ -42,12 +45,19 @@
     "src/ops/rmsnorm_rope/launch.cu",
     "src/ops/rmsnorm_rope/launch.h",
     "src/ops/rmsnorm_rope/rmsnorm_rope.cpp",
+    "src/ops/softmax_attention/dense/causal_cache/prompt_nvfp4.cu",
+    "src/ops/softmax_attention/dense/causal_cache/prompt_nvfp4_sm120.cuh",
+    "src/runtime/engine/context_cache/resource_manager.h",
+    "src/runtime/engine/engine_core.h",
     "tests/models/qwen3_5/test_context_store.cpp",
+    "tests/models/qwen3_5/test_ring_host_pressure.cpp",
+    "tests/models/qwen3_5/tests.cmake",
     "tests/ops/test_kvmem_decode_query.cpp",
     "tests/ops/test_kvmem_score_schedule.cpp",
     "tests/ops/test_mean_k_host_storage.cpp",
     "tests/ops/test_mean_k_prefetch.cpp",
-    "tests/ops/tests.cmake"
+    "tests/ops/tests.cmake",
+    "tests/test_resource_manager.cpp"
   ],
   "excluded": [
     "models/weights",
@@ -64,10 +74,10 @@
     "contribution": "Provided the foundation distribution downloaded by the maintainer and resolved the reported infinite-loop issue.",
     "source": "Maintainer attribution supplied for this publication; not a claim of sole upstream authorship."
   },
-  "release_source_url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/tree/v0.1.2",
+  "release_source_url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/tree/v0.1.3",
   "previous_release": {
-    "tag": "v0.1.1",
-    "engine_sha256": "34fd593d76bd332c1b8470ce5ffe4fd9e7e9820229558cffd1cf9ddaa386224b",
+    "tag": "v0.1.2",
+    "engine_sha256": "275ea27ba01b57ca3f3a14361e5f7a4d8c4b04575475f1fe536ca5dedb6c8bd1",
     "assets_unchanged": true
   },
   "retrieval_context_patch": {
@@ -93,6 +103,40 @@
     "maintainer_advanced": {
       "device_kv": 39168,
       "retrieve": 6144
+    }
+  },
+  "nvfp4_sm120_host_pressure_patch": {
+    "release_tag": "v0.1.3",
+    "engine_sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d",
+    "source_base_commit": "8dade0dfa91ba19e6531e6f1082be99090873344",
+    "evidence": [
+      "benchmarks/evidence/nvfp4-sm120/verification.json",
+      "benchmarks/evidence/nvfp4-sm120/host-pressure.json"
+    ],
+    "build_scope": "Incremental CUDA/Host rebuild of affected Program, runtime, paged KV and NVFP4 prompt units; remaining original static libraries retained. Not a clean full build.",
+    "repairs": [
+      "SM120 46-SM NVFP4 prompt schedule with compatible fallback",
+      "reclaim redundant Host replicas under ring pressure",
+      "include idle Host-only owners in existing LRU under genuine Host shortfall"
+    ],
+    "installed_default": {
+      "device_kv": 36864,
+      "retrieve": 3840,
+      "kv_dtype": "nvfp4",
+      "low_vram_alternative": "rk4v4"
+    },
+    "maintainer_advanced": {
+      "device_kv": 39168,
+      "retrieve": 6144,
+      "kv_dtype": "nvfp4"
+    },
+    "validation_model": "Huihui Qwen3.8-27B abliterated Swift-1.5 GSQ-RCO IQ3_XXS + MTP; weights not distributed",
+    "upstream_review_fixes_applied": false,
+    "early_stop_recovery_plugin_included": false,
+    "publication_only_source_cleanup": {
+      "path": "engine/src/ops/softmax_attention/dense/causal_cache/prompt_nvfp4_sm120.cuh",
+      "change": "Removed trailing spaces on an empty line; no code or arithmetic changes. Qualification evidence retains original source hashes.",
+      "published_worktree_sha256": "3fb45e86502a2936ccb7ddb5eeefec1648a321d35d544f11157a75faaa481945"
     }
   }
 }

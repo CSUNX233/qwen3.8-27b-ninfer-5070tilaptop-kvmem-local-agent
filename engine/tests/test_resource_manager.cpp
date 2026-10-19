@@ -1200,6 +1200,12 @@ public:
         std::uint32_t backend = 0;
     };
 
+    template <class Handle>
+    [[nodiscard]] std::size_t retained_host_kv_bytes(const Handle& handle) const noexcept {
+        const auto found = retained_host_bytes.find(handle.content_key);
+        return found == retained_host_bytes.end() ? 0U : found->second;
+    }
+
     // Device pages a retained owner would free; every owner holds one main page unless a test
     // says otherwise (a Host-only owner frees none).
     [[nodiscard]] FakeDeviceKVPages
@@ -1306,6 +1312,7 @@ public:
     std::vector<std::uint32_t> released_continuations;
     std::vector<std::uint32_t> released_continuation_keys;
     std::map<std::uint32_t, FakeDeviceKVPages> retained_kv_pages;
+    std::map<std::uint32_t, std::size_t> retained_host_bytes;
     std::vector<std::uint32_t> released_shared_prefix_keys;
 
 private:
@@ -4750,6 +4757,45 @@ void test_lease_reclaim_releases_least_recent_idle_owners() {
             "a reclaimed owner was still offered for reuse");
 }
 
+void test_ring_host_reclaim_includes_host_only_owners() {
+    FakeManager manager = make_manager(1, 4);
+    FakeProgram program;
+    for (std::uint32_t key : {81U, 82U, 83U}) {
+        const auto request = start_active(manager, program, key, make_base(key), key);
+        (void)finish_active(manager, program, request);
+        program.retained_kv_pages[key] = {};
+    }
+    program.retained_host_bytes[81] = 100;
+    program.retained_host_bytes[83] = 200;
+    require(manager.reclaim_device_kv_for_lease(program, 0, 0, 101) == 2 &&
+                program.released_continuation_keys == std::vector<std::uint32_t>{81, 83},
+            "Host pressure must reclaim LRU Host-only owners and skip zero exclusive bytes");
+    require(manager.reclaim_device_kv_for_lease(program, 0, 0, 1) == 0,
+            "Host pressure must leave owners with no exclusive Host bytes");
+    auto inspection = manager.inspect(program, FakePreparedPrompt{82}, make_base(82), 90);
+    require(inspection.choice.has_value() && inspection.choice->summary().reusable_prompt_tokens != 0,
+            "zero-exclusive-byte owner should remain reusable");
+}
+
+void test_ring_host_reclaim_preserves_an_active_reuse_edge() {
+    FakeManager manager = make_manager(2, 3, 1);
+    FakeProgram program;
+    const FakeCacheSessionKey first{1}, second{2};
+    const auto seed = start_active(
+        manager, program, 9, make_base(9, first, RetentionClass::LiveSession), 1);
+    (void)finish_active(manager, program, seed);
+    const auto fork = start_active(
+        manager, program, 9, make_base(9, second, RetentionClass::LiveSession), 2);
+    require(program.started_source_mode == PrivateSourceMode::Retain,
+            "Host pressure fixture requires a retained active source");
+    program.retained_kv_pages[9] = {};
+    program.retained_host_bytes[9] = 100;
+    require(manager.reclaim_device_kv_for_lease(program, 0, 0, 1) == 0 &&
+                program.released_continuations.empty(),
+            "Host pressure must not release an owner with an active reuse edge");
+    (void)manager.abort(program, fork.lane, fork.sequence);
+}
+
 // Two turns of one session run concurrently and the later-submitted one finishes first, so it
 // holds the session binding. The earlier turn publishing afterwards is a stale branch: finishing
 // last must not make it outrank the session's current continuation under pressure.
@@ -5239,6 +5285,10 @@ int main() {
              test_automatic_reclaim_picks_the_least_recently_used_entry);
     run_test("lease reclaim releases least recent idle owners",
              test_lease_reclaim_releases_least_recent_idle_owners);
+    run_test("ring Host reclaim includes Host-only owners",
+             test_ring_host_reclaim_includes_host_only_owners);
+    run_test("ring Host reclaim preserves active reuse edges",
+             test_ring_host_reclaim_preserves_an_active_reuse_edge);
     run_test("superseded session turn ranks below its binding",
              test_superseded_session_turn_ranks_below_its_binding);
     run_test("automatic reclaim waits for a planned capture",

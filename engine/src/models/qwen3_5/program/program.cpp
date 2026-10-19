@@ -531,6 +531,18 @@ bool Program::resume_device_kv_lease(SequenceHandle sequence) noexcept {
     return impl_->resume_device_kv_lease(sequence);
 }
 
+std::size_t Program::ring_host_kv_shortfall(SequenceHandle sequence) {
+    return impl_->ring_host_kv_shortfall(sequence);
+}
+
+std::size_t Program::retained_host_kv_bytes(const ContinuationHandle& owner) const noexcept {
+    return impl_->retained_host_kv_bytes(owner);
+}
+
+std::size_t Program::retained_host_kv_bytes(const SharedPrefixHandle& owner) const noexcept {
+    return impl_->retained_host_kv_bytes(owner);
+}
+
 DeviceKVPages
 Program::retained_device_kv_pages(const ContinuationHandle& continuation) const noexcept {
     return impl_->retained_device_kv_pages(continuation);
