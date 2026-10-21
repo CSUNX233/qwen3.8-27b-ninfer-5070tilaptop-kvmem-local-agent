@@ -297,14 +297,14 @@ void run_mtp(DeviceBuffer& logits, DeviceBuffer& counts, int k, Mode mode, bool 
     Tensor tnum(num.p, DType::I32, {1});
     Tensor taccepted(accepted.p, DType::I32, {1});
     WorkspaceArena workspace(
-        ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(kTokenDomain, k, k, 1, 1));
+        ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(kTokenDomain, k, k, 1, 1));
     const auto* config_ptr = static_cast<const ops::SamplingConfig*>(config.p);
 
     const double bytes  = mode == Mode::Greedy ? static_cast<double>((k + 1) * 4 + k * 4)
                                                : stochastic_payload_bytes(k + 1, counts_active);
     const Result result = bench_loop(
         [&](cudaStream_t stream) {
-            ops::speculative_accept_greedy_drafts(ttargets, tlogits, tdrafts, textent, tlength,
+            ops::speculative_accept_coupled_drafts(ttargets, tlogits, tdrafts, textent, tlength,
                                                   ttoken, tsampled, tnum, taccepted, kTokenDomain,
                                                   config_ptr, workspace, stream);
         },

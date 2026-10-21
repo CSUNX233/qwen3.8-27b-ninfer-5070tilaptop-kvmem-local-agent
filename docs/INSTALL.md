@@ -1,5 +1,9 @@
 # 安装与使用条件
 
+v0.1.4离线两模型包请先读[整合包安装](OFFLINE_BUNDLE.md)和[纠错文档](TROUBLESHOOTING.md)。新部署默认 `AnswerPenaltyScope=answer`（旧配置缺少也采用answer），设为 `carry-over` 后正常重启可关闭；引擎自身缺省仍为carry-over。
+
+显存处理顺序：优先开启混合显卡模式 → 对实际引擎关闭CUDA系统内存回退（保留7GiB KVMem Host KV）→ 关闭无关后台应用 → 仍不足优先切RK4V4 → 再配套适当缩小页池和检索窗口。网盘包提供对应一键配置入口，详见[完整步骤](OFFLINE_BUNDLE.md)。
+
 给部署者或 Agent 的完整操作顺序、版本表、启动设置和踩坑处理，见 [部署与维护交接手册](DEPLOYMENT_AGENT_GUIDE.md)。
 
 验证环境：Windows x64、RTX 5070 Ti Laptop 12GB、i7-14650HX、32GB RAM，驱动 617.14。公开起步配置使用 36K Device KV、3840 检索、7 GiB Host KV 和 256K 逻辑容量；不要把内存容量直接等同于可用上下文或召回质量。
@@ -14,7 +18,7 @@
 
 ## NVFP4 显存与 RK4V4 切换
 
-v0.1.3 发布当前维护者使用的引擎，默认 `KVDType=nvfp4`。**相对此前 RK4V4 配置，NVFP4 增加了一些显存占用；显存很紧张时可以自行换回 RK4V4。** 两者都由同一个新版 exe 支持，Host 压力回收等通用修复继续保留。NVFP4 专用调度不新增常驻 GPU buffer；本轮显存增量与 KV 格式 / 工作区有关，实际差值随配置变化，不给固定 MiB 承诺。
+v0.1.4 延续 v0.1.3 的默认 `KVDType=nvfp4`。**相对此前 RK4V4 配置，NVFP4 增加了一些显存占用；显存很紧张时可以自行换回 RK4V4。** 两者都由同一个新版 exe 支持，Host 压力回收等通用修复继续保留。NVFP4 专用调度不新增常驻 GPU buffer；显存增量与 KV 格式 / 工作区有关，实际差值随配置变化，不给固定 MiB 承诺。
 
 先等待任务结束，用本安装 `stop.cmd` 关闭，在 `config/local.json` 添加或修改以下字段，再运行 `start.cmd`：
 
@@ -65,7 +69,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1 -ModelPath "D:\M
 
 先等待当前任务结束，用这份安装的 `stop.cmd` 关闭服务；备份自己的 `config/local.json`。Git 安装使用 `git pull --ff-only` 获取源码，ZIP 安装则解压新源码并保留原来的模型路径、私有配置和 `runtime/dsh-home`。不要把旧的 `config/downloads.json` 覆盖到新版本。
 
-在项目目录重新执行原 `setup.ps1 -ModelPath "<现有模型.ninfer>"` 命令（API-only 安装仍可加 `-SkipDsh`），再运行 `start.cmd`。安装器保留本地配置并按哈希替换旧引擎；需要联网下载约 0.8 GiB 的新引擎归档，模型无需重下。当前 v0.1.3 的 exe SHA-256 见 [来源记录](../SOURCE_PROVENANCE.json)。从 v0.1.1 / v0.1.2 升级同样执行此流程；旧 Release 保留。只 `git pull` 不会替换已经下载的 exe，也不会重设自己的页池。
+在项目目录重新执行原 `setup.ps1 -ModelPath "<现有模型.ninfer>"` 命令（API-only 安装仍可加 `-SkipDsh`），再运行 `start.cmd`。安装器保留本地配置并按哈希替换旧引擎；需要联网下载约 0.8 GiB 的新引擎归档，模型无需重下。当前 v0.1.4 的 exe SHA-256 见 [来源记录](../SOURCE_PROVENANCE.json)。从 v0.1.1 / v0.1.2 / v0.1.3 升级同样执行此流程；旧 Release 保留。只 `git pull` 不会替换已经下载的 exe，也不会重设自己的页池。
 
 用户会话、浏览器 profile 和权重无需清空；原有会话首次换用新插件可能重算变化的前缀。该版本 KVMem 内容检索明确要求单并发与 Legacy 缓存，Hybrid/多并发配置会直接报不支持。引擎 ZIP 和 Source code ZIP 用途不同，不要将整个引擎 ZIP 当作源码或完整安装包。
 

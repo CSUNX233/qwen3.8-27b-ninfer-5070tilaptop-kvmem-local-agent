@@ -1,15 +1,15 @@
 {
-  "version": "0.1.3",
+  "version": "0.1.4",
   "archives": [
     {
       "id": "engine",
-      "name": "ninfer-5070ti-win-x64-sm120a-v0.1.3.zip",
-      "url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/download/v0.1.3/ninfer-5070ti-win-x64-sm120a-v0.1.3.zip",
-      "sha256": "e2a306a0fdfa489e3657c329c0287b3f4e45638de68bc520b897396ac998c2be",
+      "name": "ninfer-5070ti-win-x64-sm120a-v0.1.4.zip",
+      "url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/download/v0.1.4/ninfer-5070ti-win-x64-sm120a-v0.1.4.zip",
+      "sha256": "be962fe91a3df072689dd36e4553e42ac22158003e2baa18dddf65c97bd4a4fa",
       "files": [
         {
           "name": "ninfer-serve.exe",
-          "sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d"
+          "sha256": "8804cb04470214f68e01e38cb07004c90e748507a77134995335d1edbd768472"
         }
       ]
     },

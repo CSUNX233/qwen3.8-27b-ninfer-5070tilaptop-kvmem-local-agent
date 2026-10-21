@@ -1,0 +1,124 @@
+{
+  "date": "2026-10-21",
+  "recorded_at": "2026-10-21T09:36:56.396685+00:00",
+  "installed": true,
+  "installation_scope": "Local daily trial; user will test real dsh tasks manually",
+  "active_engine_sha256": "8804cb04470214f68e01e38cb07004c90e748507a77134995335d1edbd768472",
+  "rollback_engine_sha256": "b1f8326fceeed5d9c5bcd9db30fc166947c1382599358b964fa5500da582f941",
+  "source_commit": "389791f834880e77f31fcb46ebe288918074882e",
+  "based_on_gdn_candidate_sha256": "153f562272c10e603e84cfd9d5bbf9ceb296270139dad52708ac96f8ecd4a808",
+  "changes_since_preceding_daily": [
+    "FP16 GDN record/fold per-token state-storage rounding consistency fix",
+    "Explicit committed post-thinking API with optional answer-only presence/frequency counts; ordinary update_sampling keeps carry-over semantics"
+  ],
+  "build": {
+    "host_units_rebuilt": [
+      "src/models/qwen3_5/program/decode.cpp",
+      "src/models/qwen3_5/program/program.cpp",
+      "src/runtime/engine/engine.cpp"
+    ],
+    "cuda_objects_reused": true,
+    "source_sha256": {
+      "src/models/qwen3_5/program/decode.cpp": "c1aa801aaef05758624616d77883830cf7f6a56a0f20c7cc78dd9119e88d033e",
+      "src/models/qwen3_5/program/program.cpp": "81d53e13d5f3a87442c80d7584bd64ceebe96b7f3b7d2f89b57f3eff9673b0e6",
+      "src/runtime/engine/engine.cpp": "c4a5a51ef15abb069f4318f5cbf30d80a70d97bf92888b12d70bcbaf40451cbc",
+      "src/models/qwen3_5/program/program.h": "6214de04d7ed2db9a03664f32a59ae7982d8b0f5a4dd7a4e304c092806f5b64b",
+      "src/models/qwen3_5/program/program_impl.h": "c7f2f1ba244cd47aac3f30115e1267c0710cd660b4e03a967086198f2b9ce666",
+      "src/runtime/engine/engine_core.h": "971b5b5b2a4c53fe39e38d5f36166ce2934259a84551405658ee8cc02ae2ebd6"
+    },
+    "diagnostic_probes_included": false,
+    "clean_full_build": false
+  },
+  "switch": {
+    "name": "NINFER_POST_THINKING_PENALTY_SCOPE",
+    "accepted_values": [
+      "answer",
+      "carry-over"
+    ],
+    "engine_default": "carry-over",
+    "local_trial_setting": "answer",
+    "persistent_gpu_buffers_added": false
+  },
+  "qualification": {
+    "passed": true,
+    "jobs": [
+      {
+        "tag": "enabled",
+        "scope": "answer",
+        "total": 29,
+        "passed": 29,
+        "seconds": 440.96030690000043,
+        "short_messages_equal_to_prior_policy_ignoring_call_ids": 10,
+        "startup_scope_verified": true,
+        "diagnostic_probe_events": 0
+      },
+      {
+        "tag": "default-carry-over",
+        "scope": "unset",
+        "total": 10,
+        "passed": 9,
+        "seconds": 142.84219500000472,
+        "short_messages_equal_to_prior_policy_ignoring_call_ids": 10,
+        "startup_scope_verified": true,
+        "diagnostic_probe_events": 0
+      }
+    ]
+  },
+  "host_checks": [
+    {
+      "suite": "frontend",
+      "grouped_cases": 55,
+      "exit_code": 0
+    },
+    {
+      "suite": "parser",
+      "grouped_cases": 39,
+      "exit_code": 0
+    }
+  ],
+  "startup": {
+    "verification_scope": "Read-only startup, executable integrity and authenticated web availability; no generation requests",
+    "exact_engine_path_verified": true,
+    "exact_model_path_verified": true,
+    "ports": [
+      1234,
+      1236,
+      3080
+    ],
+    "model_loaded": true,
+    "guard_models_count": 1,
+    "authenticated_dsh_http_status": 200,
+    "penalty_scope": "answer",
+    "startup_scope_logged": true,
+    "diagnostic_probe_events": 0,
+    "dsh_tool_workflow_verified": false,
+    "dsh_tool_workflow_note": "Isolated harness failed dependency mapping before a model request; user elected to test manually."
+  },
+  "cleanup": {
+    "removed_executables": 7,
+    "removed_bytes": 9396492800,
+    "removed_gib": 8.751165866851807,
+    "real_dsh_dependencies_preserved": true,
+    "active_and_rollback_hashes_rechecked": true,
+    "service_pids_unchanged": true,
+    "inference_requests_sent": 0,
+    "services_stopped_or_restarted": false
+  },
+  "rollback": {
+    "retained_engine_copies": 1,
+    "policy_can_be_disabled_without_replacing_engine": true,
+    "policy_change_takes_effect_on_next_normal_restart": true,
+    "full_restore_checks_hashes": true
+  },
+  "limitations": [
+    "Short ten-seed scores share one synthetic task; no overall quality or speed claim.",
+    "The enabled 29/29 includes short 10/10, functional 12/12 and 98,592-token input plus six tool/result continuations 7/7; the default carry-over control is short 9/10.",
+    "Real dsh isolated harness failed dependency mapping before making a model request; this is not an engine-generation failure. User requested manual testing instead of further harness work.",
+    "No full 256K, multi-lane, other-device, nonzero-frequency or DFlash workflow qualification.",
+    "Independent model-forward comparison and remaining model-family/weight-quantization versus engine responsibility are unresolved."
+  ],
+  "public_release_unchanged": true,
+  "committed": false,
+  "pushed": false,
+  "published": false
+}

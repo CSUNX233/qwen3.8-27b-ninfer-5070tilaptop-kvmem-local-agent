@@ -1,6 +1,6 @@
 # 模型来源和转换
 
-本项目发布引擎、转换工具及部署代码，**不捆绑权重**。本机验证的是以下组合，不代表所有 Qwen 变体都已验证：
+GitHub发布引擎、转换工具及部署代码，**GitHub不捆绑权重**；维护者另行提供的网盘整合包含下面明确标注的两份已转换模型。本机验证的是以下组合，不代表所有 Qwen 变体都已验证：
 
 | 组件 | 来源 | 发布检查时的许可 |
 |---|---|---|
@@ -43,3 +43,17 @@ Pop-Location
 该 GGUF recipe 搬运既有量化张量，不对主权重重新量化。本机文本制品为 **10,796,660,224 bytes**；输出大小仍受转换器版本、资源和 recipe 影响。成功后把 `.ninfer` 路径交给 `setup.ps1`。如需自检，转换器用法见 [原转换指南](../engine/docs/weight-conversion.md)。
 
 视觉转换需要额外 source 和 components，见 [VISION.md](VISION.md)。大于 IQ3_XXS 的模型可能超出本预设的 12GB 预算。
+
+
+## 网盘整合包的两个已转换模型（v0.1.4）
+
+| 选择 | 文件 | 来源和适用许可 |
+|---|---|---|
+| huihui | Huihui-Qwen3.8-27B-abliterated-Swift-1.5-GSQ-RCO-IQ3_XXS-mtp.ninfer | [Huihui GGUF](https://huggingface.co/huihui-ai/Huihui-Qwen3.8-27B-abliterated-GGUF)，其模型卡明确Swift系列来自[UkisAI Swift-1.5 GSQ-RCO](https://huggingface.co/ukisai/Swift-1.5-Qwen3.8-27B-GSQ-RCO-GGUF)；Swift贡献适用Swift Open License v1.0，基础Qwen部分Apache-2.0 |
+| gsq | qwen3.8-27b-gsq-rco-iq3-xxs.ninfer | 上述ISTA-DASLab GSQ-RCO IQ3_XXS+MTP，Apache-2.0 |
+
+两份均为ninfer-v3文本+MTP，分别10,796,660,224字节；不包含视觉塔，也不同时加载。包内SHA-256清单记录实际制品身份。转换器使用qwen3_8_27b_gguf recipe，在CPU搬运现有量化张量，未重新训练或量化；Huihui制品使用基础Qwen元数据和随仓库保留的模板/频率proposal资源。来源GGUF完整revision未在原转换记录中固定，不能伪称现已补验历史来源commit；保留文件名、实际模型hash和模型卡供核对。
+
+Huihui汇总模型卡的Apache标签不能覆盖Swift贡献的单独条款。Swift Open License v1.0第5条规定商业使用收入门槛（同一控制集团最近财年总收入US$1,000,000门槛，超过时需单独商业许可）；以原文为准。本包保留[Swift许可](../licenses/models/ukisai--Swift-1.5-Qwen3.8-27B-GSQ-RCO-GGUF/LICENSE)、[Huihui模型卡](../licenses/models/huihui-ai--Huihui-Qwen3.8-27B-abliterated-GGUF/README.md)、[Swift模型卡](../licenses/models/ukisai--Swift-1.5-Qwen3.8-27B-GSQ-RCO-GGUF/README.md)、[GSQ模型卡](../licenses/models/ISTA-DASLab--Qwen3.8-27B-GSQ-RCO-GGUF/README.md)和[基础Apache许可](../licenses/models/Qwen--Qwen3.8-27B/LICENSE)。模型卡为2026-10-21来源页面快照，不等同于历史GGUF字节的远端hash验证。
+
+转换和整合：CSUNX233。Copyright2026 UkisAI，Swift贡献遵守Swift Open License v1.0；衍生自Qwen3.8-27B，Copyright2026 Alibaba Cloud，Apache-2.0。Huihui、ISTA-DASLab及其他贡献者保留各自归属。

@@ -38,11 +38,15 @@ settings['llm-pi-ai'].providers['ninfer-local'] = {
   baseURL: `http://127.0.0.1:${cfg.GuardPort}/v1`, apiKeyEnv: 'NINFER_LOCAL_KEY', streamIdleTimeoutMs: 1800000,
   compat: { supportsDeveloperRole: false, supportsReasoningEffort: true,
     maxTokensField: 'max_tokens', requiresReasoningContentOnAssistantMessages: true },
-  models: [{ id: cfg.ModelId, name: 'Qwen3.8-27B GSQ-RCO IQ3_XXS · 256K KVMem',
+  models: [{ id: cfg.ModelId, name: `${cfg.ModelId.includes('huihui') ? 'Huihui Swift-1.5' : 'Qwen3.8-27B GSQ-RCO'} IQ3_XXS · 256K KVMem`,
     contextWindow: cfg.MaxContext, maxTokens: 73728, input: ['text'],
     reasoningEfforts: { low: 'low', medium: 'medium', xhigh: 'xhigh' } }],
 };
 settings['agent-default-model'] ??= { provider: 'ninfer-local', model: cfg.ModelId, reasoningEffort: cfg.ReasoningEffort };
+if (settings['agent-default-model'].provider === 'ninfer-local') {
+  settings['agent-default-model'].model = cfg.ModelId;
+  settings['agent-default-model'].reasoningEffort = cfg.ReasoningEffort;
+}
 settings['agent-presets'] ??= { default: 'ninfer-local' };
 write(settingsFile, yaml.dump(settings, { lineWidth: 120, noRefs: true }));
 const entries = [

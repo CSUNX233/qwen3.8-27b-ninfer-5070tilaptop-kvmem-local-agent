@@ -32,4 +32,4 @@ jobs:
             if ($errors) { throw ($errors | Out-String) }
           }
           $js = @(git ls-files --cached --others --exclude-standard -- '*.mjs')
-          foreach ($file in $js) { node --check $file.FullName; if ($LASTEXITCODE) { throw $file.FullName } }
+          foreach ($file in $js) { node --check $file; if ($LASTEXITCODE) { throw $file } }

@@ -699,7 +699,7 @@ WorkspacePlan build_workspace_plan(const SequencePlanImpl& plan) {
         mtp_full_call(mtp_align, 1, text_envelope, false);
         WorkspaceLayoutBuilder mtp_proposal;
         proposal_scratch(mtp_proposal, 1);
-        const std::size_t accept = ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(
+        const std::size_t accept = ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(
             dimension(parameters.model.resources().public_token_count), narrowest_drafts,
             verify_drafts, 1, 1);
         out.mtp_round = std::max({accept, finish(mtp_batch), finish(mtp_ar), finish(mtp_proposal)});
@@ -745,7 +745,7 @@ WorkspacePlan build_workspace_plan(const SequencePlanImpl& plan) {
             WorkspaceLayoutBuilder proposal;
             proposal_scratch(proposal, batch);
             const std::size_t batch_accept =
-                ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(
+                ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(
                     dimension(parameters.model.resources().public_token_count), narrowest_drafts,
                     verify_drafts, batch, batch);
             out.mtp_round = std::max({out.mtp_round, target_bytes, finish(alignment), finish(ar),
@@ -924,7 +924,7 @@ WorkspacePlan build_workspace_plan(const SequencePlanImpl& plan) {
                         ? ops::speculative_accept_sparse_drafts_workspace_capacity_bytes(
                               dimension(parameters.model.resources().public_token_count), {false},
                               narrowest_drafts, verify_drafts, batch, batch)
-                        : ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(
+                        : ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(
                               dimension(parameters.model.resources().public_token_count),
                               narrowest_drafts, verify_drafts, batch, batch);
                 // A copy round above batch one also runs the drafter at its own window, and a

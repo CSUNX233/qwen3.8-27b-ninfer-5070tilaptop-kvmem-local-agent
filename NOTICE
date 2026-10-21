@@ -29,7 +29,11 @@ Vendored engine components retain their individual license/notice files
 under engine/third_party/. Do not remove those notices when redistributing.
 
 Model authors: Qwen; GSQ-RCO quantization: ISTA-DASLab.
-Model weights are not included. Model and tokenizer licenses apply separately.
+GitHub assets do not include weights. The separately built offline model bundle
+includes model-specific notices under licenses/models and model-notices.
+Huihui Swift-1.5 derivatives retain the Swift Open License v1.0 (including its
+commercial-use limitation) in addition to Base Qwen Apache-2.0 terms.
+Model and tokenizer licenses apply separately.
 NVIDIA CUDA/cuBLAS and Microsoft runtimes are external dependencies under their
 respective terms. FFmpeg LGPL shared runtime is downloaded from BtbN directly;
 the working installation's GPL FFmpeg DLLs are not part of this distribution.

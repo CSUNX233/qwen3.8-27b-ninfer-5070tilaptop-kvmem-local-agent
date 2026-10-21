@@ -7,6 +7,20 @@ benchmark-report, and external protocol behavior. Repository verification princi
 
 ## Organization
 
+The downstream tool-output recovery contracts can be run separately:
+
+```bash
+ctest --test-dir runtime/build --output-on-failure -R 'ninfer_(tool_output_recovery|qwen3_5_tool_recovery|request_log)_test$'
+```
+
+These check fenced/inline-code examples, complete declared calls stranded in unclosed thinking,
+streamed and whole output, and non-recovery on cancellation, client stops or limits. The focused
+targets reuse their existing test fixtures as standalone executables to avoid duplicate external
+test helpers in the bundle. The subsequent downstream edge-case fix resolved the original eight
+parser and one frontend failures: the full parser suite passes 39/39 and frontend 54/54 locally,
+both as full programs and isolated functions. This covers these two suites, not all engine tests.
+See [`../../docs/TOOL_PARSER_EDGE_CASES.md`](../../docs/TOOL_PARSER_EDGE_CASES.md).
+
 - `artifact/` — v3 framing, directory/binding records, codecs, sharding, selected-object
   materialization and Python-writer/C++-reader interoperability;
 - `convert/` — source interpretation, Qwen logical mapping, recipe overrides/sharing, optional
@@ -313,3 +327,26 @@ timestamps, non-code edits, and one-file incremental compilation. Docker BuildKi
 `podman` can be passed instead to check that builder. Logs and the fixture remain in an ignored
 `build-cache-test.*` directory; the test image and its small build caches remain in the builder.
 The check needs the Dockerfile's build dependencies but no GPU or model weights.
+
+The downstream MTP sampling-boundary candidate adds frontend checks for exact non-special close
+tokens, committed versus preview state, quoted closes, separator confirmation, raw serialization
+and ignored suffixes after EOS. `ninfer_admission_policy_test` checks transition-only licensing,
+exhausted budgets and proposal trimming. These CPU contracts do not assert model tool-choice
+quality; see the downstream long-context report for remaining real-model failures.
+
+The downstream coupled-verification port updates `test_speculative_round.cpp`: point proposals use an independent keyed target-draw oracle, while sparse-q keeps rejection/residual semantics. The added relational checks compare ordinary sample() and speculative draws over domains 64/257/248077, draft widths 1/5/15 and deliberate mismatches. `test_sampling.cpp` retains its independent FP64 distribution oracle; MTP-round and DecodeGraph programs also passed against the candidate objects. These contracts do not prove whole-model state equivalence or tool-choice quality.
+
+The causal-cache main entry adds 36 NVFP4 masked-prefix relational cases: fixed Q/K/V,
+history, physical width and envelope, then compare common live output columns bit-for-bit as
+valid_columns shrinks. The local qualification adds eight cases at contexts 818/853 (44 total).
+The final candidate passes this oracle plus independent NVFP4 decode/prompt, Graph and wide-copy
+checks. An original-partition control with only the reducer loop-unroll limit retains two
+differences; see the downstream coupled-sampling report for the separate 129-split codegen fault.
+
+The downstream FP16 GDN consistency candidate extends the record/fold suites to represented
+FP16 initial states and ordinary single-token storage rounding. Record checks include an
+independent scalar FP64 oracle for the first row/head; exact GPU relations cover all outputs.
+Fold adds 62 cases across both head geometries, masked/partial commits, packed widths and Graph;
+`ninfer_gdn_replay_fold_test --fp16-only` runs that group. These contracts do not establish
+whole-model MTP equivalence or improved tool-choice quality; see `docs/GDN_FP16_CONSISTENCY.md`
+in the downstream distribution root for the actual integration results.

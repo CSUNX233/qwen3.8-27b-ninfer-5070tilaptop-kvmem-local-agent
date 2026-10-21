@@ -2,6 +2,8 @@
 #include "core/device.h"
 
 #include "ops/op_tester.h"
+#include "ops/gdn_ref.h"
+#include <cuda_fp16.h>
 
 #include <algorithm>
 #include <bit>
@@ -14,6 +16,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <type_traits>
 #include <vector>
 
 using namespace ninfer;
@@ -43,6 +46,7 @@ int verify_equal(const std::string& label, const std::vector<std::uint16_t>& lhs
     return 1;
 }
 
+template <class State = float>
 int run_case(std::int32_t value_heads, std::int32_t width, std::int32_t batch,
              std::vector<std::int32_t> valid_columns, std::uint32_t seed) {
     constexpr std::int32_t kQkHeads = 16;
@@ -72,6 +76,15 @@ int run_case(std::int32_t value_heads, std::int32_t width, std::int32_t batch,
     std::vector<float> state(state_elements);
     fill_uniform(state, seed + 5, -0.03F, 0.03F);
     state[0] = std::bit_cast<float>(0x80000000U);
+    constexpr DType state_dtype = std::is_same_v<State, float> ? DType::FP32 : DType::FP16;
+    std::vector<State> stored_state(state.size());
+    for (std::size_t i = 0; i < state.size(); ++i) {
+        if constexpr (std::is_same_v<State, float>) {
+            stored_state[i] = state[i];
+        } else {
+            stored_state[i] = __half_as_ushort(__float2half_rn(state[i]));
+        }
+    }
 
     std::vector<std::int32_t> initial_slots(static_cast<std::size_t>(batch));
     for (std::int32_t row = 0; row < batch; ++row) {
@@ -83,10 +96,10 @@ int run_case(std::int32_t value_heads, std::int32_t width, std::int32_t batch,
     DeviceBuffer device_v        = to_device(v_bits);
     DeviceBuffer device_g        = to_device(g);
     DeviceBuffer device_beta     = to_device(beta);
-    DeviceBuffer reference_state = to_device(state);
+    DeviceBuffer reference_state = to_device(stored_state);
     DeviceBuffer reference_final(static_cast<std::size_t>(kStateDim) * kStateDim * value_heads *
-                                 batch * sizeof(float));
-    DeviceBuffer record_state   = to_device(state);
+                                 batch * sizeof(State));
+    DeviceBuffer record_state   = to_device(stored_state);
     DeviceBuffer device_initial = to_device(initial_slots);
     DeviceBuffer device_valid;
     if (!dense) { device_valid = to_device(valid_columns); }
@@ -107,10 +120,10 @@ int run_case(std::int32_t value_heads, std::int32_t width, std::int32_t batch,
     Tensor v(device_v.p, DType::BF16, {kStateDim, value_heads, width, batch});
     Tensor g_tensor(device_g.p, DType::FP32, {value_heads, width, batch});
     Tensor beta_tensor(device_beta.p, DType::FP32, {value_heads, width, batch});
-    Tensor reference_states(reference_state.p, DType::FP32,
+    Tensor reference_states(reference_state.p, state_dtype,
                             {kStateDim, kStateDim, value_heads, slots});
-    Tensor record_states(record_state.p, DType::FP32, {kStateDim, kStateDim, value_heads, slots});
-    Tensor reference_final_states(reference_final.p, DType::FP32,
+    Tensor record_states(record_state.p, state_dtype, {kStateDim, kStateDim, value_heads, slots});
+    Tensor reference_final_states(reference_final.p, state_dtype,
                                   {kStateDim, kStateDim, value_heads, batch});
     Tensor valid;
     if (!dense) { valid = Tensor(device_valid.p, DType::I32, {batch}); }
@@ -207,7 +220,8 @@ int run_case(std::int32_t value_heads, std::int32_t width, std::int32_t batch,
     CUDA_CHECK(cudaStreamDestroy(stream));
 
     int failures             = 0;
-    const std::string suffix = " Hv=" + std::to_string(value_heads) +
+    const std::string suffix = std::string(" state=") + (state_dtype == DType::FP16 ? "fp16" : "fp32") +
+                               " Hv=" + std::to_string(value_heads) +
                                " T=" + std::to_string(width) + " B=" + std::to_string(batch);
     const std::vector<std::uint16_t> reference_output_bits =
         from_device<std::uint16_t>(reference_out, value_elements);
@@ -215,6 +229,44 @@ int run_case(std::int32_t value_heads, std::int32_t width, std::int32_t batch,
         from_device<std::uint16_t>(record_out, value_elements);
     failures +=
         verify_equal("replay record output" + suffix, reference_output_bits, record_output_bits);
+
+    if constexpr (!std::is_same_v<State, float>) {
+        // Independently evaluate head zero of the first row in scalar FP64. Widen the
+        // represented FP16 initial state, then round its stored result between tokens.
+        // This checks arithmetic as well as the exact GPU record/ordinary relationship.
+        gdn_ref::Inputs in;
+        in.head_dim = kStateDim;
+        in.qk_heads = in.value_heads = in.tokens = 1;
+        in.q.resize(kStateDim);
+        in.k.resize(kStateDim);
+        in.v.resize(kStateDim);
+        in.g.resize(1);
+        in.beta.resize(1);
+        in.state.resize(kStateDim * kStateDim);
+        const std::size_t initial_offset = static_cast<std::size_t>(initial_slots[0]) *
+                                          value_heads * kStateDim * kStateDim;
+        for (std::size_t i = 0; i < in.state.size(); ++i) {
+            in.state[i] = __half2float(__ushort_as_half(stored_state[initial_offset + i]));
+        }
+        std::vector<double> actual, ideal;
+        for (int t = 0; t < valid_columns[0]; ++t) {
+            for (int d = 0; d < kStateDim; ++d) {
+                in.q[d] = bf16_to_f32(q_bits[(t * kQkHeads) * kStateDim + d]);
+                in.k[d] = bf16_to_f32(k_bits[(t * kQkHeads) * kStateDim + d]);
+                in.v[d] = bf16_to_f32(v_bits[(t * value_heads) * kStateDim + d]);
+                actual.push_back(bf16_to_f32(record_output_bits[(t * value_heads) * kStateDim + d]));
+            }
+            in.g[0] = g[t * value_heads];
+            in.beta[0] = beta[t * value_heads];
+            const auto ref = gdn_ref::evaluate(in, kScale, true);
+            ideal.insert(ideal.end(), ref.out.begin(), ref.out.end());
+            for (std::size_t i = 0; i < in.state.size(); ++i) {
+                in.state[i] = __half2float(__float2half_rn(static_cast<float>(ref.final_state[i])));
+            }
+        }
+        failures += verify_reduction("FP16 replay scalar oracle" + suffix, actual, ideal,
+                                      {4.1e-3, 5.0e-6, kBf16GrossRelativeFloor});
+    }
 
     const std::vector<std::uint16_t> key_bits_after =
         from_device<std::uint16_t>(key_record, qk_elements);
@@ -275,8 +327,8 @@ int run_case(std::int32_t value_heads, std::int32_t width, std::int32_t batch,
         }
     }
 
-    const std::vector<float> state_after = from_device<float>(record_state, state_elements);
-    if (std::memcmp(state_after.data(), state.data(), state_elements * sizeof(float)) != 0) {
+    const auto state_after = from_device<State>(record_state, state_elements);
+    if (std::memcmp(state_after.data(), stored_state.data(), state_elements * sizeof(State)) != 0) {
         std::cerr << "replay record modified source state" << suffix << "\n";
         ++failures;
     }
@@ -332,6 +384,15 @@ int main() {
         failures += run_case(48, width, 8, valid, 1760U + width);
     }
     failures += run_case(48, 5, 3, {5, 3, 1}, 1791U);
+    // Match the production FP16 state after every ordinary single-token update, including
+    // masked rows and record-stage boundaries. Inputs and source states must stay untouched.
+    for (const int heads : {32, 48}) {
+        for (const int width : {2, 4, 16, 17, 32, 64}) {
+            failures += run_case<std::uint16_t>(heads, width, 1, {}, 2900U + width);
+            failures += run_case<std::uint16_t>(heads, width, 1, {width / 2}, 3000U + width);
+        }
+        failures += run_case<std::uint16_t>(heads, 16, 8, {16, 7, 5, 1, 2, 9, 15, 3}, 3100U);
+    }
     std::cout << (failures == 0 ? "OK" : "FAIL") << " gated_delta_net_replay_record\n";
     return failures == 0 ? 0 : 1;
 }

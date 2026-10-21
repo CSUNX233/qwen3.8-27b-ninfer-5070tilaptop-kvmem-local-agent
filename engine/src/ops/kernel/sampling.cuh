@@ -94,17 +94,8 @@ __launch_bounds__(kSamplerBlock) __global__
     }
 
     if (tid != 0) { return; }
-    const int support = n_support;
-    const float u     = sampling_uniform(cfg.seed, logical_positions[row], purpose, 0u);
-    float acc         = 0.0f;
-    int picked        = cand_idx[support - 1];
-    for (int j = 0; j < support; ++j) {
-        acc += prob[j]; // prob is normalized: goal == u
-        if (u < acc) {
-            picked = cand_idx[j];
-            break;
-        }
-    }
+    const float u    = sampling_uniform(cfg.seed, logical_positions[row], purpose, 0u);
+    const int picked = cand_idx[sampling_pick_rank(prob, n_support, u)];
     if (!sampling_selected_logit_is_finite(logits, base, picked)) {
         out[row] = kSamplerNonFiniteToken;
         return;
@@ -294,19 +285,10 @@ __launch_bounds__(kSamplerGroupBlock) __global__ void sampling_group_finalize_sa
 
     sampling_normalize_support(cfg, cand_val, cand_idx, prob, &n_support, cap);
     if (tid == 0) {
-        const int support = n_support;
-        const float u     = sampling_uniform(cfg.seed, logical_positions[col], purpose, 0u);
-        float acc         = 0.0f;
-        int picked        = cand_idx[support - 1];
-        float picked_val  = cand_val[support - 1];
-        for (int j = 0; j < support; ++j) {
-            acc += prob[j];
-            if (u < acc) {
-                picked     = cand_idx[j];
-                picked_val = cand_val[j];
-                break;
-            }
-        }
+        const float u          = sampling_uniform(cfg.seed, logical_positions[col], purpose, 0u);
+        const int rank         = sampling_pick_rank(prob, n_support, u);
+        const int picked       = cand_idx[rank];
+        const float picked_val = cand_val[rank];
         // The candidate's own adjusted value stands in for the logit: this kernel is fed by the
         // partial/group workspace and never receives the logits themselves.
         if (!sampling_value_is_finite(picked_val)) {

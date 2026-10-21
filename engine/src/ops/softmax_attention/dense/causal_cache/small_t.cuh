@@ -82,6 +82,19 @@ __device__ __forceinline__ bool causal_valid_q_head(int kv_head, int q_head) {
            q_head < (kv_head + 1) * Geometry::GroupSize && q_head < Geometry::QHeads;
 }
 
+// The key window a tile of verification columns partitions by: its first position plus its
+// physical width, as if every column were live, so masking trailing columns never moves the split
+// boundaries of the live ones. A round whose drafts the output budget capped then rounds the
+// committed KV and GDN state exactly as the uncapped round does. Live positions are sequential
+// from the first, so a dense tile's window is its last position plus one. The envelope bounds the
+// window where the physical width reaches past it. Masked columns repeat the last live position,
+// and no kernel loads a key at or past it plus one (the live end).
+__host__ __device__ __forceinline__ int causal_small_t_tile_window(int first_position, int width,
+                                                                   int visible_capacity) {
+    const int window = first_position + width;
+    return window < visible_capacity ? window : visible_capacity;
+}
+
 template <typename Geometry>
 __device__ __forceinline__ int causal_small_t_default_splits(int window) {
     int target_keys_per_split = 480 / Geometry::SmallTSplitScale;

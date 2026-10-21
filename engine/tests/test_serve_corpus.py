@@ -8,6 +8,7 @@ import pytest
 from tools.bench.run_serve_corpus import (
     Fixture,
     RunSpec,
+    SERVER_LOG_SCHEMA_VERSION,
     build_result_record,
     parse_artifacts,
 )
@@ -37,7 +38,7 @@ def test_result_record_parses_request_host_exposure() -> None:
     response = {"usage": {"prompt_tokens": 10, "completion_tokens": 5}}
     event = {
         "artifact_type": "ninfer_serve_request_log",
-        "schema_version": 22,
+        "schema_version": SERVER_LOG_SCHEMA_VERSION,
         "event": "request_done",
         "request": {
             "model": spec.model_id,

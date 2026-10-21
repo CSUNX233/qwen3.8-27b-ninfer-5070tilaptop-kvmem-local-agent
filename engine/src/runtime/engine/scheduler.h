@@ -163,7 +163,19 @@ public:
             membership.budgets[membership.size]   = RoundBudget{
                   .generated_tokens_remaining =
                     request->output.model_token_budget_remaining(request->budget->remaining()),
+                  .sampling_boundary_token =
+                    !request->post_thinking_applied &&
+                            request->options.execution.post_thinking_sampling
+                        ? request->output.reasoning_close_token()
+                        : std::nullopt,
             };
+            // Resolve the separator after a close marker in its own target step. This keeps
+            // quoted/non-closing markers under the normal decoder's boundary rules.
+            if (membership.budgets[membership.size].sampling_boundary_token &&
+                request->output.reasoning_close_pending()) {
+                membership.budgets[membership.size].generated_tokens_remaining =
+                    std::min(membership.budgets[membership.size].generated_tokens_remaining, 1U);
+            }
             if (membership.budgets[membership.size].generated_tokens_remaining == 0) {
                 throw std::logic_error("decode-ready request has no licensed model tokens");
             }

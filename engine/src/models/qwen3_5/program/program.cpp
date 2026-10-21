@@ -408,6 +408,13 @@ void Program::update_sampling(SequenceHandle sequence, const ResolvedSamplingPar
     impl_->update_sampling(sequence, sampling);
 }
 
+void Program::begin_post_thinking_sampling(SequenceHandle sequence,
+                                           const ResolvedSamplingParameters& sampling,
+                                           bool answer_only_penalty_counts) {
+    impl_->update_sampling(sequence, sampling);
+    if (answer_only_penalty_counts) { impl_->reset_penalty_counts(sequence); }
+}
+
 bool Program::wait_context_transfer() noexcept { return impl_->wait_context_transfer(); }
 
 PrefillProgress Program::advance_prefill(SequenceHandle sequence,

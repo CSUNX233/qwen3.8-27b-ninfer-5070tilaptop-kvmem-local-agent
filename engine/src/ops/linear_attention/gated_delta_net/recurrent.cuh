@@ -10,6 +10,7 @@
 #include <cuda_fp16.h>
 
 #include <cstdint>
+#include <type_traits>
 
 namespace ninfer::ops::detail::gated_delta_net {
 
@@ -640,7 +641,25 @@ __device__ __forceinline__ void store_state_tile(const float (&state)[kDvPerWarp
     }
 }
 
-template <bool NormalizeInputs, class Effects, class Access>
+// Ordinary decode stores its recurrent state after every token. A speculative window must
+// reproduce that storage rounding between transitions, even though it keeps the state in
+// registers. Readout still sees the unrounded update, just like the ordinary kernel.
+template <class StateT>
+__device__ __forceinline__ void round_stored_state(float (&state)[kDvPerWarp][kQkPerLane]) {
+    if constexpr (std::is_same_v<StateT, __half>) {
+#pragma unroll
+        for (int r = 0; r < kDvPerWarp; ++r) {
+#pragma unroll
+            for (int c = 0; c < kQkPerLane; c += 2) {
+                const float2 value = __half22float2(__floats2half2_rn(state[r][c], state[r][c + 1]));
+                state[r][c] = value.x;
+                state[r][c + 1] = value.y;
+            }
+        }
+    }
+}
+
+template <bool NormalizeInputs, class Effects, class StateT = float, class Access>
 __device__ __forceinline__ void
 run_recurrent_sequence(float (&state)[kDvPerWarp][kQkPerLane], const Access& access,
                        const RecurrentCoordinates& coord, std::int32_t valid) {
@@ -663,6 +682,7 @@ run_recurrent_sequence(float (&state)[kDvPerWarp][kQkPerLane], const Access& acc
         }
 
         Effects::template publish_output<NormalizeInputs>(state, access, coord, token);
+        round_stored_state<StateT>(state);
     }
 }
 
@@ -812,6 +832,7 @@ __global__ void __launch_bounds__(kWarpSize* kNumWarps, 2)
                 access.output_ptr(coord, base + token)[coord.dv_base + coord.lane] =
                     __float2bfloat16(attn_val * access.scale);
             }
+            round_stored_state<StateT>(state);
         }
     }
     zero_output_suffix(access, coord, valid, access.width);
@@ -825,7 +846,7 @@ __global__ void __launch_bounds__(kWarpSize* kNumWarps, 2)
     if (valid == 0) { return; }
     __align__(16) float state[kDvPerWarp][kQkPerLane];
     load_state_tile(state, access.state_read_base(coord), coord);
-    run_recurrent_sequence<true, FoldEffects>(state, access, coord, valid);
+    run_recurrent_sequence<true, FoldEffects, StateT>(state, access, coord, valid);
     access.store_final_state(coord, state);
     access.publish_final_conv_history(coord, valid);
 }

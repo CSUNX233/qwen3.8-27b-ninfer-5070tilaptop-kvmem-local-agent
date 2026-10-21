@@ -1,0 +1,500 @@
+{
+  "date": "2026-10-20",
+  "base_commit": "389791f834880e77f31fcb46ebe288918074882e",
+  "upstream_commits": [
+    "81e29890a74b81801bdb6daeaffee1c631807a6a",
+    "99ff511900f73130906abe3fe1d7e1025d04b746"
+  ],
+  "scope": "First batch only: Markdown guards and complete declared tool-call recovery from naturally stopped unclosed thinking. No MTP split/cache transplant.",
+  "tests": {
+    "parser": {
+      "before_total": 35,
+      "before_passed": 27,
+      "after_total": 38,
+      "after_passed": 30,
+      "preexisting_failed_tests": [
+        "test_forced_call_decoder",
+        "test_unrepresentable_parameter_delimiters_are_reported",
+        "test_recovery_of_strict_failures",
+        "test_partial_region_keeps_complete_calls",
+        "test_marker_attempts_are_bounded",
+        "test_later_candidate_must_consume_the_end",
+        "test_incremental_fallback_preserves_bytes",
+        "test_harness_forms_recovery_and_streaming"
+      ],
+      "new_failed_tests": []
+    },
+    "frontend": {
+      "before_total": 53,
+      "before_passed": 52,
+      "after_total": 54,
+      "after_passed": 53,
+      "preexisting_failed_tests": [
+        "test_forced_tool_call"
+      ],
+      "new_failed_tests": []
+    },
+    "execution": "Each inherited test function ran in a separate process, so the pre-existing abort does not hide later results. Focused tests were separately compiled/linked; the old CMake tree was not reconfigured."
+  },
+  "focused": {
+    "parser": "passed (unterminated names, Markdown whole/streamed, reasoning-recovery guards)",
+    "frontend": "passed (EOS whole/one-token rounds, closed reasoning, output/context/cancel/stop-string)",
+    "logs": "passed",
+    "python_serve_corpus": "2 passed"
+  },
+  "reproduction_before": {
+    "unclosed_thinking_recovered_calls_whole": 0,
+    "unclosed_thinking_recovered_calls_streamed": 0,
+    "markdown_assertions_failed_initial_fixture": 14,
+    "markdown_assertions_failed_final_fixture": 18
+  },
+  "generated_at": "2026-10-20T19:06:00.832612+08:00",
+  "deployment": {
+    "base_sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d",
+    "candidate_sha256": "8b449db9fe029d3ed442ef8e6ad1fdac6d3ea2dd61aaf3ee09315cc06bd87edd",
+    "backup_sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d",
+    "source_branch": "codex/tool-call-recovery-20261020",
+    "tests_initial_state": "server stopped",
+    "status": "installed; real-model validation passed; server stopped as before",
+    "published_release_unchanged": "v0.1.3; local patch not committed, pushed or released"
+  },
+  "build": {
+    "toolchain": {
+      "cuda": "13.0.48",
+      "msvc": "14.44.35207",
+      "architecture": "sm120a"
+    },
+    "host_translation_units": 70,
+    "cuda_translation_units": 7,
+    "scope": "Incremental; reconstruct all v0.1.3 override objects, rebuild every serve/outcome consumer; reuse other original archives.",
+    "production_sources_match_build_manifest": true,
+    "changed_production_sources_sha256": {
+      "engine/include/ninfer/types.h": "057e74ced31471ab9c76ddf252193ba847536dac78b23270ac234335ce25bd86",
+      "engine/src/models/qwen3_5/frontend/output_session.cpp": "3933e8a440b9eab81fe39781d987873cb118ebce0acab5142f248aef4fdf7c99",
+      "engine/src/models/qwen3_5/frontend/tool_call_parser.cpp": "7ccdd9e6f56e89d58cab7aa9ebf1418c7479af5aa068772ec4aa55602c2f5cd2",
+      "engine/src/models/qwen3_5/frontend/tool_call_parser.h": "46ec24a8fb1fde1d880ac25a97467f3f808d5cd09e52bdc227f00e56d1378cad",
+      "engine/src/serve/operational_log.cpp": "460f4ccee9faa39696f37cceb060f24cca0ef01f759c9b4b1812c36c07acff9d",
+      "engine/src/serve/request_log.cpp": "072070309c52846da6f224c63ec5eeadf78c4229f10e6b380e18dd72ba69e410",
+      "engine/src/serve/request_log.h": "f6d9da91b8607b15664c1cac647305ec0e67a483ed1b287d5a8d0a93b9553c67"
+    }
+  },
+  "real_model": {
+    "model": "Huihui Qwen3.8-27B abliterated Swift-1.5 GSQ-RCO IQ3_XXS + MTP; synthetic inputs only",
+    "configuration_preserved": {
+      "kv_dtype": "nvfp4",
+      "reasoning": "xhigh",
+      "mtp_draft_tokens": 3,
+      "max_context": 262144,
+      "device_kv_tokens": 39168,
+      "host_kv_MiB": 7168,
+      "sink_tokens": 12288,
+      "recent_tokens": 19456,
+      "retrieve_tokens": 6144,
+      "prefill_chunk": 128,
+      "sampling": "Production defaults retained; deterministic per-request seeds recorded in local fixtures."
+    },
+    "same_executable_path": true,
+    "baseline_summary": {
+      "cases": [
+        {
+          "name": "short-tool",
+          "valid": true,
+          "finish_reason": "tool_calls"
+        },
+        {
+          "name": "short-result",
+          "valid": true
+        }
+      ],
+      "recall": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        },
+        "parsed": {
+          "ASTER-71": "348819-DELTA",
+          "BRIDGE-39": "769747-GARDEN",
+          "CIRRUS-82": "890714-TIMBER",
+          "DELTA-26": "346193-INVOICE",
+          "EMBER-54": "784300-KERNEL",
+          "FROST-93": "598258-QUARTZ",
+          "GROVE-48": "755498-BRIDGE",
+          "HARBOR-65": "324408-GARDEN",
+          "READY_TOTAL": 213,
+          "TRANSFER_TOTAL": 99
+        }
+      },
+      "success": true,
+      "completed_scope": "short tool, short tool-result, 204854-token recall",
+      "long_tool_continuation": "not measured: stopped an unintended full reread caused by adding the tool catalogue after recall; candidate fixture will keep its catalogue fixed",
+      "interrupted_request": "long-tool (test-harness prefix change; no engine error conclusion)"
+    },
+    "baseline_valid_results": {
+      "short-tool": {
+        "finish_reason": "tool_calls",
+        "usage": {
+          "completion_tokens": 55,
+          "completion_tokens_details": {
+            "reasoning_tokens": 25
+          },
+          "prompt_tokens": 338,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 393
+        },
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 45,
+          "draft_n_accepted": 41,
+          "predicted_ms": 553.9566,
+          "predicted_n": 55,
+          "predicted_per_second": 97.48056075151014,
+          "predicted_per_token_ms": 10.258455555555555,
+          "prompt_ms": 1793.0211,
+          "prompt_n": 338,
+          "prompt_per_second": 188.50865726008468,
+          "prompt_per_token_ms": 5.304796153846153
+        },
+        "wall_seconds": 2.3815120000072056,
+        "ttft_seconds": 1.8261820000043372,
+        "structured_tool_call_count": 1
+      },
+      "short-result": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 28,
+          "completion_tokens_details": {
+            "reasoning_tokens": 19
+          },
+          "prompt_tokens": 436,
+          "prompt_tokens_details": {
+            "cached_tokens": 392
+          },
+          "total_tokens": 464
+        },
+        "timings": {
+          "cache_n": 392,
+          "draft_n": 27,
+          "draft_n_accepted": 20,
+          "predicted_ms": 303.1917,
+          "predicted_n": 28,
+          "predicted_per_second": 89.0525697108463,
+          "predicted_per_token_ms": 11.229322222222223,
+          "prompt_ms": 168.4495,
+          "prompt_n": 44,
+          "prompt_per_second": 261.205880694214,
+          "prompt_per_token_ms": 3.828397727272727
+        },
+        "wall_seconds": 0.5193352999922354,
+        "ttft_seconds": 0.21454469999298453,
+        "structured_tool_call_count": 0
+      },
+      "recall-204800": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 1452,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1267
+          },
+          "prompt_tokens": 204854,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 206306
+        },
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 1668,
+          "draft_n_accepted": 1006,
+          "predicted_ms": 20724.4079,
+          "predicted_n": 1452,
+          "predicted_per_second": 70.01406298319385,
+          "predicted_per_token_ms": 14.282844865609922,
+          "prompt_ms": 891292.6612,
+          "prompt_n": 204854,
+          "prompt_per_second": 229.83920873329413,
+          "prompt_per_token_ms": 4.35086774580921
+        },
+        "wall_seconds": 912.6353597999987,
+        "ttft_seconds": 891.9088400000037,
+        "structured_tool_call_count": 0
+      }
+    },
+    "candidate_summary": {
+      "cases": [
+        {
+          "name": "short-tool",
+          "valid": true,
+          "finish_reason": "tool_calls"
+        },
+        {
+          "name": "short-result",
+          "valid": true
+        },
+        {
+          "name": "long-tool",
+          "valid": true,
+          "finish_reason": "tool_calls"
+        },
+        {
+          "name": "long-result",
+          "valid": true
+        },
+        {
+          "name": "markdown-example",
+          "valid": true,
+          "finish_reason": "stop"
+        }
+      ],
+      "recall": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        },
+        "parsed": {
+          "ASTER-71": "348819-DELTA",
+          "BRIDGE-39": "769747-GARDEN",
+          "CIRRUS-82": "890714-TIMBER",
+          "DELTA-26": "346193-INVOICE",
+          "EMBER-54": "784300-KERNEL",
+          "FROST-93": "598258-QUARTZ",
+          "GROVE-48": "755498-BRIDGE",
+          "HARBOR-65": "324408-GARDEN",
+          "READY_TOTAL": 213,
+          "TRANSFER_TOTAL": 99
+        }
+      },
+      "success": true
+    },
+    "candidate_results": {
+      "short-tool": {
+        "finish_reason": "tool_calls",
+        "usage": {
+          "completion_tokens": 55,
+          "completion_tokens_details": {
+            "reasoning_tokens": 25
+          },
+          "prompt_tokens": 338,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 393
+        },
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 45,
+          "draft_n_accepted": 41,
+          "predicted_ms": 540.7503,
+          "predicted_n": 55,
+          "predicted_per_second": 99.86124834327414,
+          "predicted_per_token_ms": 10.013894444444444,
+          "prompt_ms": 718.6383,
+          "prompt_n": 338,
+          "prompt_per_second": 470.3339635530141,
+          "prompt_per_token_ms": 2.126148816568047
+        },
+        "wall_seconds": 1.281281300005503,
+        "ttft_seconds": 0.7395607999933418,
+        "structured_tool_call_count": 1
+      },
+      "short-result": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 28,
+          "completion_tokens_details": {
+            "reasoning_tokens": 19
+          },
+          "prompt_tokens": 436,
+          "prompt_tokens_details": {
+            "cached_tokens": 392
+          },
+          "total_tokens": 464
+        },
+        "timings": {
+          "cache_n": 392,
+          "draft_n": 27,
+          "draft_n_accepted": 20,
+          "predicted_ms": 301.9539,
+          "predicted_n": 28,
+          "predicted_per_second": 89.41762302126253,
+          "predicted_per_token_ms": 11.183477777777776,
+          "prompt_ms": 167.8372,
+          "prompt_n": 44,
+          "prompt_per_second": 262.15880627179195,
+          "prompt_per_token_ms": 3.814481818181818
+        },
+        "wall_seconds": 0.4864257000008365,
+        "ttft_seconds": 0.18328250000195112,
+        "structured_tool_call_count": 0
+      },
+      "recall-204800": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 2196,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1907
+          },
+          "prompt_tokens": 205124,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 207320
+        },
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 2298,
+          "draft_n_accepted": 1659,
+          "predicted_ms": 25717.0935,
+          "predicted_n": 2196,
+          "predicted_per_second": 85.35179140675443,
+          "predicted_per_token_ms": 11.716215717539862,
+          "prompt_ms": 674439.0898000001,
+          "prompt_n": 205124,
+          "prompt_per_second": 304.1401411961872,
+          "prompt_per_token_ms": 3.287957965913302
+        },
+        "wall_seconds": 700.6726081000088,
+        "ttft_seconds": 674.9526709000056,
+        "structured_tool_call_count": 0
+      },
+      "long-tool": {
+        "finish_reason": "tool_calls",
+        "usage": {
+          "completion_tokens": 60,
+          "completion_tokens_details": {
+            "reasoning_tokens": 30
+          },
+          "prompt_tokens": 207346,
+          "prompt_tokens_details": {
+            "cached_tokens": 207319
+          },
+          "total_tokens": 207406
+        },
+        "timings": {
+          "cache_n": 207319,
+          "draft_n": 57,
+          "draft_n_accepted": 43,
+          "predicted_ms": 798.6967000000001,
+          "predicted_n": 60,
+          "predicted_per_second": 73.87034402420844,
+          "predicted_per_token_ms": 13.537232203389832,
+          "prompt_ms": 346.3272,
+          "prompt_n": 27,
+          "prompt_per_second": 77.96095715265795,
+          "prompt_per_token_ms": 12.826933333333333
+        },
+        "wall_seconds": 1.537958000000799,
+        "ttft_seconds": 0.7373886999994284,
+        "structured_tool_call_count": 1
+      },
+      "long-result": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 64,
+          "completion_tokens_details": {
+            "reasoning_tokens": 49
+          },
+          "prompt_tokens": 207458,
+          "prompt_tokens_details": {
+            "cached_tokens": 207405
+          },
+          "total_tokens": 207522
+        },
+        "timings": {
+          "cache_n": 207405,
+          "draft_n": 59,
+          "draft_n_accepted": 46,
+          "predicted_ms": 833.77,
+          "predicted_n": 64,
+          "predicted_per_second": 75.56040634707414,
+          "predicted_per_token_ms": 13.234444444444444,
+          "prompt_ms": 402.8392,
+          "prompt_n": 53,
+          "prompt_per_second": 131.5661435133423,
+          "prompt_per_token_ms": 7.60073962264151
+        },
+        "wall_seconds": 1.6379768000042532,
+        "ttft_seconds": 0.801089000000502,
+        "structured_tool_call_count": 0
+      },
+      "markdown-example": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 227,
+          "completion_tokens_details": {
+            "reasoning_tokens": 187
+          },
+          "prompt_tokens": 387,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 614
+        },
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 220,
+          "draft_n_accepted": 173,
+          "predicted_ms": 1997.9091,
+          "predicted_n": 227,
+          "predicted_per_second": 113.11825948437794,
+          "predicted_per_token_ms": 8.84030575221239,
+          "prompt_ms": 1092.2811,
+          "prompt_n": 387,
+          "prompt_per_second": 354.3044002134616,
+          "prompt_per_token_ms": 2.822431782945736
+        },
+        "wall_seconds": 3.126140399996075,
+        "ttft_seconds": 1.1303145999991102,
+        "structured_tool_call_count": 0
+      }
+    },
+    "comparison_limit": "Baseline recall omitted the tool catalogue, while candidate recall included the fixed catalogue from its first turn. Prefixes and generated text differ; these single runs do not establish a speed or general quality gain.",
+    "tool_execution_scope": "API parsing and synthetic tool-result continuation; no external tools or full dsh/browser workflow executed.",
+    "diagnostics": {
+      "completed_requests": 6,
+      "request_log_schema_version": 28,
+      "recovered_from_reasoning_requests": 0,
+      "interpretation": "The natural-stop recovery branch was qualified by deterministic frontend/parser fixtures; it did not naturally trigger in these live model requests."
+    },
+    "gpu_telemetry": {
+      "samples": 140,
+      "interval_seconds_approx": 5,
+      "max_sampled_used_MiB": 11176,
+      "min_sampled_free_MiB": 769,
+      "scope": "nvidia-smi under WDDM; sampled observations, not an instantaneous peak or CUDA-allocatable headroom."
+    }
+  },
+  "costs": {
+    "new_cuda_buffers": false,
+    "cpu": "Markdown state tracking and terminal tool parsing",
+    "host_ram": "One text copy while tool-enabled reasoning remains open, plus Markdown line tracking; scales with text size."
+  },
+  "unvalidated": [
+    "full 256K workload",
+    "multiple seeds and general task quality",
+    "full dsh/browser integration",
+    "clean full CUDA build and full CTest suite",
+    "MTP split/anchor/shared-prefix candidate fixes"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "markdown": {
+    "exit_code": 1,
+    "failed_assertions": 18,
+    "output": "FAIL: a call quoted in Markdown code became a call or lost bytes: Format:\n```xml\n<tool_call>\n<fu\nFAIL: a call quoted in Markdown code became a call or lost bytes: Format:\n~~~\n<tool_call>\n<funct\nFAIL: a call quoted in Markdown code became a call or lost bytes: Use ``<tool_call>\n<function=wr\nFAIL: a call quoted in Markdown code became a call or lost bytes: Use ````<tool_call>\n<function=\nFAIL: a call quoted in Markdown code became a call or lost bytes: Use ``a ` b <tool_call>\n<funct\nFAIL: a call quoted in Markdown code became a call or lost bytes: ~~~xml <tool_call>\n<function=w\nFAIL: a call quoted in Markdown code became a call or lost bytes: Use `<tool_call>\n<function=wri\nFAIL: a call quoted in Markdown code became a call or lost bytes: Use `x`, then `\n<tool_call>\n<f\nFAIL: a call quoted in Markdown code became a call or lost bytes: ```\n<tool_call>\n<function=writ\nFAIL: a call quoted in Markdown code became a call or lost bytes: Text\n\n```python\nx = 1\n```\n```\n\nFAIL: a call quoted in Markdown code became a call or lost bytes: ~~~\n~~~shell\n<tool_call>\n<func\nFAIL: a call quoted in Markdown code became a call or lost bytes: ```\n```cpp\n<tool_call>\n<functi\nFAIL: a call quoted in Markdown code became a call or lost bytes: ~~~\n~~~~x\n<tool_call>\n<functio\nFAIL: a call quoted in Markdown code became a call or lost bytes: ~~~~\nx\n~~~\n<tool_call>\n<functi\nFAIL: a call quoted in Markdown code became a call or lost bytes: ``````\nx\n```\n<tool_call>\n<func\nFAIL: a call quoted in Markdown code became a call or lost bytes: ``````\n<tool_call>\n<function=w\nFAIL: a call quoted in Markdown code was held instead of streamed\nFAIL: a quoted example before a real call was not kept as text\n",
+    "fixture": "final expanded test_markdown_quoted_calls on unchanged v0.1.3 parser"
+  },
+  "unclosed_thinking": {
+    "exit_code": 1,
+    "output": "recovered calls=0 streamed=0\na call stranded in unclosed thinking was not recovered\nrecovered calls=0 streamed=1\na call stranded in unclosed thinking was not recovered across rounds\n"
+  }
+}

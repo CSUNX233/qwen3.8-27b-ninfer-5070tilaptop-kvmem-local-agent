@@ -44,6 +44,9 @@ struct OrdinaryDecodeIngress {
     std::array<std::int32_t, kMaximumConcurrency> text_kv_table_rows{};
     std::array<std::int32_t, kMaximumConcurrency> state_source_slots{};
     std::array<std::int32_t, kMaximumConcurrency> state_destination_slots{};
+    // The position each sampled token fills (cache position + 1), its decode sampling key: the key
+    // speculative verification draws that position with too (speculative_accept_coupled_drafts).
+    std::array<std::int32_t, kMaximumConcurrency> sample_positions{};
     std::array<ops::SamplingConfig, kMaximumConcurrency> sampling{};
 };
 
@@ -202,6 +205,7 @@ struct OrdinaryDecodeState {
     Tensor text_kv_table_rows;
     Tensor state_source_slots;
     Tensor state_destination_slots;
+    Tensor sample_positions;
     const ops::SamplingConfig* sampling = nullptr;
     Tensor sampled_tokens;
     Tensor logits;

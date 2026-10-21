@@ -22,6 +22,8 @@ struct SchedulerRequest {
     };
 
     struct Output {
+        std::optional<ninfer::TokenId> close_token;
+        bool close_pending = false;
         std::uint32_t model_tokens = 0;
         std::vector<ninfer::TokenId> control;
 
@@ -33,6 +35,10 @@ struct SchedulerRequest {
         [[nodiscard]] std::span<const ninfer::TokenId> pending_control_tokens() const noexcept {
             return control;
         }
+        [[nodiscard]] std::optional<ninfer::TokenId> reasoning_close_token() const noexcept {
+            return close_token;
+        }
+        [[nodiscard]] bool reasoning_close_pending() const noexcept { return close_pending; }
     };
 
     enum class State : std::uint8_t { Decode, Control };
@@ -50,6 +56,8 @@ struct SchedulerRequest {
     std::optional<Budget> budget;
     std::optional<SequenceHandle> sequence;
     Output output;
+    ninfer::runtime::ResolvedRequestOptions options;
+    bool post_thinking_applied = false;
 };
 
 int check(bool condition, const char* message) {
@@ -248,6 +256,50 @@ int main() {
     failures += check(model_membership.size == 1 &&
                           model_membership.budgets[0].generated_tokens_remaining == 3,
                       "model-token licensing changed");
+
+    slots[0]->output.close_token = 77;
+    slots[0]->output.close_pending = true;
+    const auto no_transition = scheduler.build_round_membership(slots, 1);
+    failures += check(!no_transition.budgets[0].sampling_boundary_token &&
+                          no_transition.budgets[0].generated_tokens_remaining == 3,
+                      "a request without a sampler transition acquired a close barrier");
+    slots[0]->options.execution.post_thinking_sampling.emplace();
+    const auto pending_close = scheduler.build_round_membership(slots, 1);
+    failures += check(pending_close.budgets[0].sampling_boundary_token == 77 &&
+                          pending_close.budgets[0].generated_tokens_remaining == 1 &&
+                          slots[0]->budget->remaining() == 11,
+                      "a pending close did not license exactly one separator target step");
+    slots[0]->output.model_tokens = 0;
+    failures += check(throws_logic([&] { (void)scheduler.build_round_membership(slots, 1); }),
+                      "the close barrier licensed a token past an exhausted model budget");
+    slots[0]->output.model_tokens = 3;
+    slots[0]->output.close_pending = false;
+    const auto before_close = scheduler.build_round_membership(slots, 1);
+    failures += check(before_close.budgets[0].sampling_boundary_token == 77 &&
+                          before_close.budgets[0].generated_tokens_remaining == 3,
+                      "the sampler barrier clamped normal reasoning rounds");
+    slots[0]->post_thinking_applied = true;
+    slots[0]->output.close_pending = true;
+    const auto after_close = scheduler.build_round_membership(slots, 1);
+    failures += check(!after_close.budgets[0].sampling_boundary_token &&
+                          after_close.budgets[0].generated_tokens_remaining == 3,
+                      "the sampler barrier remained after the transition was committed");
+
+    ninfer::runtime::RoundBudget boundary_budget{.generated_tokens_remaining = 20,
+                                                .sampling_boundary_token = 77};
+    const std::array<ninfer::TokenId, 5> proposals{7, 8, 77, 9, 77};
+    failures += check(boundary_budget.drafts_before_sampling_boundary(proposals).size() == 2 &&
+                          boundary_budget.drafts_before_sampling_boundary(
+                              std::span(proposals).subspan(2)).empty() &&
+                          boundary_budget.drafts_before_sampling_boundary(
+                              std::span(proposals).first(3)).size() == 2 &&
+                          boundary_budget.drafts_before_sampling_boundary(
+                              std::span(proposals).first(2)).size() == 2 &&
+                          boundary_budget.drafts_before_sampling_boundary({}).empty(),
+                      "speculation licensed a draft at or after the first sampler boundary");
+    boundary_budget.sampling_boundary_token.reset();
+    failures += check(boundary_budget.drafts_before_sampling_boundary(proposals).size() == 5,
+                      "a round without a transition lost draft tokens");
 
     const auto active_set = scheduler.active_admission_set(slots, 1);
     failures += check(active_set.size == 1 && active_set.requests[0].request_id == 21,

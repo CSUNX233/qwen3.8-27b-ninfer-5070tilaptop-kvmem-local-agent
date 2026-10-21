@@ -1,0 +1,110 @@
+[
+  {
+    "suite": "test_openai_schema",
+    "exit_code": 0,
+    "output": "OpenAI Chat protocol tests passed\n",
+    "grouped_cases": 14
+  },
+  {
+    "suite": "test_openai_responses",
+    "exit_code": 0,
+    "output": "ok\n",
+    "grouped_cases": 15
+  },
+  {
+    "suite": "test_openai_responses_store",
+    "exit_code": 0,
+    "output": "ok\n",
+    "grouped_cases": 3
+  },
+  {
+    "suite": "test_anthropic_schema",
+    "exit_code": 0,
+    "output": "Anthropic adapter checks passed\n",
+    "grouped_cases": 12
+  },
+  {
+    "suite": "test_prompt_input",
+    "exit_code": 0,
+    "output": "ok\n",
+    "grouped_cases": null
+  },
+  {
+    "suite": "test_sampling_defaults",
+    "exit_code": 0,
+    "output": "ok\n",
+    "grouped_cases": null
+  },
+  {
+    "suite": "test_serve_options",
+    "exit_code": 0,
+    "output": "ok\n",
+    "grouped_cases": null
+  },
+  {
+    "suite": "test_request_log",
+    "exit_code": 0,
+    "output": "ok\n",
+    "grouped_cases": null
+  },
+  {
+    "suite": "test_load_report",
+    "exit_code": 0,
+    "output": "",
+    "grouped_cases": null
+  },
+  {
+    "suite": "test_serve_metrics",
+    "exit_code": 0,
+    "output": "serve metrics render llama.cpp-compatible Prometheus series\n",
+    "grouped_cases": null
+  },
+  {
+    "suite": "test_http_error_handler",
+    "exit_code": 0,
+    "output": "ok\n",
+    "grouped_cases": null
+  },
+  {
+    "suite": "test_http_transport",
+    "exit_code": 0,
+    "output": "ok\n",
+    "grouped_cases": 1
+  },
+  {
+    "suite": "test_admission_policy",
+    "exit_code": 0,
+    "output": "ok\n",
+    "grouped_cases": null
+  },
+  {
+    "suite": "test_context_cost",
+    "exit_code": 0,
+    "output": "ok\n",
+    "grouped_cases": null
+  },
+  {
+    "suite": "test_kv_capacity",
+    "exit_code": 0,
+    "output": "ok\n",
+    "grouped_cases": null
+  },
+  {
+    "suite": "test_prefix_cache_index",
+    "exit_code": 0,
+    "output": "prefix cache index tests passed\n",
+    "grouped_cases": null
+  },
+  {
+    "suite": "test_resource_manager",
+    "exit_code": 0,
+    "output": "ok\n",
+    "grouped_cases": null
+  },
+  {
+    "suite": "text/test_structured_output",
+    "exit_code": 0,
+    "output": "OK structured grammar: masks, transaction, UTF-8, schema, EOS\n",
+    "grouped_cases": null
+  }
+]

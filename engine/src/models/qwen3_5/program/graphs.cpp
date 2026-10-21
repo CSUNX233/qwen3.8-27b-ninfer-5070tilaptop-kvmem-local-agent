@@ -303,6 +303,8 @@ void ProgramImpl::prepare_graphs() {
                 ordinary_host_ingress->tokens[row] = 0;
                 ordinary_host_ingress->cache_positions[row] =
                     checked_i32(frontier, "graph representative ordinary position");
+                ordinary_host_ingress->sample_positions[row] =
+                    checked_i32(frontier + 1U, "graph representative ordinary sample position");
                 ordinary_host_ingress->rope_positions[row] =
                     checked_i32(frontier, "graph representative ordinary RoPE position");
                 ordinary_host_ingress->text_kv_table_rows[row] = static_cast<std::int32_t>(row);

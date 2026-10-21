@@ -1027,6 +1027,11 @@ public:
     // Replaces the sampling of an active sequence from its next round; the grammar mask and the
     // penalty counts carry over.
     void update_sampling(SequenceHandle sequence, const ResolvedSamplingParameters& sampling);
+    // Committed reasoning-to-answer transition. Explicitly opt in to counting only answer
+    // tokens; ordinary update_sampling retains its carry-over contract.
+    void begin_post_thinking_sampling(SequenceHandle sequence,
+                                       const ResolvedSamplingParameters& sampling,
+                                       bool answer_only_penalty_counts);
     // Blocks until the open context transaction's submitted Host transfer completes, so an idle
     // worker resumes the transaction as soon as it can progress. Returns false, without
     // waiting, when no transfer is in flight. A failed transfer surfaces at the next progress.

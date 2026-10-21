@@ -157,6 +157,20 @@ ninfer_add_test(ninfer_tool_call_parser_test
   SOURCES "${CMAKE_CURRENT_LIST_DIR}/../../test_tool_call_parser.cpp"
   LIBRARIES ninfer_engine ninfer::json)
 
+# Focused contract regressions are independently runnable from inherited parser-tolerance tests.
+ninfer_add_test(ninfer_tool_output_recovery_test
+  STANDALONE
+  SOURCES "${CMAKE_CURRENT_LIST_DIR}/../../test_tool_call_parser.cpp"
+  LIBRARIES ninfer_engine ninfer::json)
+target_compile_definitions(ninfer_tool_output_recovery_test PRIVATE NINFER_TOOL_RECOVERY_ONLY=1)
+
+ninfer_add_test(ninfer_qwen3_5_tool_recovery_test
+  STANDALONE
+  SOURCES "${CMAKE_CURRENT_LIST_DIR}/test_frontend.cpp"
+  NEEDS_SOURCE_DIR
+  LIBRARIES ninfer_engine ninfer_core ninfer::json)
+target_compile_definitions(ninfer_qwen3_5_tool_recovery_test PRIVATE NINFER_TOOL_RECOVERY_ONLY=1)
+
 ninfer_add_test(ninfer_qwen3_5_visual_scatter_test
   SOURCES "${CMAKE_CURRENT_LIST_DIR}/test_visual_scatter.cpp"
   LIBRARIES ninfer_engine ninfer_core)

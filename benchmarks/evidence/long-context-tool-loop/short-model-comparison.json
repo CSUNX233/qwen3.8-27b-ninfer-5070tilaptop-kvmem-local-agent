@@ -1,0 +1,1482 @@
+{
+  "date": "2026-10-21",
+  "hardware": "RTX 5070 Ti Laptop 12GB / sm120a / 46 SM",
+  "scope": "One 818-token synthetic tool-choice fixture, ten fixed seeds 20359323..20359332; cold first request and 813 cached tokens thereafter.",
+  "request_bodies_identical_across_four_groups": true,
+  "request_sha256_by_seed": [
+    "1a3e4ebf34a19c02c245baba28e937b67fef71675c935a54d1c890381d22c4ec",
+    "036271e34946a78a1f13aaceb192329cf9a3766dee275acd1e5c453da8ff3b06",
+    "6c7d126f4b1d34da8ad5c5294350778eba590adf1a0f1195a8800c250f4ffaf4",
+    "47c10f314befbafd29cf23d5ad1323075c4f28424781e1f4f46d81ff15d5c5d4",
+    "8168f484f21783c34e18cb3622332c35375191832e71a8effe6f06cbe94de5e5",
+    "c692bcca43a370c0119b75bade6ad0d8cb7ffff7dc9b67a3138da6ceb9a42d10",
+    "28e6d4355517e17c238f428485b0e5e340d273fac03d30ad85f577223d76883a",
+    "9b70727e814a48aa854446f43b9a31ff8a60ef2b0b4e290685252ae616385178",
+    "9f81327b7fcbd47121bf0bb637fda649d1b7eb010d04a643483bd99c420fa814",
+    "9236c36904c5b975d70e4a65451bfab598b801c0d7c3a0b0a270eedbe9c6c1ad"
+  ],
+  "models": [
+    {
+      "file": "qwen3.8-27b-gsq-rco-iq3-xxs.ninfer",
+      "size": 10796660224,
+      "header_sha256": "ae7910034ce5bcf6de39871f56f6c6ee7334c0ffbdd9ff3cd12d9ca54363bfa4",
+      "components": [
+        "text",
+        "mtp"
+      ]
+    },
+    {
+      "file": "Huihui-Qwen3.8-27B-abliterated-Swift-1.5-GSQ-RCO-IQ3_XXS-mtp.ninfer",
+      "size": 10796660224,
+      "header_sha256": "9c4bee43cf117d686d0ac79c7a4cfdb7a56425263aab8a1fff2ccba595c703e5",
+      "components": [
+        "text",
+        "mtp"
+      ]
+    }
+  ],
+  "model_header_comparison": {
+    "header_equality": {
+      "metadata": false,
+      "components": true,
+      "bindings": true,
+      "uses": true
+    }
+  },
+  "settings": "Original enhanced template, production two-phase sampling, xhigh, NVFP4 KV, FP16 GDN state, MTP3/ngram15, unchanged context and retrieval budget; no-spec diagnostics explicitly separate.",
+  "groups": {
+    "huihui_daily": {
+      "total": 10,
+      "passed": 9,
+      "failed_seeds": [
+        20359331
+      ],
+      "failed_labels": [
+        "short-8"
+      ],
+      "engine_sha256": "b1f8326fceeed5d9c5bcd9db30fc166947c1382599358b964fa5500da582f941",
+      "rows": [
+        {
+          "label": "short-0",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 0,
+          "completion_tokens": 1326,
+          "wall_seconds": 12.964081200014334
+        },
+        {
+          "label": "short-1",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1119,
+          "wall_seconds": 9.98967479998828
+        },
+        {
+          "label": "short-2",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 741,
+          "wall_seconds": 7.953899500018451
+        },
+        {
+          "label": "short-3",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1112,
+          "wall_seconds": 10.262936799990712
+        },
+        {
+          "label": "short-4",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1082,
+          "wall_seconds": 9.35147799999686
+        },
+        {
+          "label": "short-5",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1245,
+          "wall_seconds": 14.171263900003396
+        },
+        {
+          "label": "short-6",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1499,
+          "wall_seconds": 16.73721699998714
+        },
+        {
+          "label": "short-7",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 821,
+          "wall_seconds": 8.868098300008569
+        },
+        {
+          "label": "short-8",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "tool_functions": [
+            "read_record"
+          ],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1640,
+          "wall_seconds": 19.20676309999544
+        },
+        {
+          "label": "short-9",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 785,
+          "wall_seconds": 8.51932309998665
+        }
+      ]
+    },
+    "huihui_candidate": {
+      "total": 10,
+      "passed": 9,
+      "failed_seeds": [
+        20359329
+      ],
+      "failed_labels": [
+        "short-6"
+      ],
+      "engine_sha256": "153f562272c10e603e84cfd9d5bbf9ceb296270139dad52708ac96f8ecd4a808",
+      "rows": [
+        {
+          "label": "short-0",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 0,
+          "completion_tokens": 1477,
+          "wall_seconds": 16.208893400005763
+        },
+        {
+          "label": "short-1",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 854,
+          "wall_seconds": 8.710310599999502
+        },
+        {
+          "label": "short-2",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1017,
+          "wall_seconds": 9.86407589999726
+        },
+        {
+          "label": "short-3",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1379,
+          "wall_seconds": 14.59828059998108
+        },
+        {
+          "label": "short-4",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 833,
+          "wall_seconds": 10.41761130001396
+        },
+        {
+          "label": "short-5",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1178,
+          "wall_seconds": 11.518083999981172
+        },
+        {
+          "label": "short-6",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "tool_functions": [
+            "read_record"
+          ],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1721,
+          "wall_seconds": 17.237512299994705
+        },
+        {
+          "label": "short-7",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 903,
+          "wall_seconds": 10.751314599998295
+        },
+        {
+          "label": "short-8",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1044,
+          "wall_seconds": 12.45712109998567
+        },
+        {
+          "label": "short-9",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1694,
+          "wall_seconds": 18.50664200002211
+        }
+      ]
+    },
+    "gsq_daily": {
+      "total": 10,
+      "passed": 5,
+      "failed_seeds": [
+        20359325,
+        20359327,
+        20359328,
+        20359329,
+        20359332
+      ],
+      "failed_labels": [
+        "short-2",
+        "short-4",
+        "short-5",
+        "short-6",
+        "short-9"
+      ],
+      "engine_sha256": "b1f8326fceeed5d9c5bcd9db30fc166947c1382599358b964fa5500da582f941",
+      "rows": [
+        {
+          "label": "short-0",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 0,
+          "completion_tokens": 1314,
+          "wall_seconds": 16.35497309998027
+        },
+        {
+          "label": "short-1",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 909,
+          "wall_seconds": 9.030480499990517
+        },
+        {
+          "label": "short-2",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "tool_functions": [
+            "read_record"
+          ],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 715,
+          "wall_seconds": 7.730740800005151
+        },
+        {
+          "label": "short-3",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1309,
+          "wall_seconds": 13.969700899993768
+        },
+        {
+          "label": "short-4",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "tool_functions": [
+            "read_record"
+          ],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 679,
+          "wall_seconds": 7.400346199981868
+        },
+        {
+          "label": "short-5",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "tool_functions": [
+            "read_record"
+          ],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 728,
+          "wall_seconds": 7.88909589999821
+        },
+        {
+          "label": "short-6",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "tool_functions": [
+            "read_record"
+          ],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 663,
+          "wall_seconds": 7.279412700008834
+        },
+        {
+          "label": "short-7",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 885,
+          "wall_seconds": 8.782340899982955
+        },
+        {
+          "label": "short-8",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 648,
+          "wall_seconds": 7.787003900011769
+        },
+        {
+          "label": "short-9",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "tool_functions": [
+            "read_record"
+          ],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 548,
+          "wall_seconds": 6.514244499994675
+        }
+      ]
+    },
+    "gsq_candidate": {
+      "total": 10,
+      "passed": 7,
+      "failed_seeds": [
+        20359323,
+        20359324,
+        20359329
+      ],
+      "failed_labels": [
+        "short-0",
+        "short-1",
+        "short-6"
+      ],
+      "engine_sha256": "153f562272c10e603e84cfd9d5bbf9ceb296270139dad52708ac96f8ecd4a808",
+      "rows": [
+        {
+          "label": "short-0",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "tool_functions": [
+            "read_record"
+          ],
+          "prompt_tokens": 818,
+          "cached_tokens": 0,
+          "completion_tokens": 639,
+          "wall_seconds": 7.13505549999536
+        },
+        {
+          "label": "short-1",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "tool_functions": [
+            "read_record"
+          ],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 735,
+          "wall_seconds": 7.907342200021958
+        },
+        {
+          "label": "short-2",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1193,
+          "wall_seconds": 12.913665300002322
+        },
+        {
+          "label": "short-3",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 1052,
+          "wall_seconds": 11.460858900012681
+        },
+        {
+          "label": "short-4",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 985,
+          "wall_seconds": 9.227117000002181
+        },
+        {
+          "label": "short-5",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 684,
+          "wall_seconds": 8.06196859999909
+        },
+        {
+          "label": "short-6",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "tool_functions": [
+            "read_record"
+          ],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 690,
+          "wall_seconds": 7.323377199994866
+        },
+        {
+          "label": "short-7",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 964,
+          "wall_seconds": 9.554622999974526
+        },
+        {
+          "label": "short-8",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 636,
+          "wall_seconds": 6.9237689999863505
+        },
+        {
+          "label": "short-9",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "tool_functions": [],
+          "prompt_tokens": 818,
+          "cached_tokens": 813,
+          "completion_tokens": 985,
+          "wall_seconds": 10.01692669998738
+        }
+      ]
+    }
+  },
+  "diagnostics": {
+    "gdn-no-spec": {
+      "engine_sha256": "153f562272c10e603e84cfd9d5bbf9ceb296270139dad52708ac96f8ecd4a808",
+      "mode": "no-spec",
+      "rows": [
+        {
+          "label": "short-6",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "cached_tokens": 0,
+          "completion_tokens": 1479,
+          "wall_seconds": 34.61380449999706
+        },
+        {
+          "label": "short-6-repeat-1",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "cached_tokens": 813,
+          "completion_tokens": 1479,
+          "wall_seconds": 33.70101349998731
+        },
+        {
+          "label": "short-8",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "cached_tokens": 813,
+          "completion_tokens": 638,
+          "wall_seconds": 14.507972199993674
+        }
+      ]
+    },
+    "gsq-gdn-no-spec": {
+      "engine_sha256": "153f562272c10e603e84cfd9d5bbf9ceb296270139dad52708ac96f8ecd4a808",
+      "mode": "no-spec",
+      "rows": [
+        {
+          "label": "short-0",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "cached_tokens": 0,
+          "completion_tokens": 917,
+          "wall_seconds": 22.036900399980368
+        },
+        {
+          "label": "short-1",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "cached_tokens": 813,
+          "completion_tokens": 693,
+          "wall_seconds": 15.817275100009283
+        },
+        {
+          "label": "short-1-repeat-1",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "cached_tokens": 813,
+          "completion_tokens": 693,
+          "wall_seconds": 15.883699800004251
+        },
+        {
+          "label": "short-6",
+          "passed": true,
+          "finish_reason": "stop",
+          "grade": {
+            "correct": 10,
+            "total": 10,
+            "checks": {
+              "ASTER-71": true,
+              "BRIDGE-39": true,
+              "CIRRUS-82": true,
+              "DELTA-26": true,
+              "EMBER-54": true,
+              "FROST-93": true,
+              "GROVE-48": true,
+              "HARBOR-65": true,
+              "READY_TOTAL": true,
+              "TRANSFER_TOTAL": true
+            }
+          },
+          "cached_tokens": 813,
+          "completion_tokens": 875,
+          "wall_seconds": 19.94254109999747
+        }
+      ]
+    },
+    "gsq-gdn-reproduce": {
+      "engine_sha256": "153f562272c10e603e84cfd9d5bbf9ceb296270139dad52708ac96f8ecd4a808",
+      "mode": "baseline",
+      "rows": [
+        {
+          "label": "short-0",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "cached_tokens": 0,
+          "completion_tokens": 639,
+          "wall_seconds": 7.343519399990328
+        },
+        {
+          "label": "short-1",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "cached_tokens": 813,
+          "completion_tokens": 735,
+          "wall_seconds": 7.720367799978703
+        },
+        {
+          "label": "short-1-repeat-1",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "cached_tokens": 813,
+          "completion_tokens": 735,
+          "wall_seconds": 7.675935899984324
+        },
+        {
+          "label": "short-6",
+          "passed": false,
+          "finish_reason": "tool_calls",
+          "grade": {
+            "correct": 0,
+            "total": 10,
+            "checks": {
+              "ASTER-71": false,
+              "BRIDGE-39": false,
+              "CIRRUS-82": false,
+              "DELTA-26": false,
+              "EMBER-54": false,
+              "FROST-93": false,
+              "GROVE-48": false,
+              "HARBOR-65": false,
+              "READY_TOTAL": false,
+              "TRANSFER_TOTAL": false
+            }
+          },
+          "cached_tokens": 813,
+          "completion_tokens": 690,
+          "wall_seconds": 7.385228500002995
+        }
+      ],
+      "text_and_tool_reproduction": [
+        {
+          "label": "short-0",
+          "equal_text_and_tool_function": true
+        },
+        {
+          "label": "short-1",
+          "equal_text_and_tool_function": true
+        },
+        {
+          "label": "short-1-repeat-1",
+          "equal_text_and_tool_function": true
+        },
+        {
+          "label": "short-6",
+          "equal_text_and_tool_function": true
+        }
+      ]
+    },
+    "paired_gsq_reproduction_and_no_spec_identical_request_bodies": true
+  },
+  "limitations": [
+    "Ten seeds share one fixture and do not measure overall model quality.",
+    "Both models share architecture, quantization family, tokenizer setup and inference stack; a shared failure cannot alone identify model versus engine root cause.",
+    "No independent inference implementation or higher-precision weight comparison was run.",
+    "No-spec trials are selected-seed diagnostics, not a production configuration change."
+  ]
+}

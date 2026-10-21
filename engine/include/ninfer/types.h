@@ -677,6 +677,8 @@ struct ToolCallParseDiagnostics {
     bool malformed_call_reported = false;
     // Text after the last call; the model is predicting a tool result there, so it is dropped.
     bool trailing_content_dropped = false;
+    // The structured calls came from a turn that ended on its stop token inside unclosed thinking.
+    bool recovered_from_reasoning = false;
 
     [[nodiscard]] friend constexpr bool
     operator==(const ToolCallParseDiagnostics&, const ToolCallParseDiagnostics&) noexcept = default;

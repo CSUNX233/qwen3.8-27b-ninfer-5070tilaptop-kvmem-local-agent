@@ -1,0 +1,915 @@
+{
+  "execution": "Each inherited test function ran in a separate process, so the pre-existing abort does not hide later results. Focused tests were separately compiled/linked; the old CMake tree was not reconfigured.",
+  "before": {
+    "parser": [
+      {
+        "test": "test_duplicate_parameter_keeps_last_value",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_constrained_tool_envelope",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_basic_legacy_parsing",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_forced_call_decoder",
+        "exit_code": 1,
+        "output": "FAIL: a cut-off forced call was not reported against its tool\n"
+      },
+      {
+        "test": "test_multiple_calls",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_declared_strings_preserve_text",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_string_values_preserve_embedded_tool_markup",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_unrepresentable_parameter_delimiters_are_reported",
+        "exit_code": 1,
+        "output": "FAIL: structurally ambiguous parameter close was guessed\n"
+      },
+      {
+        "test": "test_quoted_parameter_close_stays_in_value",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_declared_json_types",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_boolean_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_exact_integer_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_composed_schema_types",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_empty_declared_non_string_is_omitted",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_schema_mismatches_remain_structured",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_unsupported_schema_uses_legacy_policy",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_recovery_of_strict_failures",
+        "exit_code": 3221226505,
+        "output": "FAIL: missing structural tags were accepted\n"
+      },
+      {
+        "test": "test_queue_failures_are_recovered",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_name_limits_and_non_strict_omissions",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_conflicting_duplicate_tool_contracts_use_legacy_normalization",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_partial_region_keeps_complete_calls",
+        "exit_code": 1,
+        "output": "FAIL: a cut-off second call was not reported\n"
+      },
+      {
+        "test": "test_quoted_marker_before_real_call",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_quoted_marker_recovery_keeps_the_whole_turn",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_marker_attempts_are_bounded",
+        "exit_code": 1,
+        "output": "FAIL: markers past the attempt bound were still tried\n"
+      },
+      {
+        "test": "test_later_candidate_must_consume_the_end",
+        "exit_code": 1,
+        "output": "FAIL: a quoted marker before a non-terminal call was partially committed\n"
+      },
+      {
+        "test": "test_incremental_quoted_marker_preserves_bytes",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_incremental_valid_and_boolean",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_incremental_fallback_preserves_bytes",
+        "exit_code": 1,
+        "output": "FAIL: malformed incremental call was not reported to the client\nFAIL: prose naming the tag lost raw bytes\n"
+      },
+      {
+        "test": "test_incremental_embedded_parameter_markup",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_claude_code_xml_markup_variants",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_duplicate_parameters_keep_last_value",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_attribute_token_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_mismatched_closing_tags_reported",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_harness_forms_recovery_and_streaming",
+        "exit_code": 1,
+        "output": "FAIL: a cut-off second invoke was not reported\n"
+      },
+      {
+        "test": "test_claude_code_plan_and_task_create_exact_repro",
+        "exit_code": 0,
+        "output": ""
+      }
+    ],
+    "frontend": [
+      {
+        "test": "test_declared_frontend_semantics",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_ngram_proposal_only_sources",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_tokenizer_config_merge",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_bpe_merge_order",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_boundary_aware_tokenization",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_rendered_special_tokens",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_developer_role_without_template_support",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_repeated_special_tokens_scan_linearly",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_bounded_tokenizer_prefix",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_context_capacity_guard",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_selected_template_instruction_prefix",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_assistant_continuation",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_rewrite_checkpoint_trace",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_adjacent_tool_message_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_literal_cache_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_selected_template_recovery_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_official_resource_guards",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_template_file_execution",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_invalid_public_part_enums",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_text_and_image_prepare",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_token_ids_come_from_tokenizer",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_template_media_contract",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_image_resize_rejection_policy",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_explicit_leading_instruction_cache_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_engine_automatic_long_anchor_opportunities",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_engine_automatic_long_anchor_spacing",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_admission_uses_aggregate_resources",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_multimodal_prompt_over_removed_32k_cap",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_attention_pairs_are_diagnostic",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_video_prepare",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_cross_round_stop",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_same_token_stop_priority",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_terminal_flush",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_structured_tool_output",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_forced_tool_call",
+        "exit_code": 1,
+        "output": "an unfinished argument was not reported as a malformed call\n"
+      },
+      {
+        "test": "test_tool_marker_after_quoted_marker",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_reasoning_split",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_reasoning_close_requires_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_reasoning_close_resolves_at_terminal",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_thinking_budget_control",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_thinking_budget_ignores_quoted_close",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_structured_thinking_control",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_thinking_budget_message",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_utf8_and_hidden_eos",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_cache_reuses_immutable_payload",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_payload_outlives_frontend_cache",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_live_bytes_follow_last_payload_reference",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_cache_singleflight",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_cache_runs_independent_misses_in_parallel",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_many_images_prepare_in_one_parallel_batch",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_preparation_cancellation",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_invalid_media_classification",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_disabled_vision",
+        "exit_code": 0,
+        "output": ""
+      }
+    ]
+  },
+  "after": {
+    "parser": [
+      {
+        "test": "test_duplicate_parameter_keeps_last_value",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_constrained_tool_envelope",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_basic_legacy_parsing",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_forced_call_decoder",
+        "exit_code": 1,
+        "output": "FAIL: a cut-off forced call was not reported against its tool\n"
+      },
+      {
+        "test": "test_multiple_calls",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_declared_strings_preserve_text",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_string_values_preserve_embedded_tool_markup",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_unrepresentable_parameter_delimiters_are_reported",
+        "exit_code": 1,
+        "output": "FAIL: structurally ambiguous parameter close was guessed\n"
+      },
+      {
+        "test": "test_quoted_parameter_close_stays_in_value",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_declared_json_types",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_boolean_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_exact_integer_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_composed_schema_types",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_empty_declared_non_string_is_omitted",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_schema_mismatches_remain_structured",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_unsupported_schema_uses_legacy_policy",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_recovery_of_strict_failures",
+        "exit_code": 3221226505,
+        "output": "FAIL: missing structural tags were accepted\n"
+      },
+      {
+        "test": "test_queue_failures_are_recovered",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_name_limits_and_non_strict_omissions",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_conflicting_duplicate_tool_contracts_use_legacy_normalization",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_partial_region_keeps_complete_calls",
+        "exit_code": 1,
+        "output": "FAIL: a cut-off second call was not reported\n"
+      },
+      {
+        "test": "test_quoted_marker_before_real_call",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_quoted_marker_recovery_keeps_the_whole_turn",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_marker_attempts_are_bounded",
+        "exit_code": 1,
+        "output": "FAIL: markers past the attempt bound were still tried\n"
+      },
+      {
+        "test": "test_later_candidate_must_consume_the_end",
+        "exit_code": 1,
+        "output": "FAIL: a quoted marker before a non-terminal call was partially committed\n"
+      },
+      {
+        "test": "test_incremental_quoted_marker_preserves_bytes",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_incremental_valid_and_boolean",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_incremental_fallback_preserves_bytes",
+        "exit_code": 1,
+        "output": "FAIL: malformed incremental call was not reported to the client\nFAIL: prose naming the tag lost raw bytes\n"
+      },
+      {
+        "test": "test_incremental_embedded_parameter_markup",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_claude_code_xml_markup_variants",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_duplicate_parameters_keep_last_value",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_attribute_token_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_unterminated_quoted_names",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_markdown_quoted_calls",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_open_reasoning_recovery",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_mismatched_closing_tags_reported",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_harness_forms_recovery_and_streaming",
+        "exit_code": 1,
+        "output": "FAIL: a cut-off second invoke was not reported\n"
+      },
+      {
+        "test": "test_claude_code_plan_and_task_create_exact_repro",
+        "exit_code": 0,
+        "output": ""
+      }
+    ],
+    "frontend": [
+      {
+        "test": "test_declared_frontend_semantics",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_ngram_proposal_only_sources",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_tokenizer_config_merge",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_bpe_merge_order",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_boundary_aware_tokenization",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_rendered_special_tokens",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_developer_role_without_template_support",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_repeated_special_tokens_scan_linearly",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_bounded_tokenizer_prefix",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_context_capacity_guard",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_selected_template_instruction_prefix",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_assistant_continuation",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_rewrite_checkpoint_trace",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_adjacent_tool_message_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_literal_cache_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_selected_template_recovery_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_official_resource_guards",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_template_file_execution",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_invalid_public_part_enums",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_text_and_image_prepare",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_token_ids_come_from_tokenizer",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_template_media_contract",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_image_resize_rejection_policy",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_explicit_leading_instruction_cache_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_engine_automatic_long_anchor_opportunities",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_engine_automatic_long_anchor_spacing",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_admission_uses_aggregate_resources",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_multimodal_prompt_over_removed_32k_cap",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_attention_pairs_are_diagnostic",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_video_prepare",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_cross_round_stop",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_same_token_stop_priority",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_terminal_flush",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_structured_tool_output",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_open_reasoning_tool_recovery",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_forced_tool_call",
+        "exit_code": 1,
+        "output": "an unfinished argument was not reported as a malformed call\n"
+      },
+      {
+        "test": "test_tool_marker_after_quoted_marker",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_reasoning_split",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_reasoning_close_requires_boundary",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_reasoning_close_resolves_at_terminal",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_thinking_budget_control",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_thinking_budget_ignores_quoted_close",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_structured_thinking_control",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_thinking_budget_message",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_utf8_and_hidden_eos",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_cache_reuses_immutable_payload",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_payload_outlives_frontend_cache",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_live_bytes_follow_last_payload_reference",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_cache_singleflight",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_cache_runs_independent_misses_in_parallel",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_many_images_prepare_in_one_parallel_batch",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_media_preparation_cancellation",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_invalid_media_classification",
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "test": "test_disabled_vision",
+        "exit_code": 0,
+        "output": ""
+      }
+    ]
+  }
+}

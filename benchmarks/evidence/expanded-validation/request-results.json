@@ -1,0 +1,1128 @@
+{
+  "": [
+    {
+      "request_id": 1,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 68,
+        "computed_prefill_tokens": 53,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 53,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 1.0141447,
+        "prefill": 0.2001317,
+        "prepare": 0.0004272,
+        "total": 1.2373281,
+        "ttft": 0.22054459999999998,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 2,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 60,
+        "computed_prefill_tokens": 72,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 72,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.6848457,
+        "prefill": 0.3258009,
+        "prepare": 0.0004806,
+        "total": 1.0578551999999999,
+        "ttft": 0.3713343,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 3,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 8,
+        "computed_prefill_tokens": 68,
+        "finish_reason": "output_limit",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": false,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 68,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.11028270000000001,
+        "prefill": 0.18316509999999997,
+        "prepare": 0.0005288,
+        "total": 0.3414781,
+        "ttft": 0.2307083,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 4,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 27,
+        "computed_prefill_tokens": 75,
+        "finish_reason": "stop_string",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": false,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 75,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.331387,
+        "prefill": 0.21662000000000003,
+        "prepare": 0.0004738,
+        "total": 0.5887821999999999,
+        "ttft": 0.25643740000000004,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 5,
+      "protocol": "openai_responses",
+      "result": {
+        "completion_tokens": 35,
+        "computed_prefill_tokens": 68,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 68,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.40631570000000006,
+        "prefill": 0.1822424,
+        "prepare": 0.0006409,
+        "total": 0.6369698,
+        "ttft": 0.2294926,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 6,
+      "protocol": "openai_responses",
+      "result": {
+        "completion_tokens": 55,
+        "computed_prefill_tokens": 23,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 102,
+        "prefix_reuse_path": "private_endpoint",
+        "prompt_tokens": 125,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.7356152,
+        "prefill": 0.13975159999999998,
+        "prepare": 0.0009324,
+        "total": 0.8946598,
+        "ttft": 0.1562212,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 7,
+      "protocol": "openai_responses",
+      "result": {
+        "completion_tokens": 45,
+        "computed_prefill_tokens": 62,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 62,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.4569288999999999,
+        "prefill": 0.17315170000000002,
+        "prepare": 0.00062,
+        "total": 0.6676128,
+        "ttft": 0.2090442,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 8,
+      "protocol": "anthropic_messages",
+      "result": {
+        "completion_tokens": 44,
+        "computed_prefill_tokens": 67,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 67,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.4167666,
+        "prefill": 0.1733476,
+        "prepare": 0.0005944,
+        "total": 0.6246964,
+        "ttft": 0.2068616,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 9,
+      "protocol": "anthropic_messages",
+      "result": {
+        "completion_tokens": 53,
+        "computed_prefill_tokens": 5,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 62,
+        "prefix_reuse_path": "private_turn_closure",
+        "prompt_tokens": 67,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.4653952999999999,
+        "prefill": 0.07808,
+        "prepare": 0.0006874,
+        "total": 0.5467281,
+        "ttft": 0.0799051,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 10,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 172,
+        "computed_prefill_tokens": 380,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 380,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 1,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": true,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 1,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 2.025831599999999,
+        "prefill": 0.44087740000000003,
+        "prepare": 0.0008125,
+        "total": 2.5133589,
+        "ttft": 0.4833906,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 11,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 86,
+        "computed_prefill_tokens": 347,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 347,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 2,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": true,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 2,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.8287852000000001,
+        "prefill": 0.43448029999999993,
+        "prepare": 0.0009882,
+        "total": 1.3080976000000002,
+        "ttft": 0.4767044,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 13,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 51,
+        "computed_prefill_tokens": 64,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 64,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.4653414,
+        "prefill": 0.1723334,
+        "prepare": 0.0005081,
+        "total": 0.6703867,
+        "ttft": 0.20373670000000002,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 14,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 70,
+        "computed_prefill_tokens": 16080,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 16080,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.8106207999999999,
+        "prefill": 19.474518900000007,
+        "prepare": 0.0106088,
+        "total": 20.3385967,
+        "ttft": 19.5257709,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 15,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 115,
+        "computed_prefill_tokens": 30,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 16149,
+        "prefix_reuse_path": "private_endpoint",
+        "prompt_tokens": 16179,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 1.5822119000000001,
+        "prefill": 0.1599215,
+        "prepare": 0.0068899,
+        "total": 1.7696236,
+        "ttft": 0.1835433,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 16,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 53,
+        "computed_prefill_tokens": 16179,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 16179,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.6212706,
+        "prefill": 18.05231279999998,
+        "prepare": 0.0096762,
+        "total": 18.741933900000003,
+        "ttft": 18.114634900000002,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 17,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 1950,
+        "computed_prefill_tokens": 98592,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 98592,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 1,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": true,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 1,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 24.141263900000023,
+        "prefill": 237.1789747,
+        "prepare": 0.16141,
+        "total": 261.8029293,
+        "ttft": 237.56104839999998,
+        "vision": 0.0
+      }
+    }
+  ],
+  "-supplement": [
+    {
+      "request_id": 2,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 1,
+        "computed_prefill_tokens": 372,
+        "finish_reason": "output_limit",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": false,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 372,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 1,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "malformed_structure",
+          "forced_call_closed": false,
+          "malformed_call_reported": true,
+          "marker_seen": true,
+          "recovered": true,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 1,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.0,
+        "prefill": 0.6064498,
+        "prepare": 0.0008813,
+        "total": 0.6306282999999999,
+        "ttft": 0.6303023999999999,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 3,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 8,
+        "computed_prefill_tokens": 0,
+        "finish_reason": "output_limit",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": false,
+        "prefix_cache_hit_tokens": 372,
+        "prefix_reuse_path": "private_endpoint",
+        "prompt_tokens": 372,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 1,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "malformed_structure",
+          "forced_call_closed": false,
+          "malformed_call_reported": true,
+          "marker_seen": true,
+          "recovered": true,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 1,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.06488870000000001,
+        "prefill": 0.020759,
+        "prepare": 0.0022337,
+        "total": 0.08926250000000001,
+        "ttft": 0.023835299999999997,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 4,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 16,
+        "computed_prefill_tokens": 15,
+        "finish_reason": "output_limit",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": false,
+        "prefix_cache_hit_tokens": 357,
+        "prefix_reuse_path": "private_turn_closure",
+        "prompt_tokens": 372,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 1,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "malformed_structure",
+          "forced_call_closed": false,
+          "malformed_call_reported": true,
+          "marker_seen": true,
+          "recovered": true,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 1,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.1300718,
+        "prefill": 0.12041380000000002,
+        "prepare": 0.0008082,
+        "total": 0.25319559999999997,
+        "ttft": 0.12221409999999999,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 5,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 64,
+        "computed_prefill_tokens": 15,
+        "finish_reason": "output_limit",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": false,
+        "prefix_cache_hit_tokens": 357,
+        "prefix_reuse_path": "private_turn_closure",
+        "prompt_tokens": 372,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 1,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "malformed_structure",
+          "forced_call_closed": false,
+          "malformed_call_reported": true,
+          "marker_seen": true,
+          "recovered": true,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 1,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.4526630000000001,
+        "prefill": 0.11923009999999999,
+        "prepare": 0.0008254,
+        "total": 0.5748752,
+        "ttft": 0.12082530000000001,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 6,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 88,
+        "computed_prefill_tokens": 15,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": false,
+        "prefix_cache_hit_tokens": 357,
+        "prefix_reuse_path": "private_turn_closure",
+        "prompt_tokens": 372,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 1,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": true,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 1,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.6498430000000002,
+        "prefill": 0.1257737,
+        "prepare": 0.0007478,
+        "total": 0.7788269999999999,
+        "ttft": 0.1273609,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 7,
+      "protocol": "openai_responses",
+      "result": {
+        "completion_tokens": 91,
+        "computed_prefill_tokens": 331,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 331,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 1,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": true,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 1,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 1.2250170999999996,
+        "prefill": 0.441658,
+        "prepare": 0.000947,
+        "total": 1.7200562,
+        "ttft": 0.4921123,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 8,
+      "protocol": "openai_responses",
+      "result": {
+        "completion_tokens": 63,
+        "computed_prefill_tokens": 45,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 421,
+        "prefix_reuse_path": "private_endpoint",
+        "prompt_tokens": 466,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.7447543,
+        "prefill": 0.15668919999999997,
+        "prepare": 0.0014855,
+        "total": 0.919131,
+        "ttft": 0.1722077,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 9,
+      "protocol": "anthropic_messages",
+      "result": {
+        "completion_tokens": 65,
+        "computed_prefill_tokens": 332,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 332,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 1,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": true,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 1,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.7110832,
+        "prefill": 0.4487728,
+        "prepare": 0.0008168,
+        "total": 1.1987835,
+        "ttft": 0.4861287,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 10,
+      "protocol": "anthropic_messages",
+      "result": {
+        "completion_tokens": 56,
+        "computed_prefill_tokens": 46,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 396,
+        "prefix_reuse_path": "private_endpoint",
+        "prompt_tokens": 442,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 0.5458789999999999,
+        "prefill": 0.1577801,
+        "prepare": 0.0013614,
+        "total": 0.719513,
+        "ttft": 0.1719736,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 12,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 558,
+        "computed_prefill_tokens": 64,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 64,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 0,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": false,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 0,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 6.923181899999998,
+        "prefill": 0.1753404,
+        "prepare": 0.0004847,
+        "total": 7.1514511,
+        "ttft": 0.2132761,
+        "vision": 0.0
+      }
+    }
+  ],
+  "-long-followup": [
+    {
+      "request_id": 1,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 1950,
+        "computed_prefill_tokens": 98592,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 0,
+        "prefix_reuse_path": "root",
+        "prompt_tokens": 98592,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 1,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": true,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 1,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 25.05799820000001,
+        "prefill": 240.6411350000001,
+        "prepare": 0.1085515,
+        "total": 266.1067379,
+        "ttft": 240.8405054,
+        "vision": 0.0
+      }
+    },
+    {
+      "request_id": 2,
+      "protocol": "openai_chat_completions",
+      "result": {
+        "completion_tokens": 333,
+        "computed_prefill_tokens": 93,
+        "finish_reason": "stop_token",
+        "model_thinking_tokens": 0,
+        "post_thinking_sampling": true,
+        "prefix_cache_hit_tokens": 100541,
+        "prefix_reuse_path": "private_endpoint",
+        "prompt_tokens": 100634,
+        "thinking_budget": null,
+        "thinking_control_applied": false,
+        "thinking_control_tokens": 0,
+        "tool_call_count": 1,
+        "tool_call_parse": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": true,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 1,
+          "trailing_content_dropped": false
+        }
+      },
+      "timings_seconds": {
+        "decode": 4.033638900000001,
+        "prefill": 0.4805195,
+        "prepare": 0.0914447,
+        "total": 4.7167906,
+        "ttft": 0.6395366,
+        "vision": 0.0
+      }
+    }
+  ]
+}

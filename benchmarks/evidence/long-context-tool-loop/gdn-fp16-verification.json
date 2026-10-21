@@ -1,0 +1,1940 @@
+{
+  "date": "2026-10-21",
+  "source_commit": "389791f834880e77f31fcb46ebe288918074882e",
+  "hardware": "RTX 5070 Ti Laptop 12GB / sm120a / 46 SM",
+  "installed": false,
+  "daily_engine_sha256": "b1f8326fceeed5d9c5bcd9db30fc166947c1382599358b964fa5500da582f941",
+  "rollback_engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+  "candidate_engine_sha256": "153f562272c10e603e84cfd9d5bbf9ceb296270139dad52708ac96f8ecd4a808",
+  "implementation": "Independent downstream fix: FP16 per-token state-storage rounding in GDN record and fold, after current output readout.",
+  "build_scope": "One freshly rebuilt recurrent.cu on installed partition-candidate objects: 71 Host and 11 CUDA overrides; original archives reused, not clean build.",
+  "unchanged_configuration": {
+    "kv": "nvfp4",
+    "gdn_state": "fp16",
+    "reasoning": "xhigh",
+    "spec": "mtp",
+    "draft_tokens": 3,
+    "ngram_draft_tokens": 15,
+    "max_context": 262144,
+    "kv_tokens": 39168,
+    "host_kv_mib": 7168,
+    "sink_tokens": 12288,
+    "recent_tokens": 19456,
+    "retrieve_tokens": 6144,
+    "prefill_chunk": 128,
+    "template": "original",
+    "sampling": "production values"
+  },
+  "baseline_contracts": [
+    {
+      "suite": "record",
+      "exit_code": 1,
+      "seconds": 22.761608700006036,
+      "output": "FAIL gated_delta_net_replay_record\nreplay record output state=fp16 Hv=32 T=2 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=32 T=2 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=32 T=4 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=32 T=4 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=32 T=16 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=32 T=16 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=32 T=17 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=32 T=17 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=32 T=32 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=32 T=32 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=32 T=64 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=32 T=64 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=32 T=16 B=8: BF16 bits differ\nreplay record output state=fp16 Hv=48 T=2 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=48 T=2 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=48 T=4 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=48 T=4 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=48 T=16 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=48 T=16 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=48 T=17 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=48 T=17 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=48 T=32 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=48 T=32 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=48 T=64 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=48 T=64 B=1: BF16 bits differ\nreplay record output state=fp16 Hv=48 T=16 B=8: BF16 bits differ\n",
+      "test_source_sha256": "e495b1fb08cb8c8387a67a32ad199d7bc5031a71ed11b89e6784002efa6e0587"
+    },
+    {
+      "suite": "fold-fp16",
+      "exit_code": 1,
+      "seconds": 13.44394139997894,
+      "output": "FAIL FP16 gdn_replay_fold\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=2 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=4 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=4 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=4 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=16 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=16 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=16 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=17 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=17 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=17 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=32 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=32 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=32 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=64 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=64 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=64 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=3 Hv=48 T=16 B=8 layer=0 row=2\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=2 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=4 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=4 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=4 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=16 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=16 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=16 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=17 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=17 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=17 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=32 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=32 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=32 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=64 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=64 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=64 B=1 layer=0 row=0\nfold recurrent state differs from Nth snapshot state=fp16 L=2 Hv=32 T=16 B=8 layer=0 row=2\n",
+      "test_source_sha256": "3e4d3b67190ddcd6f5df314a6e2e5b5ca592f9680f3695c707d620c808b37d50"
+    }
+  ],
+  "final_qualification": [
+    {
+      "suite": "record-oracle",
+      "args": [],
+      "exit_code": 0,
+      "seconds": 23.35501219998696,
+      "output": "OK gated_delta_net_replay_record\n",
+      "test_source_sha256": "818bada3f9ff313b35bde5e5fbea2257c54e0910ceb1ad438931261630b8613e"
+    },
+    {
+      "suite": "gdn-fp64",
+      "args": [],
+      "exit_code": 0,
+      "seconds": 11.283871799998451,
+      "output": "OK gated_delta_net correctness\n",
+      "test_source_sha256": "a31c2a3733a9dc6b883c9041fc6781ee3bc9c58999b4314b299cc13771811072"
+    },
+    {
+      "suite": "state-fp16",
+      "args": [
+        "1"
+      ],
+      "exit_code": 0,
+      "seconds": 11.374288099992555,
+      "output": "width 1: relative output error, mean by quarter 0.00283494 0.0031531 0.00315048 0.0031532, worst 0.00338871\nOK FP16 GDN state tracks FP32 over 4096 tokens\n",
+      "test_source_sha256": "7a301e2318ba950a5c7f5ed92cd19308aa8fc556c34aba2e4ef78d23549d120c"
+    },
+    {
+      "suite": "state-fp16",
+      "args": [
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 0.6627111000125296,
+      "output": "width 4: relative output error, mean by quarter 0.00189818 0.00208843 0.00208599 0.00208993, worst 0.00219437\nOK FP16 GDN state tracks FP32 over 4096 tokens\n",
+      "test_source_sha256": "7a301e2318ba950a5c7f5ed92cd19308aa8fc556c34aba2e4ef78d23549d120c"
+    },
+    {
+      "suite": "fold-complete",
+      "args": [],
+      "exit_code": 0,
+      "seconds": 43.36057619997882,
+      "output": "OK FP16 gdn_replay_fold\nrecord-fold coupled width=16 rounds=3 exact=1\nrecord-fold coupled width=32 rounds=7 exact=1\nOK gdn_replay_fold\n",
+      "test_source_sha256": "f6fb5c56ead2ed058e8ca9b02769eeb798bb431ca3ca592426050a258f9e502c"
+    }
+  ],
+  "baseline_short": [
+    {
+      "label": "short-0",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1326,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1140
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 2144
+      },
+      "timings": {
+        "cache_n": 0,
+        "draft_n": 1153,
+        "draft_n_accepted": 997,
+        "predicted_ms": 11917.694,
+        "predicted_n": 1326,
+        "predicted_per_second": 111.17922645102317,
+        "predicted_per_token_ms": 8.994486037735848,
+        "prompt_ms": 1030.1477000000002,
+        "prompt_n": 818,
+        "prompt_per_second": 794.0608904917225,
+        "prompt_per_token_ms": 1.2593492665036679
+      },
+      "wall_seconds": 12.964081200014334,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-1",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1119,
+        "completion_tokens_details": {
+          "reasoning_tokens": 835
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1937
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 975,
+        "draft_n_accepted": 850,
+        "predicted_ms": 9897.7138,
+        "predicted_n": 1119,
+        "predicted_per_second": 112.95537763478269,
+        "predicted_per_token_ms": 8.853053488372092,
+        "prompt_ms": 75.0243,
+        "prompt_n": 5,
+        "prompt_per_second": 66.64507366279992,
+        "prompt_per_token_ms": 15.004859999999999
+      },
+      "wall_seconds": 9.98967479998828,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-2",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 741,
+        "completion_tokens_details": {
+          "reasoning_tokens": 555
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1559
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 653,
+        "draft_n_accepted": 523,
+        "predicted_ms": 7861.927299999999,
+        "predicted_n": 741,
+        "predicted_per_second": 94.12450303375357,
+        "predicted_per_token_ms": 10.62422608108108,
+        "prompt_ms": 76.0863,
+        "prompt_n": 5,
+        "prompt_per_second": 65.7148527395865,
+        "prompt_per_token_ms": 15.21726
+      },
+      "wall_seconds": 7.953899500018451,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-3",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1112,
+        "completion_tokens_details": {
+          "reasoning_tokens": 926
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1930
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 983,
+        "draft_n_accepted": 844,
+        "predicted_ms": 10165.1055,
+        "predicted_n": 1112,
+        "predicted_per_second": 109.29547165054018,
+        "predicted_per_token_ms": 9.149509900990099,
+        "prompt_ms": 82.872,
+        "prompt_n": 5,
+        "prompt_per_second": 60.33400907423496,
+        "prompt_per_token_ms": 16.5744
+      },
+      "wall_seconds": 10.262936799990712,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-4",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1082,
+        "completion_tokens_details": {
+          "reasoning_tokens": 896
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1900
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 938,
+        "draft_n_accepted": 846,
+        "predicted_ms": 9261.0587,
+        "predicted_n": 1082,
+        "predicted_per_second": 116.72531564884693,
+        "predicted_per_token_ms": 8.567121831637373,
+        "prompt_ms": 79.518,
+        "prompt_n": 5,
+        "prompt_per_second": 62.87884504137428,
+        "prompt_per_token_ms": 15.9036
+      },
+      "wall_seconds": 9.35147799999686,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-5",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1245,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1059
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 2063
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 1229,
+        "draft_n_accepted": 878,
+        "predicted_ms": 14051.2332,
+        "predicted_n": 1245,
+        "predicted_per_second": 88.53315451344156,
+        "predicted_per_token_ms": 11.295203536977493,
+        "prompt_ms": 80.5381,
+        "prompt_n": 5,
+        "prompt_per_second": 62.082418135019324,
+        "prompt_per_token_ms": 16.10762
+      },
+      "wall_seconds": 14.171263900003396,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-6",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1499,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1308
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 2317
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 1471,
+        "draft_n_accepted": 1067,
+        "predicted_ms": 16642.5414,
+        "predicted_n": 1499,
+        "predicted_per_second": 90.0102913368748,
+        "predicted_per_token_ms": 11.10984072096128,
+        "prompt_ms": 82.2959,
+        "prompt_n": 5,
+        "prompt_per_second": 60.75636817873065,
+        "prompt_per_token_ms": 16.45918
+      },
+      "wall_seconds": 16.73721699998714,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-7",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 821,
+        "completion_tokens_details": {
+          "reasoning_tokens": 676
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1639
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 722,
+        "draft_n_accepted": 590,
+        "predicted_ms": 8774.947900000001,
+        "predicted_n": 821,
+        "predicted_per_second": 93.447848277253,
+        "predicted_per_token_ms": 10.701155975609757,
+        "prompt_ms": 81.36699999999999,
+        "prompt_n": 5,
+        "prompt_per_second": 61.44997357651137,
+        "prompt_per_token_ms": 16.2734
+      },
+      "wall_seconds": 8.868098300008569,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-8",
+      "passed": false,
+      "finish_reason": "tool_calls",
+      "usage": {
+        "completion_tokens": 1640,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1596
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 2458
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 1586,
+        "draft_n_accepted": 1137,
+        "predicted_ms": 19092.9041,
+        "predicted_n": 1640,
+        "predicted_per_second": 85.84341027512939,
+        "predicted_per_token_ms": 11.649117815741306,
+        "prompt_ms": 87.96379999999999,
+        "prompt_n": 5,
+        "prompt_per_second": 56.84156437079799,
+        "prompt_per_token_ms": 17.59276
+      },
+      "wall_seconds": 19.20676309999544,
+      "grade": {
+        "correct": 0,
+        "total": 10,
+        "checks": {
+          "ASTER-71": false,
+          "BRIDGE-39": false,
+          "CIRRUS-82": false,
+          "DELTA-26": false,
+          "EMBER-54": false,
+          "FROST-93": false,
+          "GROVE-48": false,
+          "HARBOR-65": false,
+          "READY_TOTAL": false,
+          "TRANSFER_TOTAL": false
+        }
+      },
+      "actual_tool_calls": [
+        {
+          "type": "function",
+          "function": {
+            "name": "read_record",
+            "arguments": "{\"record_id\":\"expanded-recall-98304-20261019\"}"
+          },
+          "id": "call_f1e05478fe78ed89"
+        }
+      ]
+    },
+    {
+      "label": "short-9",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 785,
+        "completion_tokens_details": {
+          "reasoning_tokens": 640
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1603
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 670,
+        "draft_n_accepted": 563,
+        "predicted_ms": 8417.791,
+        "predicted_n": 785,
+        "predicted_per_second": 93.13607334750887,
+        "predicted_per_token_ms": 10.73697831632653,
+        "prompt_ms": 83.5475,
+        "prompt_n": 5,
+        "prompt_per_second": 59.84619527813519,
+        "prompt_per_token_ms": 16.7095
+      },
+      "wall_seconds": 8.51932309998665,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    }
+  ],
+  "candidate_short": [
+    {
+      "label": "short-0",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1477,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1153
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 2295
+      },
+      "timings": {
+        "cache_n": 0,
+        "draft_n": 1420,
+        "draft_n_accepted": 1060,
+        "predicted_ms": 15114.3588,
+        "predicted_n": 1477,
+        "predicted_per_second": 97.65548241451036,
+        "predicted_per_token_ms": 10.240080487804878,
+        "prompt_ms": 1074.6805,
+        "prompt_n": 818,
+        "prompt_per_second": 761.156455337191,
+        "prompt_per_token_ms": 1.3137903422982884
+      },
+      "wall_seconds": 16.208893400005763,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-1",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 854,
+        "completion_tokens_details": {
+          "reasoning_tokens": 709
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1672
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 781,
+        "draft_n_accepted": 627,
+        "predicted_ms": 8625.3634,
+        "predicted_n": 854,
+        "predicted_per_second": 98.89438397459288,
+        "predicted_per_token_ms": 10.111797655334115,
+        "prompt_ms": 70.57950000000001,
+        "prompt_n": 5,
+        "prompt_per_second": 70.84210004321368,
+        "prompt_per_token_ms": 14.115900000000002
+      },
+      "wall_seconds": 8.710310599999502,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-2",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1017,
+        "completion_tokens_details": {
+          "reasoning_tokens": 826
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1835
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 906,
+        "draft_n_accepted": 763,
+        "predicted_ms": 9769.088699999998,
+        "predicted_n": 1017,
+        "predicted_per_second": 104.001512444042,
+        "predicted_per_token_ms": 9.615244783464565,
+        "prompt_ms": 80.8234,
+        "prompt_n": 5,
+        "prompt_per_second": 61.86327227015938,
+        "prompt_per_token_ms": 16.16468
+      },
+      "wall_seconds": 9.86407589999726,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-3",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1379,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1234
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 2197
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 1259,
+        "draft_n_accepted": 1000,
+        "predicted_ms": 14504.2934,
+        "predicted_n": 1379,
+        "predicted_per_second": 95.0063517054888,
+        "predicted_per_token_ms": 10.525612046444122,
+        "prompt_ms": 81.22980000000001,
+        "prompt_n": 5,
+        "prompt_per_second": 61.553764751359715,
+        "prompt_per_token_ms": 16.245960000000004
+      },
+      "wall_seconds": 14.59828059998108,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-4",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 833,
+        "completion_tokens_details": {
+          "reasoning_tokens": 647
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1651
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 860,
+        "draft_n_accepted": 560,
+        "predicted_ms": 10325.3496,
+        "predicted_n": 833,
+        "predicted_per_second": 80.57838545244027,
+        "predicted_per_token_ms": 12.410275961538462,
+        "prompt_ms": 81.39920000000001,
+        "prompt_n": 5,
+        "prompt_per_second": 61.42566511710188,
+        "prompt_per_token_ms": 16.27984
+      },
+      "wall_seconds": 10.41761130001396,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-5",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1178,
+        "completion_tokens_details": {
+          "reasoning_tokens": 992
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1996
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 1089,
+        "draft_n_accepted": 883,
+        "predicted_ms": 11427.3118,
+        "predicted_n": 1178,
+        "predicted_per_second": 102.99885227600073,
+        "predicted_per_token_ms": 9.708846049277824,
+        "prompt_ms": 79.7725,
+        "prompt_n": 5,
+        "prompt_per_second": 62.67824124855057,
+        "prompt_per_token_ms": 15.9545
+      },
+      "wall_seconds": 11.518083999981172,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-6",
+      "passed": false,
+      "finish_reason": "tool_calls",
+      "usage": {
+        "completion_tokens": 1721,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1677
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 2539
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 1639,
+        "draft_n_accepted": 1277,
+        "predicted_ms": 17153.9565,
+        "predicted_n": 1721,
+        "predicted_per_second": 100.26841329578981,
+        "predicted_per_token_ms": 9.973230523255815,
+        "prompt_ms": 70.92710000000001,
+        "prompt_n": 5,
+        "prompt_per_second": 70.49491661156313,
+        "prompt_per_token_ms": 14.185420000000002
+      },
+      "wall_seconds": 17.237512299994705,
+      "grade": {
+        "correct": 0,
+        "total": 10,
+        "checks": {
+          "ASTER-71": false,
+          "BRIDGE-39": false,
+          "CIRRUS-82": false,
+          "DELTA-26": false,
+          "EMBER-54": false,
+          "FROST-93": false,
+          "GROVE-48": false,
+          "HARBOR-65": false,
+          "READY_TOTAL": false,
+          "TRANSFER_TOTAL": false
+        }
+      },
+      "actual_tool_calls": [
+        {
+          "type": "function",
+          "function": {
+            "name": "read_record",
+            "arguments": "{\"record_id\":\"expanded-recall-98304-20261019\"}"
+          },
+          "id": "call_5a0f5b93fd136834"
+        }
+      ]
+    },
+    {
+      "label": "short-7",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 903,
+        "completion_tokens_details": {
+          "reasoning_tokens": 717
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1721
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 880,
+        "draft_n_accepted": 621,
+        "predicted_ms": 10642.9328,
+        "predicted_n": 903,
+        "predicted_per_second": 84.75107538027488,
+        "predicted_per_token_ms": 11.799260310421287,
+        "prompt_ms": 79.2925,
+        "prompt_n": 5,
+        "prompt_per_second": 63.05766623577261,
+        "prompt_per_token_ms": 15.858500000000001
+      },
+      "wall_seconds": 10.751314599998295,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-8",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1044,
+        "completion_tokens_details": {
+          "reasoning_tokens": 858
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1862
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 1029,
+        "draft_n_accepted": 717,
+        "predicted_ms": 12364.989899999999,
+        "predicted_n": 1044,
+        "predicted_per_second": 84.35105959932892,
+        "predicted_per_token_ms": 11.855215627996163,
+        "prompt_ms": 79.0044,
+        "prompt_n": 5,
+        "prompt_per_second": 63.28761436071915,
+        "prompt_per_token_ms": 15.800880000000001
+      },
+      "wall_seconds": 12.45712109998567,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-9",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1694,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1401
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 2512
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 1700,
+        "draft_n_accepted": 1221,
+        "predicted_ms": 18403.5659,
+        "predicted_n": 1694,
+        "predicted_per_second": 91.99304141378383,
+        "predicted_per_token_ms": 10.870387418783226,
+        "prompt_ms": 87.44300000000001,
+        "prompt_n": 5,
+        "prompt_per_second": 57.18010589755612,
+        "prompt_per_token_ms": 17.4886
+      },
+      "wall_seconds": 18.50664200002211,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-8-repeat-1",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1044,
+        "completion_tokens_details": {
+          "reasoning_tokens": 858
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1862
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 1029,
+        "draft_n_accepted": 717,
+        "predicted_ms": 12363.972099999999,
+        "predicted_n": 1044,
+        "predicted_per_second": 84.35800336366013,
+        "predicted_per_token_ms": 11.85423978906999,
+        "prompt_ms": 80.1657,
+        "prompt_n": 5,
+        "prompt_per_second": 62.370814450569256,
+        "prompt_per_token_ms": 16.03314
+      },
+      "wall_seconds": 12.458734299987555,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-2-repeat-1",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1017,
+        "completion_tokens_details": {
+          "reasoning_tokens": 826
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1835
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 906,
+        "draft_n_accepted": 763,
+        "predicted_ms": 9781.4999,
+        "predicted_n": 1017,
+        "predicted_per_second": 103.86955072197055,
+        "predicted_per_token_ms": 9.627460531496064,
+        "prompt_ms": 79.584,
+        "prompt_n": 5,
+        "prompt_per_second": 62.82669883393647,
+        "prompt_per_token_ms": 15.9168
+      },
+      "wall_seconds": 9.876312099979259,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    }
+  ],
+  "candidate_long": [
+    {
+      "label": "long",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1638,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1452
+        },
+        "prompt_tokens": 98592,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 100230
+      },
+      "timings": {
+        "cache_n": 0,
+        "draft_n": 1568,
+        "draft_n_accepted": 1235,
+        "predicted_ms": 17264.6456,
+        "predicted_n": 1638,
+        "predicted_per_second": 94.81804827780537,
+        "predicted_per_token_ms": 10.546515332926084,
+        "prompt_ms": 234399.45549999998,
+        "prompt_n": 98592,
+        "prompt_per_second": 420.61531154026085,
+        "prompt_per_token_ms": 2.3774693230688086
+      },
+      "wall_seconds": 251.8159447000071,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "long-agent-call-0",
+      "passed": true,
+      "finish_reason": "tool_calls",
+      "usage": {
+        "completion_tokens": 61,
+        "completion_tokens_details": {
+          "reasoning_tokens": 31
+        },
+        "prompt_tokens": 100271,
+        "prompt_tokens_details": {
+          "cached_tokens": 100229
+        },
+        "total_tokens": 100332
+      },
+      "timings": {
+        "cache_n": 100229,
+        "draft_n": 51,
+        "draft_n_accepted": 44,
+        "predicted_ms": 761.7905000000001,
+        "predicted_n": 61,
+        "predicted_per_second": 78.76181181046495,
+        "predicted_per_token_ms": 12.696508333333334,
+        "prompt_ms": 285.71419999999995,
+        "prompt_n": 42,
+        "prompt_per_second": 147.00004410001327,
+        "prompt_per_token_ms": 6.802719047619046
+      },
+      "wall_seconds": 1.1755454000085592,
+      "expected_call": [
+        "read_record",
+        {
+          "record_id": "continuation-0"
+        }
+      ],
+      "actual_tool_calls": [
+        {
+          "type": "function",
+          "function": {
+            "name": "read_record",
+            "arguments": "{\"record_id\":\"continuation-0\"}"
+          },
+          "id": "call_9b0fbc4d76a872d8"
+        }
+      ]
+    },
+    {
+      "label": "long-agent-answer-0",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 71,
+        "completion_tokens_details": {
+          "reasoning_tokens": 54
+        },
+        "prompt_tokens": 100363,
+        "prompt_tokens_details": {
+          "cached_tokens": 100331
+        },
+        "total_tokens": 100434
+      },
+      "timings": {
+        "cache_n": 100331,
+        "draft_n": 78,
+        "draft_n_accepted": 46,
+        "predicted_ms": 1029.7835,
+        "predicted_n": 71,
+        "predicted_per_second": 67.97545309281028,
+        "predicted_per_token_ms": 14.711192857142857,
+        "prompt_ms": 252.3496,
+        "prompt_n": 32,
+        "prompt_per_second": 126.80820575899466,
+        "prompt_per_token_ms": 7.885925
+      },
+      "wall_seconds": 1.4183677000110038,
+      "grade": {
+        "correct": 2,
+        "total": 2,
+        "checks": {
+          "receipt": true,
+          "status": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "long-agent-call-1",
+      "passed": true,
+      "finish_reason": "tool_calls",
+      "usage": {
+        "completion_tokens": 70,
+        "completion_tokens_details": {
+          "reasoning_tokens": 40
+        },
+        "prompt_tokens": 100475,
+        "prompt_tokens_details": {
+          "cached_tokens": 100433
+        },
+        "total_tokens": 100545
+      },
+      "timings": {
+        "cache_n": 100433,
+        "draft_n": 65,
+        "draft_n_accepted": 50,
+        "predicted_ms": 838.2051,
+        "predicted_n": 70,
+        "predicted_per_second": 82.31875468187917,
+        "predicted_per_token_ms": 12.1479,
+        "prompt_ms": 286.2304,
+        "prompt_n": 42,
+        "prompt_per_second": 146.7349380079824,
+        "prompt_per_token_ms": 6.815009523809524
+      },
+      "wall_seconds": 1.2720117999997456,
+      "expected_call": [
+        "read_record",
+        {
+          "record_id": "continuation-1"
+        }
+      ],
+      "actual_tool_calls": [
+        {
+          "type": "function",
+          "function": {
+            "name": "read_record",
+            "arguments": "{\"record_id\":\"continuation-1\"}"
+          },
+          "id": "call_cb3f9baa2cb3bb6b"
+        }
+      ]
+    },
+    {
+      "label": "long-agent-answer-1",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 44,
+        "completion_tokens_details": {
+          "reasoning_tokens": 27
+        },
+        "prompt_tokens": 100576,
+        "prompt_tokens_details": {
+          "cached_tokens": 100544
+        },
+        "total_tokens": 100620
+      },
+      "timings": {
+        "cache_n": 100544,
+        "draft_n": 38,
+        "draft_n_accepted": 28,
+        "predicted_ms": 588.7848,
+        "predicted_n": 44,
+        "predicted_per_second": 73.03177663553814,
+        "predicted_per_token_ms": 13.692669767441862,
+        "prompt_ms": 249.2765,
+        "prompt_n": 32,
+        "prompt_per_second": 128.371507141668,
+        "prompt_per_token_ms": 7.789890625
+      },
+      "wall_seconds": 1.0117521999927703,
+      "grade": {
+        "correct": 2,
+        "total": 2,
+        "checks": {
+          "receipt": true,
+          "status": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "long-agent-call-2",
+      "passed": true,
+      "finish_reason": "tool_calls",
+      "usage": {
+        "completion_tokens": 67,
+        "completion_tokens_details": {
+          "reasoning_tokens": 37
+        },
+        "prompt_tokens": 100661,
+        "prompt_tokens_details": {
+          "cached_tokens": 100619
+        },
+        "total_tokens": 100728
+      },
+      "timings": {
+        "cache_n": 100619,
+        "draft_n": 67,
+        "draft_n_accepted": 49,
+        "predicted_ms": 832.9388,
+        "predicted_n": 67,
+        "predicted_per_second": 79.23751420872698,
+        "predicted_per_token_ms": 12.620284848484848,
+        "prompt_ms": 276.1149,
+        "prompt_n": 42,
+        "prompt_per_second": 152.11058874403375,
+        "prompt_per_token_ms": 6.574164285714285
+      },
+      "wall_seconds": 1.2313500000163913,
+      "expected_call": [
+        "read_record",
+        {
+          "record_id": "continuation-0"
+        }
+      ],
+      "actual_tool_calls": [
+        {
+          "type": "function",
+          "function": {
+            "name": "read_record",
+            "arguments": "{\"record_id\":\"continuation-0\"}"
+          },
+          "id": "call_f3066a4de4a48d89"
+        }
+      ]
+    },
+    {
+      "label": "long-agent-answer-2",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 44,
+        "completion_tokens_details": {
+          "reasoning_tokens": 27
+        },
+        "prompt_tokens": 100759,
+        "prompt_tokens_details": {
+          "cached_tokens": 100727
+        },
+        "total_tokens": 100803
+      },
+      "timings": {
+        "cache_n": 100727,
+        "draft_n": 42,
+        "draft_n_accepted": 33,
+        "predicted_ms": 529.3348,
+        "predicted_n": 44,
+        "predicted_per_second": 81.23403184525182,
+        "predicted_per_token_ms": 12.310111627906975,
+        "prompt_ms": 251.67450000000002,
+        "prompt_n": 32,
+        "prompt_per_second": 127.14836028282562,
+        "prompt_per_token_ms": 7.864828125000001
+      },
+      "wall_seconds": 0.9206190000113565,
+      "grade": {
+        "correct": 2,
+        "total": 2,
+        "checks": {
+          "receipt": true,
+          "status": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "corrective",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 508,
+        "completion_tokens_details": {
+          "reasoning_tokens": 317
+        },
+        "prompt_tokens": 100634,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 101142
+      },
+      "timings": {
+        "cache_n": 0,
+        "draft_n": 552,
+        "draft_n_accepted": 402,
+        "predicted_ms": 5033.2644,
+        "predicted_n": 508,
+        "predicted_per_second": 100.7298563532645,
+        "predicted_per_token_ms": 9.927543195266272,
+        "prompt_ms": 164552.7602,
+        "prompt_n": 100634,
+        "prompt_per_second": 611.5606926172971,
+        "prompt_per_token_ms": 1.6351606832680803
+      },
+      "wall_seconds": 169.70615199999884,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    }
+  ],
+  "diagnostic_no_spec": [
+    {
+      "label": "short-6",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1479,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1190
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 2297
+      },
+      "timings": {
+        "cache_n": 0,
+        "predicted_ms": 33595.9786,
+        "predicted_n": 1479,
+        "predicted_per_second": 43.99336056250494,
+        "predicted_per_token_ms": 22.730702706359946,
+        "prompt_ms": 990.2425999999999,
+        "prompt_n": 818,
+        "prompt_per_second": 826.0601997934648,
+        "prompt_per_token_ms": 1.2105655256723715
+      },
+      "wall_seconds": 34.61380449999706,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-6-repeat-1",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1479,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1190
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 2297
+      },
+      "timings": {
+        "cache_n": 813,
+        "predicted_ms": 33633.3573,
+        "predicted_n": 1479,
+        "predicted_per_second": 43.94446819021543,
+        "predicted_per_token_ms": 22.755992760487146,
+        "prompt_ms": 63.2897,
+        "prompt_n": 5,
+        "prompt_per_second": 79.00179650085242,
+        "prompt_per_token_ms": 12.65794
+      },
+      "wall_seconds": 33.70101349998731,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    },
+    {
+      "label": "short-8",
+      "passed": true,
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 638,
+        "completion_tokens_details": {
+          "reasoning_tokens": 447
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1456
+      },
+      "timings": {
+        "cache_n": 813,
+        "predicted_ms": 14419.2885,
+        "predicted_n": 638,
+        "predicted_per_second": 44.17693702431989,
+        "predicted_per_token_ms": 22.63624568288854,
+        "prompt_ms": 63.5988,
+        "prompt_n": 5,
+        "prompt_per_second": 78.61783555664573,
+        "prompt_per_token_ms": 12.719759999999999
+      },
+      "wall_seconds": 14.507972199993674,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "actual_tool_calls": []
+    }
+  ],
+  "diagnostic_cold_warm": [],
+  "model_comparison_evidence": "benchmarks/evidence/long-context-tool-loop/short-model-comparison.json",
+  "performance": {
+    "qualified": false,
+    "reason": "A/B/B/A same-input Op measurements show substantial baseline run-to-run drift; no controlled end-to-end speed conclusion.",
+    "samples": [
+      {
+        "phase": 0,
+        "label": "baseline",
+        "width": 4,
+        "args": [
+          "--profile",
+          "27b",
+          "--batch",
+          "1",
+          "--width",
+          "4",
+          "--commits",
+          "dense",
+          "--valid",
+          "dense",
+          "--warmup",
+          "25",
+          "--repeat",
+          "100"
+        ],
+        "exe_sha256": "b02a52f8fdbdbfc09ec7ec83e0f9c952e49419bb6d02629604eef358e1dd992b",
+        "exit_code": 0,
+        "output": "component=fold profile=27b      T= 4 B=1 commits=dense gpu_warm=  315.33 us gpu_cold=  313.31 us host_submit=   4.90 us state_io=  481.9 GB/s ns/(layer,row,transition)=1631.83\ncomponent=recurrent form=record   profile=27b      T= 4 B=1 valid=dense gpu_warm=   16.58 us gpu_cold=   15.42 us host_submit=   3.90 us\n"
+      },
+      {
+        "phase": 0,
+        "label": "baseline",
+        "width": 16,
+        "args": [
+          "--profile",
+          "27b",
+          "--batch",
+          "1",
+          "--width",
+          "16",
+          "--commits",
+          "dense",
+          "--valid",
+          "dense",
+          "--warmup",
+          "25",
+          "--repeat",
+          "100"
+        ],
+        "exe_sha256": "b02a52f8fdbdbfc09ec7ec83e0f9c952e49419bb6d02629604eef358e1dd992b",
+        "exit_code": 0,
+        "output": "component=fold profile=27b      T=16 B=1 commits=dense gpu_warm=  760.51 us gpu_cold=  759.84 us host_submit=   4.10 us state_io=  198.7 GB/s ns/(layer,row,transition)= 989.38\ncomponent=recurrent form=record   profile=27b      T=16 B=1 valid=dense gpu_warm=   38.05 us gpu_cold=   37.92 us host_submit=   3.90 us\n"
+      },
+      {
+        "phase": 1,
+        "label": "candidate",
+        "width": 4,
+        "args": [
+          "--profile",
+          "27b",
+          "--batch",
+          "1",
+          "--width",
+          "4",
+          "--commits",
+          "dense",
+          "--valid",
+          "dense",
+          "--warmup",
+          "25",
+          "--repeat",
+          "100"
+        ],
+        "exe_sha256": "02d2850832740bc18292377c8759903fe70facd2f9b2cad69461c74ce0e5bd66",
+        "exit_code": 0,
+        "output": "component=fold profile=27b      T= 4 B=1 commits=dense gpu_warm=  284.99 us gpu_cold=  291.87 us host_submit=   3.10 us state_io=  517.3 GB/s ns/(layer,row,transition)=1520.17\ncomponent=recurrent form=record   profile=27b      T= 4 B=1 valid=dense gpu_warm=   15.74 us gpu_cold=   15.42 us host_submit=   3.80 us\n"
+      },
+      {
+        "phase": 1,
+        "label": "candidate",
+        "width": 16,
+        "args": [
+          "--profile",
+          "27b",
+          "--batch",
+          "1",
+          "--width",
+          "16",
+          "--commits",
+          "dense",
+          "--valid",
+          "dense",
+          "--warmup",
+          "25",
+          "--repeat",
+          "100"
+        ],
+        "exe_sha256": "02d2850832740bc18292377c8759903fe70facd2f9b2cad69461c74ce0e5bd66",
+        "exit_code": 0,
+        "output": "component=fold profile=27b      T=16 B=1 commits=dense gpu_warm=  736.13 us gpu_cold=  729.02 us host_submit=   8.40 us state_io=  207.1 GB/s ns/(layer,row,transition)= 949.25\ncomponent=recurrent form=record   profile=27b      T=16 B=1 valid=dense gpu_warm=   39.90 us gpu_cold=   37.98 us host_submit=   4.20 us\n"
+      },
+      {
+        "phase": 2,
+        "label": "candidate",
+        "width": 4,
+        "args": [
+          "--profile",
+          "27b",
+          "--batch",
+          "1",
+          "--width",
+          "4",
+          "--commits",
+          "dense",
+          "--valid",
+          "dense",
+          "--warmup",
+          "25",
+          "--repeat",
+          "100"
+        ],
+        "exe_sha256": "02d2850832740bc18292377c8759903fe70facd2f9b2cad69461c74ce0e5bd66",
+        "exit_code": 0,
+        "output": "component=fold profile=27b      T= 4 B=1 commits=dense gpu_warm=  286.37 us gpu_cold=  290.85 us host_submit=   4.30 us state_io=  519.2 GB/s ns/(layer,row,transition)=1514.83\ncomponent=recurrent form=record   profile=27b      T= 4 B=1 valid=dense gpu_warm=   16.22 us gpu_cold=   15.39 us host_submit=   4.00 us\n"
+      },
+      {
+        "phase": 2,
+        "label": "candidate",
+        "width": 16,
+        "args": [
+          "--profile",
+          "27b",
+          "--batch",
+          "1",
+          "--width",
+          "16",
+          "--commits",
+          "dense",
+          "--valid",
+          "dense",
+          "--warmup",
+          "25",
+          "--repeat",
+          "100"
+        ],
+        "exe_sha256": "02d2850832740bc18292377c8759903fe70facd2f9b2cad69461c74ce0e5bd66",
+        "exit_code": 0,
+        "output": "component=fold profile=27b      T=16 B=1 commits=dense gpu_warm=  735.58 us gpu_cold=  728.61 us host_submit=   9.30 us state_io=  207.2 GB/s ns/(layer,row,transition)= 948.71\ncomponent=recurrent form=record   profile=27b      T=16 B=1 valid=dense gpu_warm=   41.41 us gpu_cold=   37.95 us host_submit=   4.10 us\n"
+      },
+      {
+        "phase": 3,
+        "label": "baseline",
+        "width": 4,
+        "args": [
+          "--profile",
+          "27b",
+          "--batch",
+          "1",
+          "--width",
+          "4",
+          "--commits",
+          "dense",
+          "--valid",
+          "dense",
+          "--warmup",
+          "25",
+          "--repeat",
+          "100"
+        ],
+        "exe_sha256": "b02a52f8fdbdbfc09ec7ec83e0f9c952e49419bb6d02629604eef358e1dd992b",
+        "exit_code": 0,
+        "output": "component=fold profile=27b      T= 4 B=1 commits=dense gpu_warm=  428.93 us gpu_cold=  432.51 us host_submit=   4.90 us state_io=  349.1 GB/s ns/(layer,row,transition)=2252.67\ncomponent=recurrent form=record   profile=27b      T= 4 B=1 valid=dense gpu_warm=   25.09 us gpu_cold=   24.48 us host_submit=   3.90 us\n"
+      },
+      {
+        "phase": 3,
+        "label": "baseline",
+        "width": 16,
+        "args": [
+          "--profile",
+          "27b",
+          "--batch",
+          "1",
+          "--width",
+          "16",
+          "--commits",
+          "dense",
+          "--valid",
+          "dense",
+          "--warmup",
+          "25",
+          "--repeat",
+          "100"
+        ],
+        "exe_sha256": "b02a52f8fdbdbfc09ec7ec83e0f9c952e49419bb6d02629604eef358e1dd992b",
+        "exit_code": 0,
+        "output": "component=fold profile=27b      T=16 B=1 commits=dense gpu_warm= 1247.20 us gpu_cold= 1243.65 us host_submit=   7.10 us state_io=  121.4 GB/s ns/(layer,row,transition)=1619.33\ncomponent=recurrent form=record   profile=27b      T=16 B=1 valid=dense gpu_warm=   65.38 us gpu_cold=   65.15 us host_submit=   4.00 us\n"
+      }
+    ]
+  },
+  "limitations": [
+    "The ten seeds share one synthetic fixture; aggregate tool-choice quality has not improved (9/10 before and after, different failing seed).",
+    "Exact ordinary-vs-record/fold numerical equivalence is not whole-model MTP equivalence.",
+    "Scalar FP64 FP16 oracle covers first row/head; exact GPU relations cover all valid outputs.",
+    "A second GSQ-RCO IQ3_XXS model was tested on the short fixture; no 256K, other device, full dsh/browser task or Compute Sanitizer qualification."
+  ],
+  "source_sha256": {
+    "src/ops/linear_attention/gated_delta_net/recurrent.cuh": "bad8818a05a0a585238ef80208cb5ece60ca96a7f96631ecf89e7dfef9a0432f",
+    "src/ops/linear_attention/gated_delta_net/recurrent.cu": "b57f1082f6ccc9cced49e857e258c7e1f41d7caef286701621eb4340f80a8feb",
+    "include/ninfer/ops/gated_delta_net.h": "e7a03c8a8c456178df66e3fa3077943b2de56d5cde507d760de82311fc704817",
+    "include/ninfer/ops/gdn_replay.h": "efbea4901657c5428dcbdfc2bcde341266a91e3b101e8054d5f82b436b3d685a",
+    "tests/ops/test_gated_delta_net_replay_record.cpp": "818bada3f9ff313b35bde5e5fbea2257c54e0910ceb1ad438931261630b8613e",
+    "tests/ops/test_gdn_replay_fold.cpp": "f6fb5c56ead2ed058e8ca9b02769eeb798bb431ca3ca592426050a258f9e502c"
+  },
+  "restoration": {
+    "date": "2026-10-21",
+    "restored": true,
+    "model": "Huihui-Qwen3.8-27B-abliterated-Swift-1.5-GSQ-RCO-IQ3_XXS-mtp.ninfer",
+    "exact_model_path_verified": true,
+    "exact_daily_executable_path_verified": true,
+    "daily_engine_sha256": "b1f8326fceeed5d9c5bcd9db30fc166947c1382599358b964fa5500da582f941",
+    "rollback_engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+    "engine_models_ready": true,
+    "guard_models_count": 1,
+    "authenticated_dsh_http_status": 200,
+    "ports": [
+      {
+        "LocalPort": 3080,
+        "OwningProcess": 19916
+      },
+      {
+        "LocalPort": 1236,
+        "OwningProcess": 14612
+      },
+      {
+        "LocalPort": 1234,
+        "OwningProcess": 26016
+      }
+    ],
+    "graphics_backup_unchanged": true,
+    "candidate_installed": false
+  },
+  "cleanup": {
+    "date": "2026-10-21",
+    "deleted": [
+      {
+        "path": "gdn-fp16-probe/test-record-fp16.exe",
+        "sha256": "25337d916d2b69f8d778382da5c1f7ce1b34fad2c47259813c437a936acce16b",
+        "purpose": "Regenerable GDN qualification/benchmark executable; source, objects and logs retained"
+      },
+      {
+        "path": "candidate-gdn-consistent/bench-baseline.exe",
+        "sha256": "b02a52f8fdbdbfc09ec7ec83e0f9c952e49419bb6d02629604eef358e1dd992b",
+        "purpose": "Regenerable GDN qualification/benchmark executable; source, objects and logs retained"
+      },
+      {
+        "path": "candidate-gdn-consistent/bench-candidate.exe",
+        "sha256": "02d2850832740bc18292377c8759903fe70facd2f9b2cad69461c74ce0e5bd66",
+        "purpose": "Regenerable GDN qualification/benchmark executable; source, objects and logs retained"
+      },
+      {
+        "path": "candidate-gdn-consistent/fold-complete.exe",
+        "sha256": "c12018eb9319bb233fd8ba0e9873dce1a29f08ab82d13e052c7f39351227a2eb",
+        "purpose": "Regenerable GDN qualification/benchmark executable; source, objects and logs retained"
+      },
+      {
+        "path": "candidate-gdn-consistent/fold-fp16-baseline.exe",
+        "sha256": "74030bd22e511c2594d8cfd1ee209d32c853290977b8515cba5e9b08d8251b52",
+        "purpose": "Regenerable GDN qualification/benchmark executable; source, objects and logs retained"
+      },
+      {
+        "path": "candidate-gdn-consistent/fold-fp16.exe",
+        "sha256": "c806f9e219edb5224c4dbecebfb8cc16094d7bacd23167a13c8630432cfb99ee",
+        "purpose": "Regenerable GDN qualification/benchmark executable; source, objects and logs retained"
+      },
+      {
+        "path": "candidate-gdn-consistent/gdn-fp64.exe",
+        "sha256": "1e9c19b68b5d4f4776833721b8e4301240e838a17981cd8adcd695fab2795b1b",
+        "purpose": "Regenerable GDN qualification/benchmark executable; source, objects and logs retained"
+      },
+      {
+        "path": "candidate-gdn-consistent/record-baseline.exe",
+        "sha256": "4a80ba90f85fd3ace3c8cebe84d619282c45456b17174bc079327a591051a89c",
+        "purpose": "Regenerable GDN qualification/benchmark executable; source, objects and logs retained"
+      },
+      {
+        "path": "candidate-gdn-consistent/record-oracle.exe",
+        "sha256": "5497aa3e38c68484860f0288799f1e294d572fd37ddf17f46c6214b5d90f80cf",
+        "purpose": "Regenerable GDN qualification/benchmark executable; source, objects and logs retained"
+      },
+      {
+        "path": "candidate-gdn-consistent/record.exe",
+        "sha256": "a326c7ac0edfac1f8b2c8541ff407056821bfcc2d46b0c2a11edc15ffb6ba9b3",
+        "purpose": "Regenerable GDN qualification/benchmark executable; source, objects and logs retained"
+      },
+      {
+        "path": "candidate-gdn-consistent/state-fp16.exe",
+        "sha256": "8cf1ff3485402004a343b478006013b20ad53e791c16a0d38d699aa9b1246ae3",
+        "purpose": "Regenerable GDN qualification/benchmark executable; source, objects and logs retained"
+      }
+    ],
+    "count": 11,
+    "retained_candidate": "candidate-gdn-consistent/ninfer-serve.exe",
+    "daily_and_rollback_untouched": true,
+    "size_accounting_note": "FileInfo length was first accessed after deletion in the original cleanup invocation, so exact byte totals were not retained. File identities and SHA256 were captured before deletion; all 11 absence checks passed."
+  }
+}

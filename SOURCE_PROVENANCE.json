@@ -3,10 +3,16 @@
   "upstream": "https://github.com/iamwavecut/ninfer-all",
   "upstream_base_reported_by_bundle": "v0.11.0-rtx3090; KVMem integration reference 65dbd4f2",
   "original_git_history_available": false,
-  "engine_binary_sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d",
+  "engine_binary_sha256": "8804cb04470214f68e01e38cb07004c90e748507a77134995335d1edbd768472",
   "copy_count": 2407,
   "locally_recorded_modified_files": [
     "docs/serving.md",
+    "src/models/qwen3_5/frontend/output_session.cpp",
+    "src/models/qwen3_5/frontend/output_session.h",
+    "src/runtime/contract/execution.h",
+    "src/runtime/engine/scheduler.h",
+    "tests/models/qwen3_5/test_frontend.cpp",
+    "tests/test_admission_policy.cpp",
     "include/ninfer/ops/rmsnorm_rope.h",
     "src/core/CMakeLists.txt",
     "src/core/mapped_host_buffer.cpp",
@@ -57,7 +63,13 @@
     "tests/ops/test_mean_k_host_storage.cpp",
     "tests/ops/test_mean_k_prefetch.cpp",
     "tests/ops/tests.cmake",
-    "tests/test_resource_manager.cpp"
+    "tests/test_resource_manager.cpp",
+    "src/ops/linear_attention/gated_delta_net/recurrent.cuh",
+    "src/ops/linear_attention/gated_delta_net/recurrent.cu",
+    "include/ninfer/ops/gated_delta_net.h",
+    "include/ninfer/ops/gdn_replay.h",
+    "tests/ops/test_gated_delta_net_replay_record.cpp",
+    "tests/ops/test_gdn_replay_fold.cpp"
   ],
   "excluded": [
     "models/weights",
@@ -74,11 +86,11 @@
     "contribution": "Provided the foundation distribution downloaded by the maintainer and resolved the reported infinite-loop issue.",
     "source": "Maintainer attribution supplied for this publication; not a claim of sole upstream authorship."
   },
-  "release_source_url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/tree/v0.1.3",
+  "release_source_url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/tree/v0.1.4",
   "previous_release": {
-    "tag": "v0.1.2",
-    "engine_sha256": "275ea27ba01b57ca3f3a14361e5f7a4d8c4b04575475f1fe536ca5dedb6c8bd1",
-    "assets_unchanged": true
+    "version": "0.1.3",
+    "engine_binary_sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d",
+    "source_url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/tree/v0.1.3"
   },
   "retrieval_context_patch": {
     "engine_sha256": "34fd593d76bd332c1b8470ce5ffe4fd9e7e9820229558cffd1cf9ddaa386224b",
@@ -137,6 +149,277 @@
       "path": "engine/src/ops/softmax_attention/dense/causal_cache/prompt_nvfp4_sm120.cuh",
       "change": "Removed trailing spaces on an empty line; no code or arithmetic changes. Qualification evidence retains original source hashes.",
       "published_worktree_sha256": "3fb45e86502a2936ccb7ddb5eeefec1648a321d35d544f11157a75faaa481945"
+    }
+  },
+  "unreleased_tool_output_recovery_patch": {
+    "release_tag": null,
+    "date": "2026-10-20",
+    "source_base_commit": "389791f834880e77f31fcb46ebe288918074882e",
+    "source_branch": "codex/tool-call-recovery-20261020",
+    "local_engine_sha256": "8b449db9fe029d3ed442ef8e6ad1fdac6d3ea2dd61aaf3ee09315cc06bd87edd",
+    "rollback_engine_sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d",
+    "upstream_reference_commits": [
+      "81e29890a74b81801bdb6daeaffee1c631807a6a",
+      "99ff511900f73130906abe3fe1d7e1025d04b746"
+    ],
+    "evidence": "benchmarks/evidence/tool-output-recovery/verification.json",
+    "build_scope": "Incremental; reconstruct all v0.1.3 override objects, rebuild every serve/outcome consumer; reuse other original archives.",
+    "changes": [
+      "Markdown code examples stay text, including streamed output",
+      "Recover only complete declared terminal tool calls from naturally stopped unclosed reasoning",
+      "Diagnostic field and downstream request-log schema 28"
+    ],
+    "published_assets_unchanged": true
+  },
+  "unreleased_tool_parser_edge_cases_patch": {
+    "date": "2026-10-20",
+    "release_tag": null,
+    "source_base_commit": "389791f834880e77f31fcb46ebe288918074882e",
+    "source_branch": "codex/tool-call-recovery-20261020",
+    "local_engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+    "rollback_engine_sha256": "8b449db9fe029d3ed442ef8e6ad1fdac6d3ea2dd61aaf3ee09315cc06bd87edd",
+    "evidence": "benchmarks/evidence/tool-parser-edge-cases/verification.json",
+    "build_scope": "Only the tool parser implementation rebuilt; reuse qualified previous 70-Host/7-CUDA override objects and original remaining libraries. Not a clean full build.",
+    "supersedes_local_patch": "unreleased_tool_output_recovery_patch",
+    "changes": [
+      "Reject guessed argument completion or truncation after both readers fail",
+      "Preserve wrapper-only prose and bounded marker-search fallback",
+      "Retain malformed-name reporting and bounded existing repairs",
+      "Resolve nine inherited failures; full parser 39/39 and frontend 54/54"
+    ],
+    "published_assets_unchanged": true
+  },
+  "expanded_validation_20261020": {
+    "engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+    "engine_changed": false,
+    "evidence": "benchmarks/evidence/expanded-validation/verification.json",
+    "note": "Additional protocol/parser/output/HTTP/guard and real-model testing; preserve the observed long-context tool-choice failure. No new production engine patch."
+  },
+  "uninstalled_mtp_sampling_boundary_candidate": {
+    "date": "2026-10-20",
+    "release_tag": null,
+    "source_base_commit": "389791f834880e77f31fcb46ebe288918074882e",
+    "source_branch": "codex/tool-call-recovery-20261020",
+    "candidate_engine_sha256": "db3c7aca4efddea0cb504323cf0f2181514121603b875e26e1b5402010eff42f",
+    "installed": false,
+    "active_engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+    "evidence": "benchmarks/evidence/long-context-tool-loop/verification.json",
+    "build_scope": "Rebuild all 70 previous Host overrides for RoundBudget contract; incremental frontend and scheduler correction; reuse qualified CUDA overrides and original other archives. Not a clean full build.",
+    "changes": [
+      "MTP neural/copy proposal stops before the exact tokenizer reasoning-close token",
+      "Single target step confirms separator before applying answer sampling",
+      "Committed frontend reasoning state controls transition; raw canonical frontier retained",
+      "Sampler barrier cannot license a token beyond an exhausted budget"
+    ],
+    "limitations": [
+      "Only MTP proposal barrier implemented; no equivalent DFlash barrier",
+      "Short cases retain tool-choice failures, including a no-spec greedy control",
+      "Original 98K, old corrective history and six tool continuation requests passed on v2 and final candidate; short tests 8/10 versus baseline 9/10; no overall quality claim or deployment"
+    ],
+    "published_assets_unchanged": true,
+    "short_cache_followup": {
+      "additional_requests": 12,
+      "production_source_changed": false,
+      "engine_changed": false,
+      "target_top20_equal_early_decode_positions": 36,
+      "independent_local_sampling_decisions_passed": 4,
+      "no_spec_cold_warm_text_equal": true,
+      "finding": "MTP proposals diverge before correction/bonus paths; local decisions match an independent reconstruction. Whole-model draft-state equivalence remains unproven; short tool misuse unresolved."
+    },
+    "candidate_executable_retained": false,
+    "superseded_by_candidate_sha256": "b1f8326fceeed5d9c5bcd9db30fc166947c1382599358b964fa5500da582f941"
+  },
+  "uninstalled_coupled_sampling_candidate": {
+    "date": "2026-10-20",
+    "source_base_commit": "389791f834880e77f31fcb46ebe288918074882e",
+    "source_branch": "codex/tool-call-recovery-20261020",
+    "installed": false,
+    "release_tag": null,
+    "candidate_engine_sha256": "ec4b053ce072070369a2c30027c4e76b4c5994e1c40cd28c9ee32e3ea8124f4c",
+    "active_engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+    "upstream_commit": "iamwavecut/ninfer-all@bc53c472725c37b03b68d22a8e5d96f73407a1c8",
+    "evidence": "benchmarks/evidence/long-context-tool-loop/coupled-verification.json",
+    "build_scope": "All prior 70 Host overrides plus speculative wrapper rebuilt; sampling and speculative CUDA rebuilt for sm120a. Previous seven qualified CUDA overrides and remaining original archives reused. Not a clean build.",
+    "changes": [
+      "Target decode-key coupling for point-proposal verification; sparse-q rejection unchanged",
+      "Ordinary decode and representative CUDA Graph sample at cache position + 1",
+      "Shared inverse-CDF rank helper; renamed internal coupled Op and all local consumers",
+      "Preserves previous uninstalled MTP thinking-boundary barrier"
+    ],
+    "validation": {
+      "speculative_oracle": true,
+      "sampling_fp64_oracle": true,
+      "mtp_round": true,
+      "decode_graph": true,
+      "frontend": true,
+      "parser": true,
+      "admission": true,
+      "cold_warm_cycle": "4/4; short-2 reasoning/content equal across three requests",
+      "ten_seeds": "9/10; baseline installed engine 9/10, prior boundary candidate 8/10",
+      "no_spec_diagnostic": "3/3; new failing short-8 cold/warm correct and equal",
+      "long_recall": "98592 prompt tokens; 10/10 final answers",
+      "long_tool_continuations": "6/6; cached 100729-101247 tokens",
+      "old_failed_history_correction": "10/10 final answers; rebuilt prefix"
+    },
+    "limitations": [
+      "short-8 seed 20359331 still miscalls a tool",
+      "No whole-model MTP state equivalence proof",
+      "Fixed-seed outputs change; no overall quality improvement or controlled speed claim",
+      "No full-256K, other device/model, DFlash end-to-end or real dsh/browser qualification"
+    ],
+    "published_assets_unchanged": true,
+    "candidate_executable_retained": false,
+    "superseded_by_candidate_sha256": "b1f8326fceeed5d9c5bcd9db30fc166947c1382599358b964fa5500da582f941"
+  },
+  "uninstalled_nvfp4_partition_candidate": {
+    "date": "2026-10-20",
+    "source_base_commit": "389791f834880e77f31fcb46ebe288918074882e",
+    "source_branch": "codex/tool-call-recovery-20261020",
+    "installed": false,
+    "release_tag": null,
+    "candidate_engine_sha256": "b1f8326fceeed5d9c5bcd9db30fc166947c1382599358b964fa5500da582f941",
+    "active_engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+    "based_on_candidate_sha256": "ec4b053ce072070369a2c30027c4e76b4c5994e1c40cd28c9ee32e3ea8124f4c",
+    "upstream_commit": "iamwavecut/ninfer-all@ddacb9673e5702232b96be220920b44b3bbaa82d",
+    "evidence": "benchmarks/evidence/long-context-tool-loop/partition-verification.json",
+    "build_scope": "One fresh NVFP4 Small-T CUDA TU on top of the coupling candidate; 71 Host and 10 CUDA override units in all, other original archives reused. Not a clean build.",
+    "changes": [
+      "NVFP4 producer and reducer partition KV by the physical tile window, clipped to visible capacity",
+      "Loads stop at the live end while masked columns retain the same reduction boundaries",
+      "Limit the NVFP4 reducer split loop to unroll 1; no printf or additional synchronization"
+    ],
+    "verification": [
+      "44 fixed-input masked-prefix relational cases, independent NVFP4 arithmetic, Graph and wide-copy checks passed",
+      "Original-partition plus unroll-1 control still has 2 differing columns; final partition has 0",
+      "Final short ten-seed run is 9/10; all ten texts match the coupling candidate; cold/warm cycle is 4/4",
+      "Final candidate: 98592-token direct answer, six cached tool continuations and old-history correction all passed (8/8 requests); long and corrective answers 10/10"
+    ],
+    "limitations": [
+      "Reproduced partition mismatch and codegen-sensitive crash are h16/kv2 evidence, not proof of the h24/kv4 short-misuse root cause",
+      "Exact erroneous machine instruction not identified; no valid Compute Sanitizer run because the WDDM interface could not initialize",
+      "Other dtype partition changes and DFlash eager-envelope port not applied",
+      "No overall tool-choice quality or controlled performance improvement claim"
+    ],
+    "published_assets_unchanged": true,
+    "candidate_executable_retained": true,
+    "cleanup": {
+      "removed_executables": 19,
+      "removed_gib": 23.6,
+      "preserved": "Latest uninstalled candidate, original source/object/log evidence, unchanged daily engine and sole rollback"
+    }
+  },
+  "local_daily_installation_20261020": {
+    "date": "2026-10-20",
+    "installed_at": "2026-10-20T15:10:19.116719+00:00",
+    "installed": true,
+    "active_engine_sha256": "b1f8326fceeed5d9c5bcd9db30fc166947c1382599358b964fa5500da582f941",
+    "rollback_engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+    "qualification_record": "uninstalled_nvfp4_partition_candidate",
+    "evidence": "benchmarks/evidence/long-context-tool-loop/local-installation.json",
+    "public_release_unchanged": true,
+    "deployment": "Local daily trial authorized by user; preceding daily retained as sole rollback",
+    "smoke": "2/2, ten checks each, identical cold/warm content and reasoning; 813 cached tokens",
+    "limitations": [
+      "Known short-8 tool misuse remains; prior ten-seed score 9/10",
+      "Installation smoke covers two direct engine requests, not real dsh/browser flow",
+      "No new full-256K or controlled performance qualification"
+    ]
+  },
+  "uninstalled_gdn_fp16_consistency_candidate": {
+    "date": "2026-10-21",
+    "installed": false,
+    "source_commit": "389791f834880e77f31fcb46ebe288918074882e",
+    "daily_engine_sha256": "b1f8326fceeed5d9c5bcd9db30fc166947c1382599358b964fa5500da582f941",
+    "rollback_engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+    "candidate_engine_sha256": "153f562272c10e603e84cfd9d5bbf9ceb296270139dad52708ac96f8ecd4a808",
+    "implementation": "Independent downstream fix: FP16 per-token state-storage rounding in GDN record and fold, after current output readout.",
+    "build_scope": "One freshly rebuilt recurrent.cu on installed partition-candidate objects: 71 Host and 11 CUDA overrides; original archives reused, not clean build.",
+    "limitations": [
+      "The ten seeds share one synthetic fixture; aggregate tool-choice quality has not improved (9/10 before and after, different failing seed).",
+      "Exact ordinary-vs-record/fold numerical equivalence is not whole-model MTP equivalence.",
+      "Scalar FP64 FP16 oracle covers first row/head; exact GPU relations cover all valid outputs.",
+      "A second GSQ-RCO IQ3_XXS model was tested on the short fixture; no 256K, other device, full dsh/browser task or Compute Sanitizer qualification."
+    ],
+    "evidence": "benchmarks/evidence/long-context-tool-loop/gdn-fp16-verification.json",
+    "public_release_unchanged": true
+  },
+  "short_task_answer_penalty_diagnosis": {
+    "date": "2026-10-21",
+    "diagnostic_only": true,
+    "production_source_changes": false,
+    "evidence": "benchmarks/evidence/long-context-tool-loop/answer-penalty-diagnosis.json",
+    "candidate_engine_sha256": "153f562272c10e603e84cfd9d5bbf9ceb296270139dad52708ac96f8ecd4a808",
+    "installed_engine_unchanged": true,
+    "published_assets_unchanged": true,
+    "finding": "Cross-phase presence penalty changes answer candidate ranking; setting only post-thinking presence to zero improves this paired fixture from Huihui 9 to 10/10 and GSQ 7 to 9/10. Remaining GSQ failure selects the already top-scoring raw tool token. Independent forward validation is incomplete."
+  },
+  "experimental_answer_only_penalty_scope": {
+    "date": "2026-10-21",
+    "candidate_engine_sha256": "4fa15adabfaaa0bcabcfcdf4db470d865852daaacda90fe1a221356a83f4d427",
+    "base_candidate_sha256": "153f562272c10e603e84cfd9d5bbf9ceb296270139dad52708ac96f8ecd4a808",
+    "production_source_modified": false,
+    "installed": false,
+    "published_assets_unchanged": true,
+    "evidence": "benchmarks/evidence/long-context-tool-loop/answer-scope-verification.json",
+    "scope": "Private Host-only opt-in reset of presence/frequency counts at committed post-thinking update; answer penalty remains 1.0; default carry-over unchanged.",
+    "limitations": [
+      "The ten seeds share one short fixture per model; historical GDN baselines and zero-penalty runs are reused and identified by actual engine/model manifests.",
+      "This is a private opt-in Host prototype at the current sole update_sampling caller, the committed post-thinking transition. A public per-request API and general sampling-update semantics have not been implemented.",
+      "Counts are checked at 32 answer positions, not every position of every model generation.",
+      "Model-family/weight-quantization versus full forward implementation remains unresolved; no independent model-forward comparison completed.",
+      "Prose checks and manual review cover a small synthetic sample; they do not prove general writing quality or absence of long-output repetition.",
+      "Huihui prose-v2 carry-over/reset follow-ups start in isolated services; the zero-penalty prose follows the code/JSON cases. These are structural robustness observations, not a controlled ranking of prose quality or speed.",
+      "The original prose request exhausted 10000 output tokens in reasoning before the answer transition; it is retained as a failure, not answer-policy evidence.",
+      "No full-256K, other-device, real dsh/browser task or controlled performance qualification."
+    ]
+  },
+  "local_answer_scope_trial_installation_20261021": {
+    "date": "2026-10-21",
+    "installed": true,
+    "installed_at": "2026-10-21T09:24:56.906300+00:00",
+    "active_engine_sha256": "8804cb04470214f68e01e38cb07004c90e748507a77134995335d1edbd768472",
+    "rollback_engine_sha256": "b1f8326fceeed5d9c5bcd9db30fc166947c1382599358b964fa5500da582f941",
+    "based_on_gdn_candidate_sha256": "153f562272c10e603e84cfd9d5bbf9ceb296270139dad52708ac96f8ecd4a808",
+    "evidence": "benchmarks/evidence/long-context-tool-loop/answer-scope-trial-installation.json",
+    "engine_default_penalty_scope": "carry-over",
+    "local_penalty_scope": "answer",
+    "build_scope": "Three Host units rebuilt on FP16 GDN candidate objects; all CUDA and remaining objects reused; no diagnostic probes; not a clean build.",
+    "source_changes": "Explicit begin_post_thinking_sampling boundary API; ordinary update_sampling retains penalty counts; answer mode clears existing current-lane counts on the same stream.",
+    "startup_verified": true,
+    "dsh_tool_workflow_verified": false,
+    "cleanup": {
+      "removed_executables": 7,
+      "removed_bytes": 9396492800,
+      "removed_junctions": 2,
+      "sole_most_recent_rollback_retained": true
+    },
+    "historical_candidate_retention_records_are_snapshots": true,
+    "public_release_unchanged": true
+  },
+  "release_0_1_4": {
+    "date": "2026-10-21",
+    "engine_sha256": "8804cb04470214f68e01e38cb07004c90e748507a77134995335d1edbd768472",
+    "qualification": "benchmarks/evidence/long-context-tool-loop/answer-scope-trial-installation.json",
+    "scope": "Tool parsing/recovery, committed post-thinking MTP boundary, coupled target sampling, NVFP4 physical-column reduction, FP16 GDN storage rounding and answer-only penalty scope.",
+    "engine_default_penalty_scope": "carry-over",
+    "distribution_launcher_default_penalty_scope": "answer",
+    "build": "Incremental Host/CUDA replacement objects and retained original static archives; not a clean full build.",
+    "limitations": [
+      "Same final binary: enabled 29/29, short default 9/10; frontend55/parser39 groups. These are fixed fixtures, not general model quality scores.",
+      "Isolated real-dsh model workflow was not completed; its dependency mapping failed before a model request. No full-256K, other-GPU or controlled decode-speed claim."
+    ],
+    "portable_bundle": {
+      "builder": "scripts/package-offline.py",
+      "model_licenses": "docs/MODELS.md",
+      "default_pool": "36864/3840",
+      "optional_small_pool": "34560/1536; configuration-only qualification, not new model validation",
+      "vram_preparation_order": [
+        "Hybrid graphics",
+        "Disable CUDA Sysmem Fallback for actual engine only",
+        "Close unrelated background apps",
+        "Prefer RK4V4 if still insufficient",
+        "Reduce pool and retrieval together if still insufficient"
+      ]
     }
   }
 }

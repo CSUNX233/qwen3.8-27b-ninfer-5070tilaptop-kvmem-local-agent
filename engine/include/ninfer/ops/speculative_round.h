@@ -20,7 +20,7 @@ struct SpeculativeAcceptExecutionEnvelope {
 
 // Caller-owned transient capacity for every draft-count and batch-size pair in the inclusive
 // domains. token_domain is the fixed sampling profile; invalid domains throw.
-[[nodiscard]] std::size_t speculative_accept_greedy_drafts_workspace_capacity_bytes(
+[[nodiscard]] std::size_t speculative_accept_coupled_drafts_workspace_capacity_bytes(
     std::int32_t token_domain, std::int32_t min_drafts, std::int32_t max_drafts,
     std::int32_t min_batch, std::int32_t max_batch);
 
@@ -88,18 +88,21 @@ void speculative_overlay_copy_proposals(const Tensor& copy_rows, const Tensor& c
                                         cudaStream_t stream);
 
 /**
- * Op: speculative_accept_greedy_drafts
+ * Op: speculative_accept_coupled_drafts
  *
  * Algorithm:
  *   Independently for each row b, greedy mode accepts the longest available draft prefix matching
  *   the per-column penalty-adjusted argmax and commits that argmax at the first mismatch (or the
  *   bonus column). With both penalties disabled and no token mask, target_tokens is the exact
- * raw-logit fast path. Sampling mode applies configs[b] to each valid verification column, accepts
- * draft i with target probability p_i(draft_i), samples from the residual distribution on first
- * rejection, and samples a bonus from column Pcur[b] when every available draft is accepted. The
- * draft proposal distribution is one-hot at each greedy draft token. RNG domains are the
- * speculative accept/correction/bonus SamplePurpose values and logical positions derived from the
- * old length.
+ *   raw-logit fast path. Sampling mode (coupled verification) applies configs[b] to each valid
+ *   verification column i and draws t_i from it exactly as sample() would, with key
+ *   (configs[b].seed, lengths[b]+i+1, kSamplePurposeDecode): the decode key of the position the
+ *   column fills. It keeps drafts while drafts[i]==t_i and commits t_i at the first difference,
+ *   or the bonus column's draw when every available draft matched. Every committed token is thus
+ *   the target's own keyed draw whatever was drafted: drafts change how many tokens one pass
+ *   commits, never which. A greedy draft is kept with probability p_i(draft), as under one-hot
+ *   rejection sampling; a draft drawn from another distribution with the same key is kept as
+ *   often as the two inverse-CDF draws agree.
  *
  * Logical shapes:
  *   All Tensor storage is contiguous. target_tokens/licensed_tokens are I32 [K+1,B], drafts is
@@ -109,10 +112,10 @@ void speculative_overlay_copy_proposals(const Tensor& copy_rows, const Tensor& c
  *   configs[b].token_counts do not overlap except for the explicitly mutated objects.
  *
  * Numeric:
- *   Sampling filtering, penalties, normalization, and RNG semantics are those of sampling.h.
- *   Token mask column i is conditioned on drafts[0..i), including the bonus column. It is
- *   applied before truncation/normalization; the proposal q is unchanged. Rejection therefore
- *   samples max(p_constrained-q,0), preserving the constrained target distribution.
+ *   Sampling filtering, penalties, normalization, the inverse-CDF draw and RNG semantics are
+ *   those of sampling.h. Column i's penalty overlay is drafts[0..i), and token mask column i is
+ *   conditioned on drafts[0..i), including the bonus column; both apply before
+ *   truncation/normalization, so each draw is from the constrained target distribution.
  *
  * Effects:
  *   For each row, let A be the accepted draft count and L=A+1. licensed_tokens[0:A,b] receives
@@ -125,14 +128,14 @@ void speculative_overlay_copy_proposals(const Tensor& copy_rows, const Tensor& c
  *
  * Workspace:
  *   Caller-owned transient storage reported by
- *   speculative_accept_greedy_drafts_workspace_capacity_bytes().
+ *   speculative_accept_coupled_drafts_workspace_capacity_bytes().
  */
-void speculative_accept_greedy_drafts(const Tensor& target_tokens, const Tensor& logits,
-                                      const Tensor& drafts, const Tensor& current_extents,
-                                      Tensor& lengths, Tensor& anchors, Tensor& licensed_tokens,
-                                      Tensor& licensed_counts, Tensor& accepted,
-                                      std::int32_t token_domain, const SamplingConfig* configs,
-                                      WorkspaceArena& workspace, cudaStream_t stream);
+void speculative_accept_coupled_drafts(const Tensor& target_tokens, const Tensor& logits,
+                                       const Tensor& drafts, const Tensor& current_extents,
+                                       Tensor& lengths, Tensor& anchors, Tensor& licensed_tokens,
+                                       Tensor& licensed_counts, Tensor& accepted,
+                                       std::int32_t token_domain, const SamplingConfig* configs,
+                                       WorkspaceArena& workspace, cudaStream_t stream);
 
 // Caller-owned transient capacity over the inclusive draft-count and batch intervals.
 // The raw-greedy execution envelope requires no workspace.

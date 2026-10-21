@@ -19,6 +19,10 @@ function Initialize-LocalEnvironment {
     $env:PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = '1'
     $env:DSH_HOME = Join-Path $script:RuntimeRoot 'dsh-home'
     $env:NINFER_LOCAL_KEY = 'local'
+    $bundledNode = Join-Path $script:RuntimeRoot 'node'
+    if (Test-Path -LiteralPath (Join-Path $bundledNode 'node.exe') -PathType Leaf) {
+        if (@($env:PATH -split ';') -notcontains $bundledNode) { $env:PATH = $bundledNode + ';' + $env:PATH }
+    }
 }
 
 function Read-LocalConfig([string]$Path = 'config/local.json') {

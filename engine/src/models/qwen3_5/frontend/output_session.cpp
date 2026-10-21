@@ -380,7 +380,7 @@ public:
           thinking_control_tokens(std::move(thinking_control_tokens_)),
           preserve_special(output.raw || output.preserve_special_tokens),
           split_reasoning(starts_in_reasoning && !output.raw),
-          tool_call_output(output.raw ? nullptr : std::move(tool_call_output_),
+          tool_call_output(output.raw ? nullptr : tool_call_output_,
                            output.tool_name_max_length) {
         if (thinking.budget && *thinking.budget == 0) {
             throw std::invalid_argument("thinking budget must be positive");
@@ -388,11 +388,19 @@ public:
         state.in_reasoning        = split_reasoning;
         prefix_execution.tracking = starts_in_reasoning;
         started_in_reasoning      = starts_in_reasoning;
+        if (starts_in_reasoning) {
+            const auto close = tokenizer->encode(kThinkClose);
+            if (close.size() == 1 &&
+                tokenizer->decoded_token(close.front()).bytes == kThinkClose) {
+                reasoning_close_token = close.front();
+            }
+        }
         semantic.budget           = thinking.budget;
         // The presentation decoder already tracks normal reasoning output. Keep the independent
         // semantic tracker dormant unless a cap needs it, so the default unlimited path does not
         // decode every model token twice.
         semantic.in_reasoning = starts_in_reasoning && thinking.budget.has_value();
+        collect_open_reasoning = split_reasoning && tool_call_output_ != nullptr;
     }
 
     std::shared_ptr<const fi::Tokenizer> tokenizer;
@@ -401,6 +409,7 @@ public:
     bool preserve_special     = false;
     bool split_reasoning      = false;
     bool started_in_reasoning = false;
+    std::optional<TokenId> reasoning_close_token;
     DecoderState state;
     DecoderState preview_state;
     SemanticThinkingState semantic;
@@ -412,6 +421,9 @@ public:
     fi::ToolCallOutputDecoder tool_call_output;
     std::vector<GeneratedToolCall> tool_calls;
     ToolCallParseDiagnostics tool_call_parse;
+    bool collect_open_reasoning = false;
+    std::string open_reasoning;
+    FinishReason preview_finish_reason = FinishReason::None;
     bool preview_ready = false;
     std::shared_ptr<text::GrammarState> grammar;
     std::unique_ptr<text::GrammarState> preview_grammar;
@@ -455,6 +467,7 @@ OutputSession::OutputSession(
           std::move(tokenizer), std::move(policy), output, starts_in_reasoning, thinking,
           std::move(thinking_control_tokens), std::move(tool_call_output))) {
     impl_->grammar = std::move(grammar);
+    if (impl_->grammar) { impl_->collect_open_reasoning = false; }
 }
 
 std::shared_ptr<text::GrammarState> OutputSession::grammar_state() const {
@@ -491,6 +504,7 @@ runtime::OutputDecision OutputSession::preview_model(std::span<const TokenId> to
                               runtime::ContinuationAction continuation =
                                   runtime::ContinuationAction::Decode) {
         if (reason != FinishReason::None) { impl_->preview_semantic.control_pending = false; }
+        impl_->preview_finish_reason = reason;
         if (impl_->preview_execution_split_after && *impl_->preview_execution_split_after > count) {
             throw std::logic_error("prefix execution split exceeds the accepted token prefix");
         }
@@ -645,6 +659,7 @@ runtime::OutputDecision OutputSession::preview_control(std::span<const TokenId> 
     }
     impl_->preview_semantic.control_pending = false;
     impl_->preview_semantic.applied         = true;
+    impl_->preview_finish_reason            = FinishReason::None;
     impl_->preview_semantic.injected_tokens = static_cast<std::uint32_t>(tokens.size());
     if (impl_->grammar) {
         impl_->preview_grammar = impl_->grammar->fork();
@@ -689,6 +704,7 @@ runtime::OutputDecision OutputSession::preview_terminal(FinishReason reason) {
     impl_->preview_semantic.control_pending = false;
     impl_->preview_output.clear();
     terminalize(impl_->preview_state, impl_->policy, impl_->preview_output, 0);
+    impl_->preview_finish_reason = reason;
     impl_->preview_ready = true;
     return runtime::OutputDecision{.accepted_tokens = 0, .finish_reason = reason};
 }
@@ -710,10 +726,17 @@ PublishedOutput OutputSession::commit_preview() {
     for (OutputDelta& delta : output) {
         if (delta.channel == OutputChannel::Content) {
             delta.text = impl_->tool_call_output.feed(delta.text);
+        } else if (delta.channel == OutputChannel::Reasoning && impl_->collect_open_reasoning) {
+            impl_->open_reasoning.append(delta.text);
         }
     }
+    if (impl_->collect_open_reasoning && !impl_->state.in_reasoning) {
+        impl_->collect_open_reasoning = false;
+        impl_->open_reasoning = {};
+    }
     if (impl_->state.terminal) {
-        fi::ToolCallOutputDecoder::Terminal terminal = impl_->tool_call_output.finish();
+        fi::ToolCallOutputDecoder::Terminal terminal =
+            impl_->tool_call_output.finish(impl_->preview_finish_reason, impl_->open_reasoning);
         impl_->tool_calls                            = std::move(terminal.tool_calls);
         impl_->tool_call_parse                       = terminal.diagnostics;
         if (!terminal.content.empty()) {
@@ -745,7 +768,22 @@ std::uint32_t OutputSession::reasoning_tokens() const noexcept {
 }
 
 bool OutputSession::reasoning_closed() const noexcept {
-    return impl_ != nullptr && impl_->started_in_reasoning && !impl_->prefix_execution.tracking;
+    return impl_ != nullptr && impl_->started_in_reasoning &&
+           ((impl_->split_reasoning && !impl_->state.in_reasoning) ||
+            !impl_->prefix_execution.tracking);
+}
+
+bool OutputSession::reasoning_close_pending() const noexcept {
+    if (impl_ == nullptr || !impl_->reasoning_close_token || reasoning_closed()) { return false; }
+    // Inspect committed decoder state, so a preview or a quoted marker cannot publish the
+    // transition. Raw output retains the canonical serialization's two-newline boundary.
+    return impl_->split_reasoning
+               ? impl_->state.think_marker_pending == kThinkClose
+               : impl_->prefix_execution.matched >= 1U + kThinkClose.size();
+}
+
+std::optional<TokenId> OutputSession::reasoning_close_token() const noexcept {
+    return impl_ != nullptr ? impl_->reasoning_close_token : std::nullopt;
 }
 
 ThinkingBudgetStats OutputSession::thinking_stats() const noexcept {

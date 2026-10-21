@@ -572,6 +572,24 @@ int main() {
             fallback_warning->message == "req#7 tool markup returned as text | duplicate parameter",
         "tool-call text fallback warning is absent or exposes raw content");
 
+    GenerationOutcome stranded_outcome = outcome;
+    stranded_outcome.tool_call_parse   = {
+        .marker_seen              = true,
+        .structured_call_count    = 2,
+        .recovered_from_reasoning = true,
+    };
+    const Json stranded_done =
+        Json::parse(format_request_done_json("serve-test", 3004, context, stranded_outcome));
+    const std::optional<OperationalRecord> stranded_note =
+        render_tool_call_fallback(context, stranded_outcome);
+    failures += check(
+        stranded_done.at("result").at("tool_call_parse").at("recovered_from_reasoning") == true &&
+            fallback_done.at("result").at("tool_call_parse").at("recovered_from_reasoning") ==
+                false &&
+            stranded_note && stranded_note->severity == OperationalSeverity::Info &&
+            stranded_note->message == "req#7 tool calls recovered from unclosed thinking | calls=2",
+        "calls recovered from unclosed thinking are missing from the logs");
+
     const Json error =
         Json::parse(format_request_error_json("serve-test", 4000, context, "generation failed"));
     failures += check(error.at("event") == "request_error", "request error event mismatch");

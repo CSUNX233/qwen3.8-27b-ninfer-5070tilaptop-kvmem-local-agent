@@ -1,0 +1,115 @@
+{
+  "date": "2026-10-20",
+  "installed_at": "2026-10-20T15:10:19.116719+00:00",
+  "installed": true,
+  "deployment_scope": "User-authorized local daily trial; published assets unchanged",
+  "active_engine_sha256": "b1f8326fceeed5d9c5bcd9db30fc166947c1382599358b964fa5500da582f941",
+  "rollback_engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+  "previous_rollback_replaced": true,
+  "only_one_rollback_engine": true,
+  "launch_scripts_and_chat_template_unchanged": true,
+  "source_base_commit": "389791f834880e77f31fcb46ebe288918074882e",
+  "release_tag": null,
+  "committed": false,
+  "pushed": false,
+  "published": false,
+  "cold_warm_outputs_equal": true,
+  "smoke": [
+    {
+      "label": "short-2",
+      "passed": true,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "usage": {
+        "completion_tokens": 741,
+        "completion_tokens_details": {
+          "reasoning_tokens": 555
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 1559
+      },
+      "timings": {
+        "cache_n": 0,
+        "draft_n": 653,
+        "draft_n_accepted": 523,
+        "predicted_ms": 7619.2994,
+        "predicted_n": 741,
+        "predicted_per_second": 97.12179048903106,
+        "predicted_per_token_ms": 10.29635054054054,
+        "prompt_ms": 1032.8691999999999,
+        "prompt_n": 818,
+        "prompt_per_second": 791.9686248752505,
+        "prompt_per_token_ms": 1.2626762836185816
+      },
+      "wall_seconds": 8.685899299991434
+    },
+    {
+      "label": "short-2-repeat-1",
+      "passed": true,
+      "grade": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        }
+      },
+      "usage": {
+        "completion_tokens": 741,
+        "completion_tokens_details": {
+          "reasoning_tokens": 555
+        },
+        "prompt_tokens": 818,
+        "prompt_tokens_details": {
+          "cached_tokens": 813
+        },
+        "total_tokens": 1559
+      },
+      "timings": {
+        "cache_n": 813,
+        "draft_n": 653,
+        "draft_n_accepted": 523,
+        "predicted_ms": 7559.0751,
+        "predicted_n": 741,
+        "predicted_per_second": 97.89557455250048,
+        "predicted_per_token_ms": 10.214966351351352,
+        "prompt_ms": 73.0976,
+        "prompt_n": 5,
+        "prompt_per_second": 68.40169855097842,
+        "prompt_per_token_ms": 14.61952
+      },
+      "wall_seconds": 7.6421446000022115
+    }
+  ],
+  "rollback_helper_validation": "PowerShell -WhatIf; no actual rollback performed",
+  "limitations": [
+    "Known short-8 tool misuse remains; prior ten-seed score 9/10",
+    "Installation smoke covers two direct engine requests, not real dsh/browser flow",
+    "No new full-256K or controlled performance qualification"
+  ]
+}

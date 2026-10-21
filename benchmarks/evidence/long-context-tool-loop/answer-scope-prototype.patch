@@ -1,0 +1,31 @@
+--- a/engine/src/models/qwen3_5/program/decode.cpp
++++ b/engine/src/models/qwen3_5/program/decode.cpp
+@@ -15,11 +15,13 @@
+ #include <chrono>
+ #include <cstddef>
+ #include <cstdint>
++#include <cstdlib>
+ #include <limits>
+ #include <optional>
+ #include <span>
+ #include <stdexcept>
+ #include <string>
++#include <string_view>
+ #include <vector>
+ 
+ namespace ninfer::models::qwen3_5::execution {
+@@ -154,9 +156,13 @@
+     host.min_p                = sampling.min_p;
+     host.presence_penalty     = sampling.presence_penalty;
+     host.frequency_penalty    = sampling.frequency_penalty;
++    // Private opt-in prototype; the current runtime calls update_sampling only at the
++    // committed post-thinking boundary. Never change the default carry-over contract.
++    const char* reset_env = std::getenv("NINFER_EXPERIMENTAL_ANSWER_PENALTY_RESET");
++    const bool reset_answer_counts = reset_env && std::string_view(reset_env) == "1";
+     // Penalties that start now count only the tokens sampled from here on.
+     if ((host.presence_penalty != 0.0F || host.frequency_penalty != 0.0F) &&
+-        host.token_counts == nullptr) {
++        (host.token_counts == nullptr || reset_answer_counts)) {
+         Tensor counts = token_counts.slice(1, static_cast<std::int32_t>(lane), 1)
+                             .view({dimension(parameters.model.resources().public_token_count)});
+         CUDA_CHECK(cudaMemsetAsync(counts.data, 0, counts.bytes(), device.stream));

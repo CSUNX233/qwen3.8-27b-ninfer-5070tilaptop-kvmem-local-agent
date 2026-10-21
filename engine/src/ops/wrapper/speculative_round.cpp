@@ -78,11 +78,11 @@ void require_tensor3(const Tensor& t, DType dtype, std::int32_t n0, std::int32_t
 
 } // namespace
 
-std::size_t speculative_accept_greedy_drafts_workspace_capacity_bytes(std::int32_t token_domain,
-                                                                      std::int32_t min_drafts,
-                                                                      std::int32_t max_drafts,
-                                                                      std::int32_t min_batch,
-                                                                      std::int32_t max_batch) {
+std::size_t speculative_accept_coupled_drafts_workspace_capacity_bytes(std::int32_t token_domain,
+                                                                       std::int32_t min_drafts,
+                                                                       std::int32_t max_drafts,
+                                                                       std::int32_t min_batch,
+                                                                       std::int32_t max_batch) {
     if (token_domain <= 0 || min_drafts <= 0 || max_drafts < min_drafts || min_batch <= 0 ||
         max_batch < min_batch || max_drafts == std::numeric_limits<std::int32_t>::max()) {
         throw std::invalid_argument("speculative accept workspace: invalid draft interval");
@@ -180,28 +180,28 @@ void speculative_overlay_copy_proposals(const Tensor& copy_rows, const Tensor& c
         copy_rows, copy_drafts, copy_candidates, copy_q, drafts, candidates, proposal_q, stream);
 }
 
-void speculative_accept_greedy_drafts(const Tensor& target_tokens, const Tensor& logits,
-                                      const Tensor& drafts, const Tensor& current_extents,
-                                      Tensor& lengths, Tensor& anchors, Tensor& licensed_tokens,
-                                      Tensor& licensed_counts, Tensor& accepted,
-                                      std::int32_t token_domain, const SamplingConfig* configs,
-                                      WorkspaceArena& workspace, cudaStream_t stream) {
-    constexpr const char* op = "speculative_accept_greedy_drafts";
+void speculative_accept_coupled_drafts(const Tensor& target_tokens, const Tensor& logits,
+                                       const Tensor& drafts, const Tensor& current_extents,
+                                       Tensor& lengths, Tensor& anchors, Tensor& licensed_tokens,
+                                       Tensor& licensed_counts, Tensor& accepted,
+                                       std::int32_t token_domain, const SamplingConfig* configs,
+                                       WorkspaceArena& workspace, cudaStream_t stream) {
+    constexpr const char* op = "speculative_accept_coupled_drafts";
     const std::int32_t k     = drafts.ne[0];
     const std::int32_t batch = drafts.ne[1];
-    if (k < 1) { throw std::invalid_argument("speculative_accept_greedy_drafts: K must be >=1"); }
+    if (k < 1) { throw std::invalid_argument("speculative_accept_coupled_drafts: K must be >=1"); }
     if (batch < 1) {
-        throw std::invalid_argument("speculative_accept_greedy_drafts: B must be >=1");
+        throw std::invalid_argument("speculative_accept_coupled_drafts: B must be >=1");
     }
     require_matrix(target_tokens, DType::I32, k + 1, batch, op, "target_tokens");
     require_dtype(logits, DType::BF16, op, "logits");
     if (logits.ne[0] <= 0 || logits.ne[1] != k + 1 || logits.ne[2] != batch || logits.ne[3] != 1) {
         throw std::invalid_argument(
-            "speculative_accept_greedy_drafts: logits must be [physical_rows,K+1,B]");
+            "speculative_accept_coupled_drafts: logits must be [physical_rows,K+1,B]");
     }
     if (token_domain <= 0 || token_domain > logits.ne[0]) {
         throw std::invalid_argument(
-            "speculative_accept_greedy_drafts: token_domain must be in [1, logits.ne[0]]");
+            "speculative_accept_coupled_drafts: token_domain must be in [1, logits.ne[0]]");
     }
     require_matrix(drafts, DType::I32, k, batch, op, "drafts");
     require_vector(current_extents, DType::I32, batch, op, "current_extents");
@@ -211,13 +211,13 @@ void speculative_accept_greedy_drafts(const Tensor& target_tokens, const Tensor&
     require_vector(licensed_counts, DType::I32, batch, op, "licensed_counts");
     require_vector(accepted, DType::I32, batch, op, "accepted");
     if (configs == nullptr) {
-        throw std::invalid_argument("speculative_accept_greedy_drafts: configs must be non-null");
+        throw std::invalid_argument("speculative_accept_coupled_drafts: configs must be non-null");
     }
     auto scratch_scope = workspace.scope();
     const std::size_t bytes =
-        speculative_accept_greedy_drafts_workspace_capacity_bytes(token_domain, k, k, batch, batch);
+        speculative_accept_coupled_drafts_workspace_capacity_bytes(token_domain, k, k, batch, batch);
     const DeviceSpan scratch = bytes == 0 ? DeviceSpan{} : workspace.alloc_bytes(bytes);
-    detail::speculative_accept_greedy_drafts_launch(
+    detail::speculative_accept_coupled_drafts_launch(
         target_tokens, logits, drafts, current_extents, lengths, anchors, licensed_tokens,
         licensed_counts, accepted, token_domain, configs, scratch, stream);
 }

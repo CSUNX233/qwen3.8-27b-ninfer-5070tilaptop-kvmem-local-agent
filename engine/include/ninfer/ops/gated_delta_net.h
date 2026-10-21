@@ -64,7 +64,7 @@ void gated_delta_net(const Tensor& q, const Tensor& k, const Tensor& v, const Te
 
 /**
  * One-token update for B independent state-pool slots. q/k are contiguous BF16 [128,Hqk,1,B],
- * v/out are BF16 [128,Hv,1,B], g/beta are FP32 [Hv,1,B], `ssm_states` is contiguous FP32
+ * v/out are BF16 [128,Hv,1,B], g/beta are FP32 [Hv,1,B], `ssm_states` is contiguous FP32 or FP16
  * [128,128,Hv,Slots], and both selector tensors are contiguous device I32 [B]. B is in [1,8].
  * Row b reads source_state_slots[b] and publishes the transition to
  * destination_state_slots[b]; selectors may be equal for an in-place row. Destination slots are
@@ -82,7 +82,7 @@ void gated_delta_net_batch_update(const Tensor& q, const Tensor& k, const Tensor
  *
  * Evaluates B independent normalized Gated DeltaNet recurrences from absolute state-pool slots
  * without modifying any state. q/k are BF16 [128,Hq,T,B], v/out are BF16 [128,Hv,T,B], g/beta
- * are FP32 [Hv,T,B], and ssm_states is FP32 [128,128,Hv,S]. The ReplaySSM execution domain is
+ * are FP32 [Hv,T,B], and ssm_states is FP32 or FP16 [128,128,Hv,S]. The ReplaySSM execution domain is
  * B=1..8 and T=2..16, plus B=1 and T=17..64, with Hq=16 and Hv in {32,48}.
  * scale is 1/sqrt(128).
  *
@@ -92,8 +92,9 @@ void gated_delta_net_batch_update(const Tensor& q, const Tensor& k, const Tensor
  * [2,Hv,T,B] receive bit-preserving copies of raw k, v, and {g,beta}. The invalid record suffix is
  * unchanged, while the invalid out suffix is exact BF16 zero. Inputs, state, records, and out are
  * pairwise non-overlapping. Valid outputs must be bit-identical to the normalized recurrent
- * execution from the same FP32 initial state and represented inputs; no independent FP64
- * comparison is needed to establish this record/snapshot equivalence.
+ * single-token execution from the same represented initial state and inputs. FP16 storage
+ * rounds the recurrent state after each token's readout, before the next transition, even
+ * across internal record-stage boundaries. The persistent source state remains unchanged.
  */
 void gated_delta_net_replay_record(const Tensor& q, const Tensor& k, const Tensor& v,
                                    const Tensor& g, const Tensor& beta, float scale,

@@ -66,7 +66,25 @@ RTX 50 系、12GB 及以上显存的其他设备欢迎尝试并提交参数与�
 资源管理器Host-only LRU检查包含在 `ninfer_resource_manager_test`，可运行
 `ctest --test-dir runtime/build -R "^ninfer_resource_manager_test$" --output-on-failure`。本轮独立增量测试运行76项全部通过；完整v2重编全部模型Program单元、runtime engine及paged KV实现，再链接原静态库，仍不是干净全量构建。
 
+## 本地未发布的工具输出修复（2026-10-20）
+
+相同 CUDA 13.0.48 / MSVC 14.44.35207 / sm120a 工具链重建全部 v0.1.3 本地替换对象，并重编输出解析、结果处理和全部 serving 消费者及入口，共 70 个 Host 与 7 个 CUDA 编译单元，复用其余原静态库。spdlog 沿用原编译库模式 `SPDLOG_COMPILED_LIB`。受影响生产源码的 SHA-256 已与构建清单逐一核对；这仍不是干净全量构建。
+
+已注册独立测试入口，在新的正常 CMake 构建树中可运行：
+
+```powershell
+cmake --build runtime/build --target ninfer_tool_output_recovery_test ninfer_qwen3_5_tool_recovery_test ninfer_request_log_test
+ctest --test-dir runtime/build --output-on-failure -R 'ninfer_(tool_output_recovery|qwen3_5_tool_recovery|request_log)_test$'
+python -m pytest engine/tests/test_serve_corpus.py -q
+```
+
+本机实际执行等价独立增量编译/链接，没有重配旧 CMake 树。定向解析器、前端、日志与 Python 2 项通过；完整继承组按函数隔离进程前后对照，原有 8 个解析器及 1 个前端失败保留，没有新增失败。真实模型 205124-token 召回和长历史工具续接通过。[实现、部署哈希与验证边界](TOOL_OUTPUT_RECOVERY.md)。公开下载清单继续固定已发布的 v0.1.3，本地候选不应直接按旧版清单打包。
+
+同日第二批[原有失败修复](TOOL_PARSER_EDGE_CASES.md)仅重编工具解析器一个 Host 单元，复用上一批其余对象及静态库。两个完整测试程序和按函数隔离执行均通过：解析器 39/39、前端 54/54，解决原有 9 项失败；另有前后输出对照和真实 49452-token 召回/工具续接、刻意截断及错误后重试验证。没有重配旧 CMake 树、重跑全部 CTest 或重复 205124-token 测试。当前本地 exe 为 `d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f`，与已发布 v0.1.3 下载哈希分别记录。
+
 ## 打包已验证的引擎
+
+2026-10-20 的[思考后采样屏障候选](LONG_CONTEXT_TOOL_LOOP.md)变更 `RoundBudget` 契约，重编前轮全部 70 个 Host 替换单元，复用已验证 CUDA 对象和其余原静态库；随后增量修正输出状态及 Scheduler 耗尽预算处理。没有重配旧 CMake 树或完成干净全量构建。最终候选链接的前端 55 组、解析器 39 组和 18 个 Host 程序通过，但实际短测仍有误调用，候选不作为日常安装/发布引擎；确切哈希与结果见对应脱敏证据。
 
 `scripts/package-engine.py` 核对 `SOURCE_PROVENANCE.json` 与下载清单中的 exe 哈希，打包程序、LICENSE、NOTICE 和静态依赖许可，校验 ZIP 内程序哈希及 CRC，更新清单的归档哈希并输出 `dist/SHA256SUMS`。它不编译、不下载依赖，也不上传；先完成构建和资格检查，再更新相应版本及来源记录。
 
@@ -76,3 +94,22 @@ python scripts/check-release.py
 ```
 
 归档不含权重、DLL、SDK、会话或登录信息；发布时使用与源码标签匹配的新 Release，保留旧版本资产。
+
+2026-10-20 的[耦合采样候选](COUPLED_SAMPLING.md)变更 ordinary ingress 布局，重编前轮70个Host替换单元及speculative wrapper，共71个Host，并用sm120a重编sampling、speculative两个CUDA单元；复用此前七个CUDA替换对象和其余原库，非干净全量构建。内部Op改名为coupled，外部自建C++消费者需重编。独立草拟、普通采样FP64分布、MTP状态、DecodeGraph、frontend/admission/parser程序通过；实际短测仍有失败，未部署或打包。
+
+后续 NVFP4 分区候选另重编 `small_t_nvfp4.cu`，合计复用/替换 71 个 Host 与 10 个 CUDA 单元，仍非干净全量构建。该 CUDA 单元包含 producer/reducer 窗口修复及 reducer 循环展开限制；原源码重编也会触发的 129-split 非法访问已由最小探针和完整数值测试分别验证。修改 `.cuh` 后强制重编对应 `.cu`，不能依赖仅检查 `.cu` 时间戳的私有增量缓存。构建哈希及实际验证范围见[候选说明](COUPLED_SAMPLING.md#后续nvfp4-验证列分区)。
+
+本机后续安装：2026-10-20 按用户要求直接安装已验证的最终 `b1f832…` 二进制，没有重新编译；旧日常 `d6c4f8…` 作为唯一回滚备份保留。日常路径下两次冷/热检查通过，恢复入口只读演练通过；未更新公开下载清单或发布资产。详见[安装状态与验证](COUPLED_SAMPLING.md)。
+
+2026-10-21 [FP16 GDN 一致性候选](GDN_FP16_CONSISTENCY.md)在同一清单上强制重编
+`linear_attention/gated_delta_net/recurrent.cu`，共71个Host/11个CUDA替换单元，仍复用其余原库。
+候选未安装；资格程序链接相同对象。头文件变动必须使该CUDA单元重新编译。
+
+### 2026-10-21 无探针独立计数试用构建
+
+在FP16 GDN候选对象上，仅重编 `program/decode.cpp`、`program/program.cpp`、`runtime/engine/engine.cpp` 三个Host单元，复用其全部CUDA及其余对象，不含诊断探针，非干净全量构建。新增明确思考闭合API，普通sampling更新契约保留；相关六个源码哈希、构建范围及二进制 `8804cb04470214f68e01e38cb07004c90e748507a77134995335d1edbd768472` 见[脱敏安装证据](../benchmarks/evidence/long-context-tool-loop/answer-scope-trial-installation.json)。同一二进制完成29/29开启组、9/10缺省短组，准确对象重新链接的frontend55组/parser39组通过。已安装本机日常试用并保留上一日常回滚；用户选择自行验证真实dsh任务，未更新公开下载清单或发布资产。已清理可重新链接的测试exe和重复候选，构建对象及链接清单保留。
+
+
+## v0.1.4发布及离线整合包
+
+发布二进制为已安装无探针8804cb…，未重新改变算子；公开源码包含相同正式修复、部署开关和脱敏阶段记录。三Host重编与其GDN/CUDA基底见上文，不能当作干净全量构建。`scripts/package-engine.py`生成独立引擎附件，`scripts/package-offline.py`另从Git可见源码、明确的两模型、固定哈希运行依赖和全新npm ci结果构建网盘包，拒绝已有输出目录和依赖reparse link，不复制用户runtime。归档只允许清单内文件，安装验收后生成的会话/config不进入分享ZIP。依赖许可和Swift衍生模型条款随包保留；详细入口见[离线整合包](OFFLINE_BUNDLE.md)。

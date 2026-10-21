@@ -47,6 +47,7 @@ auto ordinary_batch_body(OrdinaryBatchContext& state, std::int32_t batch_size,
 
         Tensor tokens             = ordinary.tokens.slice(0, 0, batch_size);
         Tensor cache_positions    = ordinary.cache_positions.slice(0, 0, batch_size);
+        Tensor sample_positions   = ordinary.sample_positions.slice(0, 0, batch_size);
         Tensor rope_positions     = ordinary.rope_positions.slice(0, 0, batch_size);
         Tensor kv_rows            = ordinary.text_kv_table_rows.slice(0, 0, batch_size);
         Tensor state_sources      = ordinary.state_source_slots.slice(0, 0, batch_size);
@@ -61,7 +62,7 @@ auto ordinary_batch_body(OrdinaryBatchContext& state, std::int32_t batch_size,
                      state.execution.device.stream);
         ops::sample(logits, sampled,
                     dimension(state.execution.parameters.model.resources().public_token_count),
-                    ordinary.sampling, cache_positions, ops::kSamplePurposeDecode,
+                    ordinary.sampling, sample_positions, ops::kSamplePurposeDecode,
                     state.execution.work, state.execution.device.stream);
         CUDA_CHECK(cudaMemcpyAsync(&state.host_egress, ordinary.egress.data,
                                    sizeof(qwen3_5::OrdinaryDecodeEgress), cudaMemcpyDeviceToHost,
@@ -164,6 +165,20 @@ void ProgramImpl::update_sampling(SequenceHandle handle,
     Tensor config_lane = sampling_config.slice(1, static_cast<std::int32_t>(lane), 1);
     CUDA_CHECK(cudaMemcpyAsync(config_lane.data, &host, sizeof(host), cudaMemcpyHostToDevice,
                                device.stream));
+}
+
+void ProgramImpl::reset_penalty_counts(SequenceHandle handle) {
+    if (!valid_sequence(handle)) { throw std::logic_error("penalty reset names no sequence"); }
+    const std::uint32_t lane = ContractAccess::lane(handle).value;
+    const ops::SamplingConfig& host = requests[lane].sampling_host;
+    if (host.presence_penalty == 0.0F && host.frequency_penalty == 0.0F) { return; }
+    if (host.token_counts == nullptr) {
+        throw std::logic_error("active penalties have no count storage");
+    }
+    Tensor counts = token_counts.slice(1, static_cast<std::int32_t>(lane), 1)
+                        .view({dimension(parameters.model.resources().public_token_count)});
+    // The config upload and the next ordinary/MTP round use this same stream.
+    CUDA_CHECK(cudaMemsetAsync(counts.data, 0, counts.bytes(), device.stream));
 }
 
 void ProgramImpl::install_sampling(SequenceState& sequence, RequestControl& request,
@@ -460,6 +475,8 @@ ProgramImpl::decode_ordinary_batch(std::span<const std::uint32_t> lanes,
             ordinary_host_ingress->tokens[row] = sequence.ledger.back();
             ordinary_host_ingress->cache_positions[row] =
                 checked_i32(frontier, "ordinary batch position");
+            ordinary_host_ingress->sample_positions[row] =
+                checked_i32(frontier + 1U, "ordinary batch sample position");
             ordinary_host_ingress->rope_positions[row] =
                 checked_i32(frontier, "ordinary batch RoPE position") + sequence.rope_delta;
             ordinary_host_ingress->text_kv_table_rows[row] =
@@ -634,10 +651,20 @@ ProgramImpl::decode_mtp_batch(std::span<const std::uint32_t> lanes,
                                                     : 0;
             const NgramProposer::Match& match = matches[row];
             const bool row_copy               = !match.tokens.empty();
-            const std::uint32_t extent        = std::min(
+            std::uint32_t extent              = std::min(
                 {row_copy ? static_cast<std::uint32_t>(match.tokens.size())
                           : sequence.mtp_draft_count,
                  verify_window, max_by_budget, capacity - sequence.execution_frontier - 1});
+            // The boundary itself is sampled as this round's terminal token, rather than as an
+            // accepted draft with a bonus token after it. A correction before it ends even earlier.
+            // This preserves the target distribution while letting Engine install the answer
+            // sampler before any following token is licensed; no KV/count rollback is needed.
+            if (budgets[row].sampling_boundary_token) {
+                const std::span<const TokenId> proposed(
+                    row_copy ? match.tokens.data() : sequence.mtp_drafts.data(), extent);
+                extent = static_cast<std::uint32_t>(
+                    budgets[row].drafts_before_sampling_boundary(proposed).size());
+            }
             mtp_host_ingress->anchors[row]        = sequence.ledger.back();
             mtp_host_ingress->base_frontiers[row] = checked_i32(frontier, "MTP batch frontier");
             mtp_host_ingress->remaining_budgets[row] =

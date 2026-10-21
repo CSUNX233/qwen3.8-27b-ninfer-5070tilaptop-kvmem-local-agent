@@ -5,10 +5,14 @@ $cfg = Read-LocalConfig $Config
 $kvDType = 'nvfp4'
 if ($cfg.PSObject.Properties['KVDType']) { $kvDType = [string]$cfg.KVDType }
 if ($kvDType -notin @('nvfp4', 'rk4v4')) { throw 'KVDType must be nvfp4 or rk4v4. See docs/INSTALL.md.' }
+$penaltyScope = 'answer'
+if ($cfg.PSObject.Properties['AnswerPenaltyScope']) { $penaltyScope = [string]$cfg.AnswerPenaltyScope }
+if ($penaltyScope -notin @('answer', 'carry-over')) { throw 'AnswerPenaltyScope must be answer or carry-over. See docs/ANSWER_PENALTY_SCOPE.md.' }
 $engine = Resolve-ProjectPath $cfg.EnginePath
 $model = Resolve-ProjectPath $cfg.ModelPath
 if (-not (Test-Path -LiteralPath $engine) -or -not (Test-Path -LiteralPath $model)) { throw 'Engine/model missing. Run setup.ps1 first.' }
 $launchMutex = Enter-LaunchMutex
+$previousPenaltyScope = [Environment]::GetEnvironmentVariable('NINFER_POST_THINKING_PENALTY_SCOPE', 'Process')
 try {
 $oldState = @(Get-DeploymentState | Where-Object { $_ -and (Test-OwnedProcess $_) })
 if ($oldState.Count) { throw 'This checkout already has running processes. Use stop.cmd before restarting.' }
@@ -17,6 +21,7 @@ if (-not $EngineOnly) { Assert-PortFree $cfg.GuardPort; Assert-PortFree $cfg.Web
 $records = New-Object 'System.Collections.Generic.List[object]'
 try {
     $env:CUDA_MODULE_LOADING='LAZY'
+    $env:NINFER_POST_THINKING_PENALTY_SCOPE=$penaltyScope
     $env:NINFER_KVMEM_INDEX_HOST='1'
     $env:NINFER_KV_RING='1'
     $env:NINFER_KV_WINDOW=[string]$cfg.RecentTokens
@@ -89,6 +94,7 @@ try {
     throw
 }
 } finally {
+    [Environment]::SetEnvironmentVariable('NINFER_POST_THINKING_PENALTY_SCOPE', $previousPenaltyScope, 'Process')
     $launchMutex.ReleaseMutex()
     $launchMutex.Dispose()
 }

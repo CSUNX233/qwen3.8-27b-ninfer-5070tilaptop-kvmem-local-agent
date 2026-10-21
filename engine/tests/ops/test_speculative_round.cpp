@@ -417,7 +417,8 @@ struct SparseAcceptSuite {
                                         const std::vector<std::int32_t>& extents,
                                         const std::vector<std::int32_t>& initial_lengths,
                                         const std::vector<ops::SamplingConfig>& configs,
-                                        const std::vector<std::int32_t>& token_counts) {
+                                        const std::vector<std::int32_t>& token_counts,
+                                        bool coupled = false) {
         SparseExpected expected{
             .licensed_tokens = std::vector<std::int32_t>(kSparseColumns * kSparseBatch, 0),
             .licensed_counts = std::vector<std::int32_t>(kSparseBatch),
@@ -433,6 +434,23 @@ struct SparseAcceptSuite {
                 const TargetDistribution target = sparse_target_distribution(
                     logits, row, column, configs[static_cast<std::size_t>(row)], token_counts,
                     drafts);
+                // Coupled verification (speculative_accept_coupled_drafts): every live column
+                // draws its token with the decode key of the position it fills, and a draft
+                // survives exactly when it equals that draw.
+                if (coupled && configs[static_cast<std::size_t>(row)].temperature > 0.0f) {
+                    const double uniform =
+                        oracle_uniform(configs[static_cast<std::size_t>(row)].seed,
+                                       initial_lengths[static_cast<std::size_t>(row)] + column + 1,
+                                       ops::kSamplePurposeDecode);
+                    const int drawn = sample_target_distribution(target, uniform);
+                    if (column < extent &&
+                        drawn == drafts[static_cast<std::size_t>(row) * kSparseDrafts + column]) {
+                        ++accepted_count;
+                        continue;
+                    }
+                    terminal_token = drawn;
+                    break;
+                }
                 if (column == extent) {
                     const double uniform =
                         oracle_uniform(configs[static_cast<std::size_t>(row)].seed,
@@ -504,7 +522,7 @@ struct SparseAcceptSuite {
             expected_override != nullptr
                 ? *expected_override
                 : sparse_accept_oracle(logits, drafts, candidate_ids, proposal_q, extents,
-                                       initial_lengths, host_configs, token_counts);
+                                       initial_lengths, host_configs, token_counts, mtp_onehot);
 
         DeviceBuffer d_target_tokens                    = to_device(target_tokens);
         DeviceBuffer d_logits                           = to_device(logits);
@@ -557,7 +575,7 @@ struct SparseAcceptSuite {
         Tensor accepted_tensor(d_accepted.data(), DType::I32, {kSparseBatch});
         const std::size_t workspace_bytes =
             mtp_onehot
-                ? ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(
+                ? ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(
                       kSparseTokenDomain, kSparseDrafts, kSparseDrafts, kSparseBatch, kSparseBatch)
                 : ops::speculative_accept_sparse_drafts_workspace_capacity_bytes(
                       kSparseTokenDomain, envelope, kSparseDrafts, kSparseDrafts, kSparseBatch,
@@ -566,7 +584,7 @@ struct SparseAcceptSuite {
         WorkspaceArena workspace(DeviceSpan{scratch.data(), scratch.bytes()});
         const auto launch = [&](cudaStream_t stream) {
             if (mtp_onehot) {
-                ops::speculative_accept_greedy_drafts(
+                ops::speculative_accept_coupled_drafts(
                     target_tensor, logits_tensor, drafts_tensor, extent_tensor, lengths_tensor,
                     anchors_tensor, licensed_tensor, licensed_counts_tensor, accepted_tensor,
                     kSparseTokenDomain, static_cast<const ops::SamplingConfig*>(d_configs.p),
@@ -676,9 +694,9 @@ struct SparseAcceptSuite {
                     cuda_synchronize();
                     executable.launch(stream);
                     cuda_synchronize(stream);
-                    const auto wanted = sparse_accept_oracle(current_logits, drafts, candidate_ids,
-                                                             current_q, next_extents, next_lengths,
-                                                             host_configs, token_counts);
+                    const auto wanted = sparse_accept_oracle(
+                        current_logits, drafts, candidate_ids, current_q, next_extents,
+                        next_lengths, host_configs, token_counts, mtp_onehot);
                     failures += check_result(wanted, " replay " + std::to_string(pass));
                     if (change_inputs) {
                         failures += verify_exact(
@@ -1199,9 +1217,9 @@ int execute_accept_case(const std::string& label, const std::vector<std::int32_t
     Tensor num_sampled(d_num.data(), DType::I32, {1});
     Tensor accepted(d_accepted.data(), DType::I32, {1});
     const std::size_t workspace_bytes =
-        ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(token_domain, k, k, 1, 1);
+        ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(token_domain, k, k, 1, 1);
     WorkspaceArena workspace(std::max<std::size_t>(256, workspace_bytes));
-    ops::speculative_accept_greedy_drafts(
+    ops::speculative_accept_coupled_drafts(
         targets, logits, draft_tensor, extent, length, token, sampled, num_sampled, accepted,
         token_domain, static_cast<const ops::SamplingConfig*>(d_config.p), workspace, nullptr);
     cuda_synchronize();
@@ -1280,7 +1298,7 @@ int greedy_accept_case(int k, int accepted_count, int token_domain = 64) {
                                ops::SamplingConfig{}, token_counts, expected);
 }
 
-int masked_greedy_drafts_case(int k, int domain, bool stochastic, int rejection) {
+int masked_coupled_drafts_case(int k, int domain, bool stochastic, int rejection) {
     const int words = (domain + 31) / 32;
     std::vector<std::uint32_t> mask(words * (k + 1), 0);
     std::vector<int> targets(k + 1, 0), drafts(k), counts(domain, 0);
@@ -1343,6 +1361,63 @@ int deterministic_sampling_case() {
     return execute_accept_case("speculative sampling deterministic support", targets, logits_bits,
                                physical_rows, drafts, initial_length, token_domain, config,
                                token_counts, expected);
+}
+
+// The coupling contract between the two Ops: drafts that sample() draws from the verification
+// columns themselves, each with the decode key of the position it fills, are all kept and the
+// terminal is sample()'s draw of the bonus column; a draft replaced at `mismatch` ends the round
+// there with that column's own draw. Both Ops must make the same draw from the same column on
+// every route they pick for the domain.
+int coupled_sample_case(int token_domain, int k, int mismatch) {
+    const std::int32_t initial_length = 700;
+    std::vector<std::uint16_t> logits(static_cast<std::size_t>(token_domain) * (k + 1));
+    std::uint64_t state = 0x9E3779B97F4A7C15ull ^ static_cast<std::uint64_t>(token_domain * 64 + k);
+    for (auto& logit : logits) {
+        state = state * 6364136223846793005ull + 1442695040888963407ull;
+        // Mostly flat noise with a few strong candidates per column, like a language model's head.
+        const double unit = static_cast<double>(state >> 11) * (1.0 / 9007199254740992.0);
+        logit             = f32_to_bf16(static_cast<float>(unit < 0.002 ? 6.0 + 4.0 * unit / 0.002
+                                                                        : 8.0 * unit - 4.0));
+    }
+    ops::SamplingConfig config{};
+    config.temperature = 0.7f;
+    config.top_k       = 20;
+    config.top_p       = 0.95f;
+    config.min_p       = 0.01f;
+    config.seed        = 0xC0FFEEull + static_cast<std::uint64_t>(k);
+
+    DeviceBuffer d_logits = to_device(logits);
+    DeviceBuffer d_config = device_config(config);
+    DeviceBuffer d_out    = to_device<std::int32_t>({0});
+    WorkspaceArena workspace(
+        std::max<std::size_t>(256, ops::sampling_workspace_capacity_bytes(token_domain, 1, 1)));
+    std::vector<std::int32_t> drawn(static_cast<std::size_t>(k + 1));
+    for (int column = 0; column <= k; ++column) {
+        DeviceBuffer d_position = to_device<std::int32_t>({initial_length + column + 1});
+        const Tensor rows(static_cast<std::uint16_t*>(d_logits.p) +
+                              static_cast<std::size_t>(column) * token_domain,
+                          DType::BF16, {token_domain, 1});
+        Tensor out(d_out.p, DType::I32, {1});
+        const Tensor position(d_position.p, DType::I32, {1});
+        ops::sample(rows, out, token_domain, static_cast<const ops::SamplingConfig*>(d_config.p),
+                    position, ops::kSamplePurposeDecode, workspace, nullptr);
+        cuda_synchronize();
+        drawn[static_cast<std::size_t>(column)] = from_device<std::int32_t>(d_out, 1)[0];
+    }
+    std::vector<std::int32_t> drafts(drawn.begin(), drawn.end() - 1);
+    const int accepted = mismatch >= 0 && mismatch < k ? mismatch : k;
+    if (accepted < k) {
+        drafts[static_cast<std::size_t>(accepted)] =
+            (drafts[static_cast<std::size_t>(accepted)] + 1) % token_domain;
+    }
+    const auto expected = accept_state_oracle(
+        drafts, accepted, drawn[static_cast<std::size_t>(accepted)], initial_length);
+    return execute_accept_case("coupled sample() drafts domain=" + std::to_string(token_domain) +
+                                   " K=" + std::to_string(k) + " A=" + std::to_string(accepted),
+                               std::vector<std::int32_t>(static_cast<std::size_t>(k + 1), 0),
+                               logits, token_domain, drafts, initial_length, token_domain, config,
+                               std::vector<std::int32_t>(static_cast<std::size_t>(token_domain), 0),
+                               expected);
 }
 
 int greedy_penalty_case(int token_domain) {
@@ -1492,10 +1567,10 @@ int batched_sampling_workspace_stride_case() {
     Tensor counts(d_counts.p, DType::I32, {batch});
     Tensor accepted(d_accepted.p, DType::I32, {batch});
     const std::size_t workspace_bytes =
-        ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(token_domain, k, k, batch,
+        ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(token_domain, k, k, batch,
                                                                        batch);
     WorkspaceArena workspace(workspace_bytes);
-    ops::speculative_accept_greedy_drafts(
+    ops::speculative_accept_coupled_drafts(
         targets, logits_tensor, draft_tensor, extents, lengths, anchors, licensed, counts, accepted,
         token_domain, static_cast<const ops::SamplingConfig*>(d_configs.p), workspace, nullptr);
     cuda_synchronize();
@@ -1715,7 +1790,7 @@ int onehot_distribution_case(int k, bool graph, bool mtp_onehot = false, int for
     Tensor output(licensed.data(), DType::I32, {width, batch});
     Tensor output_counts(counts.data(), DType::I32, {batch});
     Tensor output_accepted(accepted.data(), DType::I32, {batch});
-    const auto bytes = mtp_onehot ? ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(
+    const auto bytes = mtp_onehot ? ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(
                                         kSparseTokenDomain, k, k, batch, batch)
                                   : ops::speculative_accept_sparse_drafts_workspace_capacity_bytes(
                                         kSparseTokenDomain, {false}, k, k, batch, batch);
@@ -1727,7 +1802,7 @@ int onehot_distribution_case(int k, bool graph, bool mtp_onehot = false, int for
     {
         const auto launch = [&] {
             if (mtp_onehot) {
-                ops::speculative_accept_greedy_drafts(
+                ops::speculative_accept_coupled_drafts(
                     target, target_logits, drafts, extents, lengths, anchors, output, output_counts,
                     output_accepted, kSparseTokenDomain,
                     static_cast<const ops::SamplingConfig*>(d_configs.p), workspace, stream);
@@ -1783,6 +1858,23 @@ int onehot_distribution_case(int k, bool graph, bool mtp_onehot = false, int for
                         continue;
                     }
                     const int position = 101 + column;
+                    if (mtp_onehot) {
+                        // Coupled: the column's own decode draw, kept while it equals the draft.
+                        const double uniform = oracle.oracle_uniform(configs[row].seed, position,
+                                                                     ops::kSamplePurposeDecode);
+                        double cumulative    = 0;
+                        int drawn            = 3;
+                        for (int id = 0; id < 4; ++id) {
+                            cumulative += probabilities[id];
+                            if (uniform < cumulative) {
+                                drawn = id;
+                                break;
+                            }
+                        }
+                        expected_tokens.push_back(drawn);
+                        if (column < k && drawn == 0) { continue; }
+                        break;
+                    }
                     if (column < k && oracle.oracle_uniform(configs[row].seed, position,
                                                             ops::kSamplePurposeSpeculativeAccept) <
                                           probabilities[0]) {
@@ -2002,22 +2094,22 @@ int main(int argc, char** argv) {
         return failures == 0 ? 0 : 1;
     }
     const std::size_t k15 =
-        ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(257, 15, 15, 1, 1);
+        ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(257, 15, 15, 1, 1);
     const std::size_t k31 =
-        ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(257, 31, 31, 1, 1);
+        ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(257, 31, 31, 1, 1);
     const std::size_t k63 =
-        ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(257, 63, 63, 1, 1);
+        ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(257, 63, 63, 1, 1);
     if (k15 == 0 || k15 != ops::sampling_workspace_capacity_bytes(257, 16, 16) || k31 <= k15 ||
         k63 <= k31 || ops::sampling_workspace_capacity_bytes(257, 32, 32) != 0 ||
-        ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(257, 64, 64, 1, 1) != 0 ||
-        ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(257, 1, 64, 1, 1) != k63 ||
-        ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(257, 15, 15, 1, 2) !=
+        ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(257, 64, 64, 1, 1) != 0 ||
+        ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(257, 1, 64, 1, 1) != k63 ||
+        ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(257, 15, 15, 1, 2) !=
             2 * k15) {
         std::cerr << "speculative accept workspace did not close over K+1 sampling columns\n";
         ++failures;
     }
     try {
-        (void)ops::speculative_accept_greedy_drafts_workspace_capacity_bytes(257, 0, 15, 1, 1);
+        (void)ops::speculative_accept_coupled_drafts_workspace_capacity_bytes(257, 0, 15, 1, 1);
         std::cerr << "speculative accept workspace accepted an invalid draft interval\n";
         ++failures;
     } catch (const std::invalid_argument&) {}
@@ -2039,7 +2131,7 @@ int main(int argc, char** argv) {
     for (int domain : {64, 257, 248077}) {
         for (bool stochastic : {false, true}) {
             for (int rejection : {0, 2, 5}) {
-                failures += masked_greedy_drafts_case(5, domain, stochastic, rejection);
+                failures += masked_coupled_drafts_case(5, domain, stochastic, rejection);
             }
         }
     }
@@ -2049,6 +2141,13 @@ int main(int argc, char** argv) {
         }
     }
     failures += deterministic_sampling_case();
+    for (int domain : {64, 257, 248077}) {
+        for (int k : {1, 5, 15}) {
+            for (int mismatch : {-1, 0, k / 2}) {
+                failures += coupled_sample_case(domain, k, mismatch);
+            }
+        }
+    }
     failures += batched_sampling_workspace_stride_case();
     std::size_t sparse_peak = 0;
     for (int k = 1; k <= 31; ++k) {

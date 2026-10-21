@@ -103,10 +103,11 @@ budget is exhausted. This only limits optional proposal sources: it never trunca
 the target prompt to make an oversized request valid. Preparation cancellation
 is checked around source tokenization.
 
-Every proposed token is verified by the target. MTP and DFlash retain their deterministic-draft
-acceptance paths; DFlash2 represents the proposal as a one-hot distribution in its existing
-sparse verifier. Existing target commit, stop, cancellation and cache-restore ownership remain
-authoritative. Ordinary neural rounds keep their original verification width.
+Every proposed token is verified by the target. MTP and DFlash verify a copied proposal with
+their coupled acceptance, which keeps it while it equals the target's own draw at each position;
+DFlash2 represents the proposal as a one-hot distribution in its existing sparse verifier.
+Existing target commit, stop, cancellation and cache-restore ownership remain authoritative.
+Ordinary neural rounds keep their original verification width.
 
 This implementation is position-indexed, not a literal port of llama.cpp's hashed next-token
 chain. It does not promise bit-identical output across different verification widths: floating

@@ -1,0 +1,207 @@
+{
+  "date": "2026-10-21",
+  "stage": "v0.1.4 publication and isolated portable-install acceptance",
+  "engine_sha256": "8804cb04470214f68e01e38cb07004c90e748507a77134995335d1edbd768472",
+  "engine_archive_sha256": "be962fe91a3df072689dd36e4553e42ac22158003e2baa18dddf65c97bd4a4fa",
+  "source_provenance": "SOURCE_PROVENANCE.json",
+  "checks": {
+    "release_metadata_docs_lockfiles_and_credential_scan": "passed",
+    "powershell_syntax_files": 7,
+    "javascript_syntax": "passed",
+    "python_packager_compile": "passed",
+    "node_guard_and_real_post_execute_pipeline": {
+      "passed": 9,
+      "failed": 0,
+      "real_model_generation": false
+    },
+    "serve_corpus_python_tests": {
+      "passed": 2,
+      "failed": 0
+    },
+    "isolated_launcher_configurations": [
+      {
+        "kv": "missing",
+        "scope": "missing",
+        "rejected": false,
+        "passed": true
+      },
+      {
+        "kv": "missing",
+        "scope": "answer",
+        "rejected": false,
+        "passed": true
+      },
+      {
+        "kv": "missing",
+        "scope": "carry-over",
+        "rejected": false,
+        "passed": true
+      },
+      {
+        "kv": "missing",
+        "scope": "invalid",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "kv": "nvfp4",
+        "scope": "missing",
+        "rejected": false,
+        "passed": true
+      },
+      {
+        "kv": "nvfp4",
+        "scope": "answer",
+        "rejected": false,
+        "passed": true
+      },
+      {
+        "kv": "nvfp4",
+        "scope": "carry-over",
+        "rejected": false,
+        "passed": true
+      },
+      {
+        "kv": "nvfp4",
+        "scope": "invalid",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "kv": "rk4v4",
+        "scope": "missing",
+        "rejected": false,
+        "passed": true
+      },
+      {
+        "kv": "rk4v4",
+        "scope": "answer",
+        "rejected": false,
+        "passed": true
+      },
+      {
+        "kv": "rk4v4",
+        "scope": "carry-over",
+        "rejected": false,
+        "passed": true
+      },
+      {
+        "kv": "rk4v4",
+        "scope": "invalid",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "kv": "invalid",
+        "scope": "missing",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "kv": "invalid",
+        "scope": "answer",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "kv": "invalid",
+        "scope": "carry-over",
+        "rejected": true,
+        "passed": true
+      },
+      {
+        "kv": "invalid",
+        "scope": "invalid",
+        "rejected": true,
+        "passed": true
+      }
+    ],
+    "bundle_integrity_rejection_fixtures": [
+      {
+        "case": "exact binary content and spaced path",
+        "passed": true,
+        "expected_accept": true
+      },
+      {
+        "case": "same-size changed bytes",
+        "passed": true,
+        "expected_accept": false
+      },
+      {
+        "case": "changed size",
+        "passed": true,
+        "expected_accept": false
+      },
+      {
+        "case": "missing file",
+        "passed": true,
+        "expected_accept": false
+      },
+      {
+        "case": "parent traversal",
+        "passed": true,
+        "expected_accept": false
+      }
+    ],
+    "portable_install": {
+      "full_manifest_check_passed": true,
+      "files_checked": 35053,
+      "included_model_hashes_checked": true,
+      "engine_help_passed": true,
+      "node_version": "24.14.1",
+      "dsh_version": "0.1.5-rc.3",
+      "network_downloads_required_by_setup": false,
+      "isolated_configuration_and_ui_checks": [
+        {
+          "model": "gsq",
+          "model_route": "qwen3.8-27b-gsq-rco-iq3-xxs",
+          "small_pool": true,
+          "passed": true
+        },
+        {
+          "model": "huihui",
+          "model_route": "huihui-qwen3.8-27b-swift1.5-iq3-xxs",
+          "small_pool": true,
+          "passed": true
+        },
+        {
+          "check": "isolated_dsh_authenticated_http",
+          "status": 200,
+          "passed": true,
+          "inference_requests": 0,
+          "provider_port": 13346
+        }
+      ],
+      "vc_installer_authenticode": "Valid / Microsoft Corporation"
+    },
+    "final_build_source_hashes": {
+      "units_checked": 6,
+      "matched_recorded_build": true
+    },
+    "engine_release_asset_digest_matches_local": true
+  },
+  "archive_policy": {
+    "only_manifest_files_and_manifests": true,
+    "models_included": 2,
+    "engine_included": true,
+    "excluded_generated_state": [
+      "config/local.json",
+      "runtime/dsh-home",
+      "runtime/logs",
+      "runtime/cache",
+      "runtime/temp"
+    ],
+    "final_zip_crc_and_sha256": "Generated and checked locally after final source commit; see the delivered .zip.sha256 and bundle manifest."
+  },
+  "runtime_effects": {
+    "inference_requests_sent": 0,
+    "daily_services_stopped_or_restarted": false,
+    "daily_listener_pids_unchanged": true
+  },
+  "qualification_limits": [
+    "Installation/UI acceptance does not qualify a real Agent tool workflow or model output.",
+    "No new real-model inference, full-256K, small-pool recall, other-GPU or controlled speed measurement in this publication step.",
+    "Earlier final-binary 29/29 and default-short 9/10 retain their exact workload limitations; see the original evidence."
+  ],
+  "prior_model_qualification": "benchmarks/evidence/long-context-tool-loop/answer-scope-trial-installation.json"
+}

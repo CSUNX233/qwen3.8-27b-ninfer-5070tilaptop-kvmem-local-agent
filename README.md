@@ -19,9 +19,17 @@
 
 > **强烈建议：针对 NInfer 禁用 CUDA 系统内存自动回退。** 在 NVIDIA 控制面板的“管理 3D 设置 → 程序设置”中，添加本项目的 `runtime/engine/ninfer-serve.exe`，将 **CUDA - Sysmem Fallback Policy** 设为 **Prefer No Sysmem Fallback**。只设置该程序，保留全局设置。显存不足时驱动回退到 RAM 可能造成明显降速；本项目的 **7 GiB Host KV 是引擎主动管理的 RAM 缓存，仍需保留**。禁用驱动回退不会增加显存，不足时仍可能报错，启动前需预留显存。[详细设置与排障 →](docs/INSTALL.md#cuda-系统内存回退强烈建议禁用)
 
+## v0.1.4：工具调用与长上下文生成修复
+
+**[下载v0.1.4](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.4)**。合入工具解析/截断错误回执、思考到回答的MTP采样边界、耦合抽样、NVFP4验证分区和FP16 GDN状态舍入修复。新增回答阶段独立惩罚计数，部署默认启用，回答presence仍为1；可用 `AnswerPenaltyScope=carry-over` 关闭。最终无探针引擎固定短题9/10→10/10，功能12/12、98K及六次工具续接7/7；这不是总体能力或速度承诺，误调用尚未根治。
+
+**夸克一键包包含引擎、两个ninfer模型及全部用户态运行依赖，只下载网盘包即可部署。** 建议显存处理顺序：优先开混合显卡模式 → 对引擎关闭CUDA系统内存回退（溢出内存）→ 关闭无关后台应用 → 仍不足优先RK4V4 → 再适当配套缩小页池/检索窗口。[详细设置](docs/OFFLINE_BUNDLE.md)。
+
+[本版提升、代价与验证](docs/RELEASE_NOTES.md) · [离线两模型整合包说明](docs/OFFLINE_BUNDLE.md) · [安装提示词](docs/INSTALL_PROMPT.md) · [纠错文档](docs/TROUBLESHOOTING.md)。GitHub附件不含权重，网盘整合包由维护者另行上传。Swift-1.5衍生模型适用单独许可，见[模型与许可](docs/MODELS.md)。
+
 ## v0.1.3：NVFP4、长输入调度与累计缓存修复
 
-**[下载 v0.1.3](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.3)**。发布维护者当前引擎：NVFP4 KV，5070 Ti Laptop 专用 prompt 调度，以及 Host 重复副本 / Host-only 闲置缓存压力回收；延续此前的生成历史索引与缓存问句修复。公开页预算仍从 `36864 / 3840` 起步。
+**历史版本：[下载 v0.1.3](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.3)**。发布维护者当时引擎：NVFP4 KV，5070 Ti Laptop 专用 prompt 调度，以及 Host 重复副本 / Host-only 闲置缓存压力回收；延续此前的生成历史索引与缓存问句修复。公开页预算仍从 `36864 / 3840` 起步。
 
 **当前 NVFP4 配置相对此前 RK4V4 增加了一些显存占用；显存很紧张，可在 `config/local.json` 设置 `"KVDType": "rk4v4"` 并重启。** 同一新版引擎支持两者，无需回滚 exe；缺少该字段的旧配置默认采用 NVFP4。[切换方法](docs/INSTALL.md#nvfp4-显存与-rk4v4-切换)
 

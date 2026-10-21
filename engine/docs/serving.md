@@ -254,8 +254,9 @@ SSE content deltas are ordinary partial JSON bytes; concatenate them before pars
 guarantee format, not factual accuracy or semantic task success.
 
 Masks are applied before target top-k/top-p/min-p filtering at **every** speculative position,
-including correction and bonus tokens. Unconstrained draft distributions remain unchanged;
-accept/reject and residual sampling use the constrained target distribution. Per-request grammar
+including correction and bonus tokens. Drafts are proposed without the mask; every verification
+draw -- MTP and DFlash coupled draws, DFlash2 accept/reject and residual sampling -- uses the
+constrained target distribution. Per-request grammar
 state advances only with Engine output commit, and is never restored from a prompt/KV cache.
 DFlash/DFlash2 CUDA Graphs contain a host matcher node between draft generation and verification;
 this adds a CPU synchronization point and mask transfers per round. No speedup claim is implied.
@@ -558,6 +559,14 @@ value text, while `<` or the end of the output, after optional whitespace, makes
 value. A value therefore cannot contain a closing parameter tag followed by markup, nor an unmatched
 nested parameter opener; either makes the call malformed.
 
+A marker inside Markdown code is a quoted example and stays text: inside a fenced block (a run of
+three or more backticks or tildes, closed by a run of the same character at least as long on a line
+of its own) or inside inline code (matching backtick runs in the same paragraph; a
+blank line or a fence ends the paragraph). Only the text before the marker decides, so streamed and
+complete responses agree, and quoted examples stream as they arrive. A marker after a closed fence
+still opens a call. Escaped backticks outside inline code stay text; one delimiter closes only
+on a run of the same length. This output parser does not add strict argument-schema validation.
+
 Generated prose can quote tool-call markup before the real call. Unless the first marker's region
 opens with a complete call, each marker is tried in order, and the first complete region that
 consumes the rest of the response becomes the structured turn; quoted markup before it stays
@@ -568,6 +577,21 @@ included, so an output that keeps repeating the marker costs a bounded amount of
 before the failure are kept, a call that cannot be read is returned as a call to the reserved
 `malformed_tool_call` tool, whose arguments tell the model what went wrong so that it retries, and
 text after it is dropped.
+
+The downstream parser does not append a missing function close or trim at one inside an ambiguous
+argument after both readers fail. An unfinished argument is reported, never completed into a
+call. A real function close can still bound a missing parameter close, and a complete function
+may omit only its outer wrapper. A wrapper named in prose without opening a function stays text;
+a function with a malformed `name` attribute is still reported as a malformed call.
+
+A turn that naturally ends on its stop token inside unclosed thinking can return a stranded
+tool call: from a marker outside Markdown code to the end of that thinking, the suffix must
+contain only complete calls to tools declared by the request. The decoder publishes the calls
+structurally and keeps the original text in the reasoning channel. It publishes no thinking as
+answer content. There is no recovery after a closed thinking block, any content, cancellation,
+an output/context limit, a client stop string, or for a broken/undeclared call or trailing prose.
+The inherited content-channel tolerance for stray parameter closers does not apply to this
+reasoning recovery. Grammar-constrained and forced-call turns keep their existing path.
 
 Messages enter the selected template in their input order. The maintained Qwen templates keep
 system/developer messages at their original positions. With `--assistant-prefill` a final assistant
@@ -1325,8 +1349,13 @@ request fields override process flags, and `--greedy` finally forces temperature
 
 A thinking request samples its reasoning and its answer with one preset. Post-thinking sampling
 switches the device sampler once, at the first decode round after the model closes its reasoning
-block, to a second preset: the thinking preset with temperature `0.2`. Tokens that a speculative
-round accepts together with the close keep the reasoning sampler. It is off by default. The server enables
+block, to a second preset: the thinking preset with temperature `0.2`. The downstream MTP candidate
+limits proposals before an exact single-token close and confirms the following separator in one
+target step, so answer tokens after that confirmation use the new sampler. Quoted markers retain
+normal boundary rules; raw output waits for the canonical serialization. Other speculative backends
+retain their round-level behavior. This boundary is included in the local daily trial and is not
+published; see the downstream long-context report for remaining tool-choice failures.
+Post-thinking sampling is off by default. The server enables
 it for every thinking request with `--post-thinking` or any `--post-thinking-*` override; a single
 request enables it with a `post_thinking` object on Chat Completions, Responses or Messages:
 
@@ -1340,6 +1369,16 @@ fields override the server's post-thinking flags, omitted fields come from the p
 seed continues the request's seed, and `--greedy` forces temperature `0` in both phases. A request
 without thinking, or one whose reasoning never closes, keeps its original sampler. The JSONL
 `request_done` record reports `post_thinking_sampling` when the switch happened.
+
+The downstream `NINFER_POST_THINKING_PENALTY_SCOPE=answer|carry-over` process setting
+controls penalty-count scope at this committed transition. Unset or empty means `carry-over`;
+invalid values fail initialization. `answer` clears the current lane's existing counts on the
+same CUDA stream before answer sampling, so presence and frequency penalties count answer
+tokens independently of prompt/reasoning tokens. Both penalties share this count array. It
+allocates no additional persistent GPU buffer. A request without a post-thinking transition
+does not reset counts, and ordinary `update_sampling` retains its carry-over contract.
+The local trial launcher selects `answer`; this is not a new per-request API field. It takes
+effect on process startup. See [local trial and validation limits](../../docs/ANSWER_PENALTY_SCOPE.md).
 
 For `C=--max-concurrency` and `H=--device-state-slots`, total Device StateImage capacity is `C+H`:
 `C` slots guarantee active requests and `H` is a global checkpoint pool. Host State and Host KV are
@@ -1448,7 +1487,9 @@ counts once in `duplicate_parameters_repaired` for each repeat instead of demoti
 pass rejects a region, `recovered` reports that a recovery pass still produced calls from it (with
 `recovered_call_count` the calls only that pass kept), `malformed_call_reported` that an unreadable
 call became a call to the reserved error tool, and `trailing_content_dropped` that text after the
-last call was dropped. Fallback reasons are `none`, `malformed_structure`, `invalid_tool_name`,
+last call was dropped. `recovered_from_reasoning` identifies complete calls recovered from
+unclosed thinking; the operational log records this at Info severity. The downstream request-log
+schema version is 28. Fallback reasons are `none`, `malformed_structure`, `invalid_tool_name`,
 `undeclared_tool`, and `trailing_content`. These counters contain no tool arguments or generated
 text.
 

@@ -31,7 +31,7 @@ void target_verify_accept(ExecutionCore& execution, Tensor& continuation_hidden_
             dimension(execution.parameters.model.resources().public_token_count), frame.sampling,
             {false}, execution.work, execution.device.stream);
     } else {
-        ops::speculative_accept_greedy_drafts(
+        ops::speculative_accept_coupled_drafts(
             frame.target_tokens, frame.target_logits, frame.drafts, frame.current_extents,
             frame.frontiers, frame.anchors, frame.licensed_tokens, frame.licensed_counts,
             frame.accepted_drafts,

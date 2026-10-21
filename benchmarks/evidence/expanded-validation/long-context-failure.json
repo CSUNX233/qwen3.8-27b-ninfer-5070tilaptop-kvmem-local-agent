@@ -1,0 +1,93 @@
+{
+  "kind": "model_instruction_following_failure",
+  "request_seed": 20359323,
+  "fixture_tokens_without_tools": 98322,
+  "prompt_tokens": 98592,
+  "output_budget": 8192,
+  "requested_behavior": "Return ten-field JSON from inline manifests; do not call tools yet.",
+  "actual_content": "",
+  "actual_tool_calls": [
+    {
+      "type": "function",
+      "function": {
+        "name": "read_record",
+        "arguments": "{\"record_id\":\"expanded-recall-98304-20261019\"}"
+      },
+      "id": "call_b908b9d58d0cce8d"
+    }
+  ],
+  "direct_final_answer_score": {
+    "correct": 0,
+    "total": 10
+  },
+  "facts_in_reasoning": {
+    "checks": {
+      "ASTER-71": true,
+      "BRIDGE-39": true,
+      "CIRRUS-82": true,
+      "DELTA-26": true,
+      "EMBER-54": true,
+      "FROST-93": true,
+      "GROVE-48": true,
+      "HARBOR-65": true,
+      "READY_TOTAL": true,
+      "TRANSFER_TOTAL": true
+    },
+    "correct": 10,
+    "total": 10,
+    "note": "Diagnostic only; these are not a successful final answer."
+  },
+  "engine_diagnostics": {
+    "duplicate_parameters_repaired": 0,
+    "empty_arguments_omitted": 0,
+    "fallback_reason": "none",
+    "forced_call_closed": false,
+    "malformed_call_reported": false,
+    "marker_seen": true,
+    "recovered": false,
+    "recovered_call_count": 0,
+    "recovered_from_reasoning": false,
+    "schema_mismatch_arguments": 0,
+    "structured_call_count": 1,
+    "trailing_content_dropped": false
+  },
+  "finish_reason": "stop_token",
+  "repeat": {
+    "independent_cold_starts": 2,
+    "request_bodies_equal": true,
+    "repeated_same_function_and_arguments": true,
+    "repeated_prompt_tokens": 98592,
+    "corrective_turn": {
+      "empty_content": true,
+      "repeated_same_call": true,
+      "usage": {
+        "completion_tokens": 333,
+        "completion_tokens_details": {
+          "reasoning_tokens": 289
+        },
+        "prompt_tokens": 100634,
+        "prompt_tokens_details": {
+          "cached_tokens": 100541
+        },
+        "total_tokens": 100967
+      },
+      "diagnostics": {
+        "duplicate_parameters_repaired": 0,
+        "empty_arguments_omitted": 0,
+        "fallback_reason": "none",
+        "forced_call_closed": false,
+        "malformed_call_reported": false,
+        "marker_seen": true,
+        "recovered": false,
+        "recovered_call_count": 0,
+        "recovered_from_reasoning": false,
+        "schema_mismatch_arguments": 0,
+        "structured_call_count": 1,
+        "trailing_content_dropped": false
+      }
+    }
+  },
+  "classification_limit": "No old-engine, raw-token, or no-MTP paired control. The normal parser path does not establish whether the cause is model behavior, speculative decoding, or another generation fault; do not attribute it to NVFP4 or the parser patch.",
+  "followup_multiturn_not_reached": "The planned three explicit long-history tool rounds and final result audit were not reached because direct-answer validation failed, including after correction.",
+  "reproduction": "benchmarks/qualification/tool_choice_long_context.py"
+}

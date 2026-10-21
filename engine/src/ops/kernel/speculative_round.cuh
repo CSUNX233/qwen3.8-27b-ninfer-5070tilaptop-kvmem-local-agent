@@ -367,16 +367,16 @@ __device__ __forceinline__ void speculative_sparse_warp_accept(
 // advances the target length. The greedy branch
 // (config temperature <= 0) is bit-identical to the original argmax accept: keep
 // the longest draft prefix whose target argmax matches, then take the target
-// argmax at the divergence column. The sampling branch (temperature > 0) runs
-// distribution-correct speculative rejection sampling over the verify logits with
-// a one-hot (greedy) draft: accept drafts[i] with probability p_i(drafts[i]) under
-// the truncated target distribution, resample from the masked residual on the
-// first rejection, and draw a bonus from the last column when every draft accepts.
-// The draft-proposal path stays greedy, so q is one-hot and the accept test
-// collapses to `u < p_i(drafts[i])`. Launch with a single block of kSamplerBlock
-// threads; only thread 0 performs the sequential accept/commit while the whole
-// block cooperates on the per-column truncated-distribution build.
-__launch_bounds__(kSamplerBlock) __global__ void speculative_accept_greedy_drafts_kernel(
+// argmax at the divergence column. The sampling branch (temperature > 0) draws
+// each column's token from its truncated target distribution with the decode key
+// of the position it fills, exactly as sample() would, keeps the drafts while they
+// equal those draws, and commits the first draw that differs (or the last column's
+// draw when every draft matched). Every committed token is therefore the target's
+// own sample whatever was drafted, and a greedy draft survives with probability
+// p_i(draft). Launch with a single block of kSamplerBlock threads; only thread 0
+// performs the sequential accept/commit while the whole block cooperates on the
+// per-column truncated-distribution build.
+__launch_bounds__(kSamplerBlock) __global__ void speculative_accept_coupled_drafts_kernel(
     const std::int32_t* target_tokens, const __nv_bfloat16* logits, const std::int32_t* drafts,
     const std::int32_t* current_extents, std::int32_t* lengths, std::int32_t* anchors,
     std::int32_t* licensed_tokens, std::int32_t* licensed_counts, std::int32_t* accepted,
@@ -512,31 +512,12 @@ __launch_bounds__(kSamplerBlock) __global__ void speculative_accept_greedy_draft
                                                 row_drafts, i);
         }
         if (tid == 0 && done_sh == 0) {
-            const int L = L_sh;
-            if (i < extent) {
-                const int d = row_drafts[i];
-                float pd    = 0.0f;
-                for (int j = 0; j < n_support; ++j) {
-                    if (cand_idx[j] == d) {
-                        pd = prob[j];
-                        break;
-                    }
-                }
-                const float u =
-                    sampling_uniform(cfg.seed, L + i + 1, kSamplePurposeSpeculativeAccept, 0u);
-                if (u < pd) {
-                    a_sh = i + 1; // accept drafts[i], keep verifying
-                } else {
-                    const float ur = sampling_uniform(cfg.seed, L + i + 1,
-                                                      kSamplePurposeSpeculativeCorrection, 0u);
-                    tstar_sh       = sampling_pick_from_support(cand_idx, prob, n_support, d, ur);
-                    done_sh        = 1;
-                }
+            const float u = sampling_uniform(cfg.seed, L_sh + i + 1, kSamplePurposeDecode, 0u);
+            const int t   = cand_idx[sampling_pick_rank(prob, n_support, u)];
+            if (i < extent && t == row_drafts[i]) {
+                a_sh = i + 1; // the draft is the column's own draw: keep verifying
             } else {
-                // Every draft accepted: bonus token from the last verify column.
-                const float u =
-                    sampling_uniform(cfg.seed, L + extent + 1, kSamplePurposeSpeculativeBonus, 0u);
-                tstar_sh = sampling_pick_from_support(cand_idx, prob, n_support, -1, u);
+                tstar_sh = t;
                 done_sh  = 1;
             }
         }
@@ -853,38 +834,20 @@ __launch_bounds__(kSamplerGroupBlock) __global__ void speculative_sampling_group
                 int a            = 0;
                 int tstar        = 0;
                 float tstar_prob = 0.0f;
+                // The coupled acceptance of speculative_accept_coupled_drafts_kernel.
                 for (int i = 0; i <= extent; ++i) {
                     const int n            = workspace.dist_support[i];
                     const int* dist_idx    = workspace.dist_idx + sampling_dist_offset(i, 0);
                     const float* dist_prob = workspace.dist_prob + sampling_dist_offset(i, 0);
-                    if (i < extent) {
-                        const int d = row_drafts[i];
-                        float pd    = 0.0f;
-                        for (int j = 0; j < n; ++j) {
-                            if (dist_idx[j] == d) {
-                                pd = dist_prob[j];
-                                break;
-                            }
-                        }
-                        const float u           = sampling_uniform(cfg.seed, L + i + 1,
-                                                                   kSamplePurposeSpeculativeAccept, 0u);
-                        const bool accept_draft = u < pd;
-                        if (accept_draft) {
-                            a = i + 1;
-                            continue;
-                        }
-                        const float ur = sampling_uniform(cfg.seed, L + i + 1,
-                                                          kSamplePurposeSpeculativeCorrection, 0u);
-
-                        tstar      = sampling_pick_from_support(dist_idx, dist_prob, n, d, ur);
-                        tstar_prob = dist_prob[0];
-
-                        break;
+                    const float u = sampling_uniform(cfg.seed, L + i + 1, kSamplePurposeDecode, 0u);
+                    const int t   = dist_idx[sampling_pick_rank(dist_prob, n, u)];
+                    if (i < extent && t == row_drafts[i]) {
+                        a = i + 1;
+                        continue;
                     }
-                    const float u = sampling_uniform(cfg.seed, L + extent + 1,
-                                                     kSamplePurposeSpeculativeBonus, 0u);
-                    tstar         = sampling_pick_from_support(dist_idx, dist_prob, n, -1, u);
-                    tstar_prob    = dist_prob[0];
+                    tstar      = t;
+                    tstar_prob = dist_prob[0];
+                    break;
                 }
                 // Dense only: this statement lives in the else of `if constexpr (SparseProposal)`, so it
                 // is instantiated with SparseProposal == false and token counts are updated.
@@ -898,60 +861,6 @@ __launch_bounds__(kSamplerGroupBlock) __global__ void speculative_sampling_group
             }
         }
         return;
-    }
-
-    sampling_normalize_support(cfg, cand_val, cand_idx, prob, &n_support, cap);
-
-    if (tid == 0) {
-        workspace.dist_support[col] = n_support;
-        for (int j = 0; j < n_support; ++j) {
-            const int off            = sampling_dist_offset(col, j);
-            workspace.dist_idx[off]  = cand_idx[j];
-            workspace.dist_prob[off] = prob[j];
-        }
-        workspace.group_done[col] = 0;
-        __threadfence();
-        const int done_cols = atomicAdd(workspace.speculative_finalize_count, 1) + 1;
-        if (done_cols == extent + 1) {
-            const int L = lengths[row];
-            int a       = 0;
-            int tstar   = 0;
-            float tstar_prob = 0.0f;
-            for (int i = 0; i <= extent; ++i) {
-                const int n            = workspace.dist_support[i];
-                const int* dist_idx    = workspace.dist_idx + sampling_dist_offset(i, 0);
-                const float* dist_prob = workspace.dist_prob + sampling_dist_offset(i, 0);
-                if (i < extent) {
-                    const int d = row_drafts[i];
-                    float pd    = 0.0f;
-                    for (int j = 0; j < n; ++j) {
-                        if (dist_idx[j] == d) {
-                            pd = dist_prob[j];
-                            break;
-                        }
-                    }
-                    const float u =
-                        sampling_uniform(cfg.seed, L + i + 1, kSamplePurposeSpeculativeAccept, 0u);
-                    if (u < pd) {
-                        a = i + 1;
-                        continue;
-                    }
-                    const float ur = sampling_uniform(cfg.seed, L + i + 1,
-                                                      kSamplePurposeSpeculativeCorrection, 0u);
-                    tstar          = sampling_pick_from_support(dist_idx, dist_prob, n, d, ur);
-                    tstar_prob     = dist_prob[0];
-                    break;
-                }
-                const float u =
-                    sampling_uniform(cfg.seed, L + extent + 1, kSamplePurposeSpeculativeBonus, 0u);
-                tstar      = sampling_pick_from_support(dist_idx, dist_prob, n, -1, u);
-                tstar_prob = dist_prob[0];
-            }
-            speculative_store_accept_result<true>(row_drafts, k, row, a, tstar, lengths, anchors,
-                                                  row_tokens, licensed_counts, accepted, &cfg,
-                                                  sampling_value_is_finite(tstar_prob));
-            *workspace.speculative_finalize_count = 0;
-        }
     }
 }
 

@@ -83,6 +83,9 @@ public:
     [[nodiscard]] ThinkingBudgetStats thinking_stats() const noexcept;
     // True once a session that began inside a reasoning block has committed its close.
     [[nodiscard]] bool reasoning_closed() const noexcept;
+    // Only an exact single-token close can act as a speculative sampling barrier.
+    [[nodiscard]] std::optional<TokenId> reasoning_close_token() const noexcept;
+    [[nodiscard]] bool reasoning_close_pending() const noexcept;
     [[nodiscard]] std::optional<std::string> matched_stop_string() const;
 
 private:

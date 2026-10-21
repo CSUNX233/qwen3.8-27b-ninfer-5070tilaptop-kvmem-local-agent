@@ -432,31 +432,17 @@ __device__ __forceinline__ void sampling_build_truncated_block_fast(
     sampling_normalize_support(cfg, cand_val, cand_idx, prob, n_support, fast_cap);
 }
 
-// thread-0 helper: inverse-CDF pick over a normalized `prob[0..n-1]` support,
-// optionally excluding `exclude` (a rejected draft token) and renormalizing over
-// the remainder. `u` is a uniform in [0,1). Returns the chosen vocab id.
-__device__ __forceinline__ int sampling_pick_from_support(const int* cand_idx, const float* prob,
-                                                          int n, int exclude, float u) {
-    float mass = 0.0f;
+// thread-0 helper: the inverse-CDF draw of every keyed sample -- the rank of the first candidate
+// whose cumulative normalized weight exceeds `u`, the last one when rounding leaves the sum at or
+// below `u`. sample() and coupled speculative verification share it, so the same key and the
+// same distribution give the same token on both routes.
+__device__ __forceinline__ int sampling_pick_rank(const float* prob, int n, float u) {
+    float acc = 0.0f;
     for (int j = 0; j < n; ++j) {
-        if (cand_idx[j] == exclude) { continue; }
-        mass += prob[j];
-    }
-    if (mass <= 0.0f) {
-        // Degenerate: support is only the excluded token. Return it (caller only
-        // reaches this when accept probability was ~1, i.e. it will not happen).
-        return cand_idx[0];
-    }
-    const float goal = u * mass;
-    float acc        = 0.0f;
-    int picked       = -1;
-    for (int j = 0; j < n; ++j) {
-        if (cand_idx[j] == exclude) { continue; }
         acc += prob[j];
-        picked = cand_idx[j];
-        if (goal < acc) { return picked; }
+        if (u < acc) { return j; }
     }
-    return picked;
+    return n - 1;
 }
 
 } // namespace ninfer::ops

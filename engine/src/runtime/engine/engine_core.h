@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <deque>
 #include <exception>
 #include <future>
@@ -32,6 +33,7 @@
 #include <span>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <utility>
 #include <variant>
@@ -90,6 +92,7 @@ public:
           thorough_admission_search_(options.context_cache.thorough_admission_search),
           recover_invariant_failures_(options.recover_invariant_failures),
           kv_lease_growth_(options.context_cache.kv_lease_growth),
+          answer_only_penalty_counts_(resolve_answer_only_penalty_counts()),
           max_outstanding_(static_cast<std::size_t>(options.max_concurrency) +
                            options.max_pending_requests),
           pending_timeout_(std::chrono::milliseconds(options.pending_timeout_ms)),
@@ -116,6 +119,8 @@ public:
                 .total_bytes   = options.speculative.ngram_archive_bytes});
         }
         diagnostics_ = options.diagnostic_observer;
+        publish_diagnostic(diagnostics_, DiagnosticLevel::Info, "post-thinking penalty scope: %s",
+                           answer_only_penalty_counts_ ? "answer" : "carry-over");
         std::promise<void> startup;
         std::future<void> started = startup.get_future();
         worker_                   = std::thread([this, startup = std::move(startup)]() mutable {
@@ -321,6 +326,15 @@ public:
     }
 
 private:
+    [[nodiscard]] static bool resolve_answer_only_penalty_counts() {
+        const char* value = std::getenv("NINFER_POST_THINKING_PENALTY_SCOPE");
+        if (value == nullptr || std::string_view(value).empty() ||
+            std::string_view(value) == "carry-over") { return false; }
+        if (std::string_view(value) == "answer") { return true; }
+        throw std::invalid_argument(
+            "NINFER_POST_THINKING_PENALTY_SCOPE must be answer or carry-over");
+    }
+
     enum class HostWorkClass : std::uint8_t {
         Decode,
         Prefill,
@@ -786,8 +800,9 @@ private:
             !request.sequence || !request.output.reasoning_closed()) {
             return;
         }
-        instance_.program->update_sampling(*request.sequence,
-                                           *request.options.execution.post_thinking_sampling);
+        instance_.program->begin_post_thinking_sampling(
+            *request.sequence, *request.options.execution.post_thinking_sampling,
+            answer_only_penalty_counts_);
         request.post_thinking_applied = true;
     }
 
@@ -2481,6 +2496,7 @@ private:
     const bool thorough_admission_search_;
     const bool recover_invariant_failures_;
     const bool kv_lease_growth_;
+    const bool answer_only_penalty_counts_;
     const std::size_t max_outstanding_;
     const std::chrono::milliseconds pending_timeout_;
     ResourceManagement resources_;

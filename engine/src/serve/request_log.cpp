@@ -104,6 +104,7 @@ Json tool_call_parse_json(const ninfer::ToolCallParseDiagnostics& diagnostics) {
                 {"recovered_call_count", diagnostics.recovered_call_count},
                 {"malformed_call_reported", diagnostics.malformed_call_reported},
                 {"trailing_content_dropped", diagnostics.trailing_content_dropped},
+                {"recovered_from_reasoning", diagnostics.recovered_from_reasoning},
                 {"fallback_reason",
                  ninfer::tool_call_parse_fallback_reason_name(diagnostics.fallback_reason)}};
 }

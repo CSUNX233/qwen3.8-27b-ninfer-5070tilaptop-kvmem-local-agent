@@ -162,6 +162,9 @@ void packed_softmax_attention(const Tensor& q, const Tensor& k, const Tensor& v,
  * The caller guarantees that the maximum p+1 over live rows lies within envelope. The envelope is
  * a host launch/workspace resource promise over that batch maximum, not a mask and not persistent
  * state. A masked physical width may exceed max_visible_keys when its live prefix is shorter.
+ * Downstream NVFP4 Small-T partitions use first position + physical width, capped by the
+ * envelope, independently of valid_columns; common live columns are bit-identical for a fixed
+ * envelope and width. Masked columns do not load KV at or past the last live end.
  * Inputs, output, every cache plane/table, and live workspace suballocations are pairwise
  * non-overlapping. The Op overwrites every addressed cache row but owns no cache allocation,
  * frontier, request identity, or commit authority.

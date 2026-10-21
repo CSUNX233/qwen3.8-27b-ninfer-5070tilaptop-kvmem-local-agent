@@ -1,0 +1,374 @@
+{
+  "date": "2026-10-20",
+  "generated_at": "2026-10-20T19:21:04.682752+08:00",
+  "source_base_commit": "389791f834880e77f31fcb46ebe288918074882e",
+  "branch": "codex/tool-call-recovery-20261020",
+  "scope": "Second batch: resolve the nine inherited parser/frontend failures while retaining first-batch recovery and bounded existing tolerance.",
+  "root_causes": [
+    "Third salvage pass appended missing function closure or trimmed ambiguous argument bytes after both readers failed.",
+    "Wrapper-only prose was intercepted without opening a function.",
+    "One failed assertion was followed by unchecked access to absent error field, causing a test-process abort."
+  ],
+  "resolved_tests": {
+    "parser": [
+      "test_forced_call_decoder",
+      "test_unrepresentable_parameter_delimiters_are_reported",
+      "test_recovery_of_strict_failures",
+      "test_partial_region_keeps_complete_calls",
+      "test_marker_attempts_are_bounded",
+      "test_later_candidate_must_consume_the_end",
+      "test_incremental_fallback_preserves_bytes",
+      "test_harness_forms_recovery_and_streaming"
+    ],
+    "frontend": [
+      "test_forced_tool_call"
+    ]
+  },
+  "tests": {
+    "parser": {
+      "full_program": {
+        "exit_code": 0,
+        "output": "ok\n"
+      },
+      "isolated_functions_passed": 39,
+      "isolated_functions_total": 39
+    },
+    "frontend": {
+      "full_program": {
+        "exit_code": 0,
+        "output": ""
+      },
+      "isolated_functions_passed": 54,
+      "isolated_functions_total": 54
+    }
+  },
+  "added_regression": "test_recovery_boundaries_and_stray_closes; 1/2/7-byte and whole chunks; malformed values/names and preserved bounded repairs",
+  "source_before_sha256": "7ccdd9e6f56e89d58cab7aa9ebf1418c7479af5aa068772ec4aa55602c2f5cd2",
+  "source_after_sha256": "c4908085b7c647a39648c3408b09c9421a70e1ef329d73af76a6744a82a9f6e8",
+  "build": {
+    "previous_engine_sha256": "8b449db9fe029d3ed442ef8e6ad1fdac6d3ea2dd61aaf3ee09315cc06bd87edd",
+    "candidate_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+    "source_sha256": "c4908085b7c647a39648c3408b09c9421a70e1ef329d73af76a6744a82a9f6e8",
+    "changed_translation_unit": "src/models/qwen3_5/frontend/tool_call_parser.cpp",
+    "previous_build": "runtime/tool-call-recovery/build-manifest.json",
+    "scope": "Only the tool parser implementation rebuilt; reuse qualified previous 70-Host/7-CUDA override objects and original remaining libraries. Not a clean full build."
+  },
+  "deployment": {
+    "previous_engine_sha256": "8b449db9fe029d3ed442ef8e6ad1fdac6d3ea2dd61aaf3ee09315cc06bd87edd",
+    "candidate_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+    "backup_sha256": "8b449db9fe029d3ed442ef8e6ad1fdac6d3ea2dd61aaf3ee09315cc06bd87edd",
+    "status": "installed; validation passed; server stopped"
+  },
+  "real_model": {
+    "summary": {
+      "cases": [
+        {
+          "name": "short-tool",
+          "valid": true
+        },
+        {
+          "name": "short-result",
+          "valid": true
+        },
+        {
+          "name": "forced-cut",
+          "valid": true,
+          "finish_reason": "tool_calls",
+          "real_tool_dispatched": false
+        },
+        {
+          "name": "retry-after-error",
+          "valid": true
+        },
+        {
+          "name": "long-tool",
+          "valid": true
+        },
+        {
+          "name": "long-result",
+          "valid": true
+        },
+        {
+          "name": "markdown-example",
+          "valid": true
+        }
+      ],
+      "success": true,
+      "recall": {
+        "correct": 10,
+        "total": 10,
+        "checks": {
+          "ASTER-71": true,
+          "BRIDGE-39": true,
+          "CIRRUS-82": true,
+          "DELTA-26": true,
+          "EMBER-54": true,
+          "FROST-93": true,
+          "GROVE-48": true,
+          "HARBOR-65": true,
+          "READY_TOTAL": true,
+          "TRANSFER_TOTAL": true
+        },
+        "parsed": {
+          "ASTER-71": "957708-ENGINE",
+          "BRIDGE-39": "415782-WILLOW",
+          "CIRRUS-82": "248005-DELTA",
+          "DELTA-26": "559775-FILTER",
+          "EMBER-54": "246117-JUNCTION",
+          "FROST-93": "481682-COPPER",
+          "GROVE-48": "440531-NOZZLE",
+          "HARBOR-65": "411394-VALLEY",
+          "READY_TOTAL": 79,
+          "TRANSFER_TOTAL": 29
+        }
+      }
+    },
+    "metrics": {
+      "short-tool": {
+        "finish_reason": "tool_calls",
+        "usage": {
+          "completion_tokens": 73,
+          "completion_tokens_details": {
+            "reasoning_tokens": 43
+          },
+          "prompt_tokens": 337,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 410
+        },
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 72,
+          "draft_n_accepted": 49,
+          "predicted_ms": 798.5740999999999,
+          "predicted_n": 73,
+          "predicted_per_second": 90.16070017797973,
+          "predicted_per_token_ms": 11.091306944444444,
+          "prompt_ms": 631.9571000000001,
+          "prompt_n": 337,
+          "prompt_per_second": 533.2640459296999,
+          "prompt_per_token_ms": 1.8752436201780418
+        },
+        "wall_seconds": 1.4512534999958007
+      },
+      "short-result": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 46,
+          "completion_tokens_details": {
+            "reasoning_tokens": 37
+          },
+          "prompt_tokens": 452,
+          "prompt_tokens_details": {
+            "cached_tokens": 409
+          },
+          "total_tokens": 498
+        },
+        "timings": {
+          "cache_n": 409,
+          "draft_n": 48,
+          "draft_n_accepted": 31,
+          "predicted_ms": 580.4814,
+          "predicted_n": 46,
+          "predicted_per_second": 77.52186374963952,
+          "predicted_per_token_ms": 12.899586666666666,
+          "prompt_ms": 188.78,
+          "prompt_n": 43,
+          "prompt_per_second": 227.77836635236784,
+          "prompt_per_token_ms": 4.390232558139535
+        },
+        "wall_seconds": 0.7856850999960443
+      },
+      "retry-after-error": {
+        "finish_reason": "tool_calls",
+        "usage": {
+          "completion_tokens": 61,
+          "completion_tokens_details": {
+            "reasoning_tokens": 31
+          },
+          "prompt_tokens": 499,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 560
+        },
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 51,
+          "draft_n_accepted": 43,
+          "predicted_ms": 573.3417,
+          "predicted_n": 61,
+          "predicted_per_second": 104.64963563613114,
+          "predicted_per_token_ms": 9.555694999999998,
+          "prompt_ms": 695.8375,
+          "prompt_n": 499,
+          "prompt_per_second": 717.1214543625488,
+          "prompt_per_token_ms": 1.3944639278557114
+        },
+        "wall_seconds": 1.287505099986447
+      },
+      "recall-49152": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 951,
+          "completion_tokens_details": {
+            "reasoning_tokens": 809
+          },
+          "prompt_tokens": 49452,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 50403
+        },
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 870,
+          "draft_n_accepted": 742,
+          "predicted_ms": 8886.8782,
+          "predicted_n": 951,
+          "predicted_per_second": 106.89918086195894,
+          "predicted_per_token_ms": 9.354608631578946,
+          "prompt_ms": 88940.783,
+          "prompt_n": 49452,
+          "prompt_per_second": 556.0103962655692,
+          "prompt_per_token_ms": 1.798527521637143
+        },
+        "wall_seconds": 97.95624990000215
+      },
+      "long-tool": {
+        "finish_reason": "tool_calls",
+        "usage": {
+          "completion_tokens": 56,
+          "completion_tokens_details": {
+            "reasoning_tokens": 26
+          },
+          "prompt_tokens": 50429,
+          "prompt_tokens_details": {
+            "cached_tokens": 50402
+          },
+          "total_tokens": 50485
+        },
+        "timings": {
+          "cache_n": 50402,
+          "draft_n": 48,
+          "draft_n_accepted": 42,
+          "predicted_ms": 680.7659,
+          "predicted_n": 56,
+          "predicted_per_second": 80.79135573623768,
+          "predicted_per_token_ms": 12.377561818181817,
+          "prompt_ms": 230.9955,
+          "prompt_n": 27,
+          "prompt_per_second": 116.88539387130919,
+          "prompt_per_token_ms": 8.555388888888888
+        },
+        "wall_seconds": 1.012791000001016
+      },
+      "long-result": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 88,
+          "completion_tokens_details": {
+            "reasoning_tokens": 73
+          },
+          "prompt_tokens": 50537,
+          "prompt_tokens_details": {
+            "cached_tokens": 50484
+          },
+          "total_tokens": 50625
+        },
+        "timings": {
+          "cache_n": 50484,
+          "draft_n": 74,
+          "draft_n_accepted": 65,
+          "predicted_ms": 964.0049,
+          "predicted_n": 88,
+          "predicted_per_second": 90.24850392357963,
+          "predicted_per_token_ms": 11.080516091954022,
+          "prompt_ms": 267.0082,
+          "prompt_n": 53,
+          "prompt_per_second": 198.49577653420383,
+          "prompt_per_token_ms": 5.037890566037736
+        },
+        "wall_seconds": 1.3608374999894295
+      },
+      "markdown-example": {
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 266,
+          "completion_tokens_details": {
+            "reasoning_tokens": 226
+          },
+          "prompt_tokens": 383,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 649
+        },
+        "timings": {
+          "cache_n": 0,
+          "draft_n": 291,
+          "draft_n_accepted": 194,
+          "predicted_ms": 2785.3033,
+          "predicted_n": 266,
+          "predicted_per_second": 95.14224178027578,
+          "predicted_per_token_ms": 10.510578490566038,
+          "prompt_ms": 789.7034000000001,
+          "prompt_n": 383,
+          "prompt_per_second": 484.99221353232105,
+          "prompt_per_token_ms": 2.061888772845953
+        },
+        "wall_seconds": 3.601933600002667
+      },
+      "forced-cut": {
+        "finish_reason": "tool_calls",
+        "usage": {
+          "completion_tokens": 4,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens": 305,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 309
+        },
+        "returned_error_tool": "malformed_tool_call",
+        "request_override": "Named forced tool explicitly disables thinking, per the existing API contract; output limited to four tokens for this test only."
+      }
+    },
+    "synthetic_inputs_only": true,
+    "environment": "Same installed exe path, production NVFP4/xhigh/MTP3 and 39168/6144 budgets. Forced-cut request alone uses the required non-thinking forced-tool path.",
+    "tool_execution_scope": "Engine API and simulated tool-result feedback. No actual external tool execution or full dsh/browser end-to-end task.",
+    "gpu_telemetry": {
+      "samples": 22,
+      "interval_seconds_approx": 5,
+      "max_sampled_used_MiB": 11180,
+      "min_sampled_free_MiB": 765,
+      "scope": "nvidia-smi under WDDM; neither CUDA allocatable headroom nor guaranteed instantaneous peak."
+    }
+  },
+  "tradeoff": "Truncated/ambiguous arguments return the reserved error tool instead of a guessed real call. The model/client must retry or split; this may add a generation round. One successful retry does not cover every client retry loop.",
+  "preserved": [
+    "Real function close bounds a missing parameter close",
+    "Missing outer wrapper only",
+    "Stray parameter closers in content",
+    "Earlier complete calls",
+    "Markdown protection",
+    "Strict open-reasoning recovery"
+  ],
+  "no_changes": [
+    "CUDA kernels and buffers",
+    "KV/model quantization",
+    "sampling and production xhigh",
+    "MTP and page budgets",
+    "request-log schema 28"
+  ],
+  "unvalidated": [
+    "Repeat 205124-token or full 256K run on this binary",
+    "General task success rates or multi-seed quality",
+    "Full dsh/browser chain and all retry loops",
+    "Clean full build and whole-engine CTest"
+  ],
+  "publication": "Local only, not committed/pushed/released; public v0.1.3 download hashes unchanged."
+}

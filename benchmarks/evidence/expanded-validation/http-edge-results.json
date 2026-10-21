@@ -1,0 +1,151 @@
+[
+  {
+    "name": "truncated-json",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "response": {
+      "error": {
+        "code": null,
+        "message": "request body is not valid JSON",
+        "param": null,
+        "type": "invalid_request_error"
+      }
+    }
+  },
+  {
+    "name": "array-envelope",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "response": {
+      "error": {
+        "code": null,
+        "message": "request body must be a JSON object",
+        "param": null,
+        "type": "invalid_request_error"
+      }
+    }
+  },
+  {
+    "name": "unpaired-surrogate",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "response": {
+      "error": {
+        "code": null,
+        "message": "request body is not valid JSON",
+        "param": null,
+        "type": "invalid_request_error"
+      }
+    }
+  },
+  {
+    "name": "invalid-utf8",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "response": {
+      "error": {
+        "code": null,
+        "message": "request body is not valid JSON",
+        "param": null,
+        "type": "invalid_request_error"
+      }
+    }
+  },
+  {
+    "name": "nan-sampling",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "response": {
+      "error": {
+        "code": null,
+        "message": "request body is not valid JSON",
+        "param": null,
+        "type": "invalid_request_error"
+      }
+    }
+  },
+  {
+    "name": "string-output-budget",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "response": {
+      "error": {
+        "code": null,
+        "message": "max_tokens must be an integer",
+        "param": "max_tokens",
+        "type": "invalid_request_error"
+      }
+    }
+  },
+  {
+    "name": "string-messages",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "response": {
+      "error": {
+        "code": null,
+        "message": "messages must be a non-empty array",
+        "param": "messages",
+        "type": "invalid_request_error"
+      }
+    }
+  },
+  {
+    "name": "responses-truncated-json",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "response": {
+      "error": {
+        "code": null,
+        "message": "request body is not valid JSON",
+        "param": null,
+        "type": "invalid_request_error"
+      }
+    }
+  },
+  {
+    "name": "anthropic-truncated-json",
+    "status": 400,
+    "expected": 400,
+    "passed": true,
+    "response": {
+      "error": {
+        "message": "request body is not valid JSON",
+        "type": "invalid_request_error"
+      },
+      "request_id": "req_278a3e173203cedd",
+      "type": "error"
+    }
+  },
+  {
+    "name": "missing-previous-response",
+    "status": 404,
+    "expected": 404,
+    "passed": true,
+    "response": {
+      "error": {
+        "code": "response_not_found",
+        "message": "response 'resp_fixture_missing_73019' not found",
+        "param": "previous_response_id",
+        "type": "invalid_request_error"
+      }
+    }
+  },
+  {
+    "name": "missing-route",
+    "status": 404,
+    "expected": 404,
+    "passed": true,
+    "response": {
+      "raw": ""
+    }
+  }
+]

@@ -1,0 +1,263 @@
+{
+  "before": {
+    "ambiguous-value-close": {
+      "calls": [
+        {
+          "arguments": {
+            "value": "echo"
+          },
+          "name": "configure"
+        }
+      ],
+      "content": "",
+      "fallback_reason": 1,
+      "malformed_call_reported": false,
+      "recovered": true
+    },
+    "cut-invoke": {
+      "calls": [
+        {
+          "arguments": {
+            "value": "first"
+          },
+          "name": "configure"
+        },
+        {
+          "arguments": {
+            "value": "cut"
+          },
+          "name": "configure"
+        }
+      ],
+      "content": "",
+      "fallback_reason": 1,
+      "malformed_call_reported": false,
+      "recovered": true
+    },
+    "forced-partial-close": {
+      "calls": [
+        {
+          "arguments": {
+            "value": "1\n</par"
+          },
+          "name": "configure"
+        }
+      ],
+      "content": "",
+      "fallback_reason": 1,
+      "malformed_call_reported": false,
+      "recovered": true
+    },
+    "function-cut-before-arguments": {
+      "calls": [
+        {
+          "arguments": {},
+          "name": "configure"
+        }
+      ],
+      "content": "",
+      "fallback_reason": 1,
+      "malformed_call_reported": false,
+      "recovered": true
+    },
+    "incremental-cut-function": {
+      "calls": [
+        {
+          "arguments": {},
+          "name": "configure"
+        }
+      ],
+      "content": "prefix",
+      "fallback_reason": 1,
+      "malformed_call_reported": false,
+      "recovered": true
+    },
+    "plain-prose-tag": {
+      "calls": [
+        {
+          "arguments": {
+            "error": "The output ended before the tool call was closed, so nothing was executed. Issue the call again; if it was long, split the work into smaller calls."
+          },
+          "name": "malformed_tool_call"
+        }
+      ],
+      "content": "prefix",
+      "fallback_reason": 1,
+      "malformed_call_reported": true,
+      "recovered": true
+    },
+    "quoted-marker-nonterminal-call": {
+      "calls": [
+        {
+          "arguments": {
+            "error": "The tool call markup was malformed, so nothing was executed. Issue the call again with every parameter opened and closed by its own tag."
+          },
+          "name": "malformed_tool_call"
+        }
+      ],
+      "content": "",
+      "fallback_reason": 1,
+      "malformed_call_reported": true,
+      "recovered": true
+    },
+    "second-call-cut": {
+      "calls": [
+        {
+          "arguments": {
+            "value": "first"
+          },
+          "name": "configure"
+        },
+        {
+          "arguments": {
+            "value": "cut"
+          },
+          "name": "configure"
+        }
+      ],
+      "content": "",
+      "fallback_reason": 1,
+      "malformed_call_reported": false,
+      "recovered": true
+    },
+    "sixteen-quotes-before-call": {
+      "calls": [
+        {
+          "arguments": {
+            "error": "The tool call markup was malformed, so nothing was executed. Issue the call again with every parameter opened and closed by its own tag."
+          },
+          "name": "malformed_tool_call"
+        }
+      ],
+      "content": "quote",
+      "fallback_reason": 1,
+      "malformed_call_reported": true,
+      "recovered": true
+    }
+  },
+  "after": {
+    "ambiguous-value-close": {
+      "calls": [
+        {
+          "arguments": {
+            "error": "The tool call markup was malformed, so nothing was executed. Issue the call again with every parameter opened and closed by its own tag.",
+            "intended_function": "configure"
+          },
+          "name": "malformed_tool_call"
+        }
+      ],
+      "content": "",
+      "fallback_reason": 1,
+      "malformed_call_reported": true,
+      "recovered": true
+    },
+    "cut-invoke": {
+      "calls": [
+        {
+          "arguments": {
+            "value": "first"
+          },
+          "name": "configure"
+        },
+        {
+          "arguments": {
+            "error": "The output ended before the tool call was closed, so nothing was executed. Issue the call again; if it was long, split the work into smaller calls.",
+            "intended_function": "configure"
+          },
+          "name": "malformed_tool_call"
+        }
+      ],
+      "content": "",
+      "fallback_reason": 1,
+      "malformed_call_reported": true,
+      "recovered": true
+    },
+    "forced-partial-close": {
+      "calls": [
+        {
+          "arguments": {
+            "error": "The output ended before the tool call was closed, so nothing was executed. Issue the call again; if it was long, split the work into smaller calls.",
+            "intended_function": "configure"
+          },
+          "name": "malformed_tool_call"
+        }
+      ],
+      "content": "",
+      "fallback_reason": 1,
+      "malformed_call_reported": true,
+      "recovered": true
+    },
+    "function-cut-before-arguments": {
+      "calls": [
+        {
+          "arguments": {
+            "error": "The output ended before the tool call was closed, so nothing was executed. Issue the call again; if it was long, split the work into smaller calls.",
+            "intended_function": "configure"
+          },
+          "name": "malformed_tool_call"
+        }
+      ],
+      "content": "",
+      "fallback_reason": 1,
+      "malformed_call_reported": true,
+      "recovered": true
+    },
+    "incremental-cut-function": {
+      "calls": [
+        {
+          "arguments": {
+            "error": "The output ended before the tool call was closed, so nothing was executed. Issue the call again; if it was long, split the work into smaller calls.",
+            "intended_function": "configure"
+          },
+          "name": "malformed_tool_call"
+        }
+      ],
+      "content": "prefix",
+      "fallback_reason": 1,
+      "malformed_call_reported": true,
+      "recovered": true
+    },
+    "plain-prose-tag": {
+      "calls": [],
+      "content": "prefix  \n<tool_call> is the tag",
+      "fallback_reason": 1,
+      "malformed_call_reported": false,
+      "recovered": false
+    },
+    "quoted-marker-nonterminal-call": {
+      "calls": [],
+      "content": "<tool_call>\\n<function=shell>\\n<parameter=command>\\nbroken\\n</parameter>\\n</function>\\n</tool_call>\n<tool_call>\n<function=configure>\n<parameter=value>\nok\n</parameter>\n</function>\n</tool_call>\nstill explaining",
+      "fallback_reason": 1,
+      "malformed_call_reported": false,
+      "recovered": false
+    },
+    "second-call-cut": {
+      "calls": [
+        {
+          "arguments": {
+            "value": "first"
+          },
+          "name": "configure"
+        },
+        {
+          "arguments": {
+            "error": "The output ended before the tool call was closed, so nothing was executed. Issue the call again; if it was long, split the work into smaller calls.",
+            "intended_function": "configure"
+          },
+          "name": "malformed_tool_call"
+        }
+      ],
+      "content": "",
+      "fallback_reason": 1,
+      "malformed_call_reported": true,
+      "recovered": true
+    },
+    "sixteen-quotes-before-call": {
+      "calls": [],
+      "content": "quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. quote <tool_call> here. \n<tool_call>\n<function=configure>\n<parameter=value>\nok\n</parameter>\n</function>\n</tool_call>",
+      "fallback_reason": 1,
+      "malformed_call_reported": false,
+      "recovered": false
+    }
+  }
+}

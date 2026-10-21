@@ -1811,6 +1811,118 @@ int test_terminal_flush(const Frontend& frontend) {
     return failures;
 }
 
+// Free tool output recovers calls the model stranded in thinking it never closed; a closed
+// thinking, a quoted marker or a turn cut by its budget keeps everything as reasoning.
+int test_open_reasoning_tool_recovery() {
+    const Frontend frontend = make_frontend(resources());
+    ninfer::PromptInput input;
+    input.messages.push_back({.role  = ninfer::ChatRole::User,
+                              .parts = {{.kind = ninfer::MessagePartKind::Text, .text = "x"}}});
+    input.options.continuation    = ninfer::PromptContinuationMode::NewAssistantTurn;
+    input.options.enable_thinking = true;
+    input.options.tool_jsons.push_back(
+        R"({"type":"function","function":{"name":"bash","parameters":{"type":"object","properties":{"command":{"type":"string"}}}}})");
+    const auto prompt         = frontend.prepare(std::move(input));
+    const ninfer::TokenId eos = frontend.default_stop_policy().token_ids.front();
+
+    const std::string planning = "The listing answers this, so I will run it.\n";
+    const std::string call =
+        "<tool_call>\n<function=bash>\n<parameter=command>\nls\n</parameter>\n</function>\n"
+        "</tool_call>";
+
+    struct Turn {
+        std::string reasoning;
+        std::string content;
+        std::vector<ninfer::GeneratedToolCall> calls;
+        ninfer::ToolCallParseDiagnostics diagnostics;
+    };
+
+    // `streamed` commits one token per round, as decode does; otherwise one round holds the turn.
+    const auto run = [&](const std::string& generated, bool end_with_eos, bool streamed = false) {
+        auto session = frontend.make_output_session(
+            prompt, {}, ninfer::OutputOptions{.tool_name_max_length = 64});
+        std::vector<ninfer::TokenId> tokens = fixture_tokenizer().encode(generated);
+        Turn turn;
+        const auto commit = [&] {
+            const PublishedOutput output = session.commit_preview();
+            turn.reasoning += channel_text(output, ninfer::OutputChannel::Reasoning);
+            turn.content += channel_text(output, ninfer::OutputChannel::Content);
+        };
+        if (streamed) {
+            for (const ninfer::TokenId token : tokens) {
+                (void)session.preview_model(std::span(&token, 1), 1000,
+                                            ninfer::FinishReason::OutputLimit);
+                commit();
+            }
+            tokens.clear();
+        }
+        if (end_with_eos) { tokens.push_back(eos); }
+        const auto budget = static_cast<std::uint32_t>(tokens.size() + (end_with_eos ? 8U : 0U));
+        (void)session.preview_model(tokens, budget, ninfer::FinishReason::OutputLimit);
+        commit();
+        turn.calls       = session.take_tool_calls();
+        turn.diagnostics = session.tool_call_parse_diagnostics();
+        return turn;
+    };
+
+    int failures = 0;
+    for (const bool streamed : {false, true}) {
+        const Turn turn = run(planning + call, true, streamed);
+        failures += check(turn.calls.size() == 1 && turn.calls[0].name == "bash" &&
+                              turn.calls[0].arguments_json == R"({"command":"ls"})" &&
+                              turn.diagnostics.recovered_from_reasoning &&
+                              turn.diagnostics.structured_call_count == 1 && turn.content.empty() &&
+                              turn.reasoning == planning + call,
+                          streamed ? "a call stranded in unclosed thinking was not recovered "
+                                     "across rounds"
+                                   : "a call stranded in unclosed thinking was not recovered");
+    }
+    const auto rejected = [&](const Turn& turn, const std::string& label) {
+        return check(turn.calls.empty() && !turn.diagnostics.recovered_from_reasoning &&
+                         turn.content.empty(),
+                     ("open-thinking recovery fired or leaked content for " + label).c_str());
+    };
+    failures += rejected(run(planning + call + "\n</think>\n\n", true),
+                         "a closed thinking with no content");
+    failures += rejected(run(planning + call + "\n</think>\n\n", true, true),
+                         "a thinking closed in an earlier round");
+    failures +=
+        rejected(run("I could emit <tool_call> now, but the question needs no tool.\n", true),
+                 "a quoted marker");
+    failures += rejected(run(planning + call, false), "a turn cut by its output budget");
+    for (const auto reason : {ninfer::FinishReason::Cancelled,
+                              ninfer::FinishReason::ContextCapacity}) {
+        auto session = frontend.make_output_session(
+            prompt, {}, ninfer::OutputOptions{.tool_name_max_length = 64});
+        const auto tokens = fixture_tokenizer().encode(planning + call);
+        (void)session.preview_model(tokens, static_cast<std::uint32_t>(tokens.size() + 8),
+                                    ninfer::FinishReason::OutputLimit);
+        (void)session.commit_preview();
+        (void)session.preview_terminal(reason);
+        const auto output = session.commit_preview();
+        failures += check(session.take_tool_calls().empty() &&
+                              !session.tool_call_parse_diagnostics().recovered_from_reasoning &&
+                              channel_text(output, ninfer::OutputChannel::Content).empty(),
+                          "between-round cancellation or context limit recovered a reasoning call");
+    }
+    {
+        ninfer::StopPolicy stop;
+        stop.strings.push_back(ninfer::StopString{.text = "CLIENT_STOP",
+                                                  .channel = ninfer::OutputChannel::Reasoning});
+        auto session = frontend.make_output_session(
+            prompt, stop, ninfer::OutputOptions{.tool_name_max_length = 64});
+        const auto tokens = fixture_tokenizer().encode(planning + call + "CLIENT_STOP");
+        const auto decision = session.preview_model(
+            tokens, static_cast<std::uint32_t>(tokens.size() + 8), ninfer::FinishReason::OutputLimit);
+        (void)session.commit_preview();
+        failures += check(decision.finish_reason == ninfer::FinishReason::StopString &&
+                              session.take_tool_calls().empty() &&
+                              !session.tool_call_parse_diagnostics().recovered_from_reasoning,
+                          "a client stop string recovered a reasoning call");
+    }
+    return failures;
+}
+
 int test_structured_tool_output() {
     const Frontend frontend = make_frontend(resources());
 
@@ -1910,6 +2022,68 @@ ninfer::models::qwen3_5::PreparedPrompt thinking_prompt(const Frontend& frontend
     input.options.continuation    = ninfer::PromptContinuationMode::NewAssistantTurn;
     input.options.enable_thinking = true;
     return frontend.prepare(std::move(input));
+}
+
+int test_reasoning_sampling_barrier(const Frontend& frontend) {
+    auto prompt = thinking_prompt(frontend);
+    auto session = frontend.make_output_session(prompt, {});
+    int failures = check(!fixture_tokenizer().is_special_token(kFixtureThinkCloseToken) &&
+                             session.reasoning_close_token() == kFixtureThinkCloseToken &&
+                             !session.reasoning_close_pending() && !session.reasoning_closed(),
+                         "an exact non-special close token did not expose a sampling barrier");
+    const std::array<ninfer::TokenId, 1> close{kFixtureThinkCloseToken};
+    (void)session.preview_model(close, 64, ninfer::FinishReason::OutputLimit);
+    failures += check(!session.reasoning_close_pending() && !session.reasoning_closed(),
+                      "a close preview changed committed sampling state");
+    (void)session.commit_preview();
+    failures += check(session.reasoning_close_pending() && !session.reasoning_closed(),
+                      "a committed close did not wait for its separator");
+    const auto quote = fixture_tokens("'");
+    (void)session.preview_model(quote, 64, ninfer::FinishReason::OutputLimit);
+    failures += check(session.reasoning_close_pending(),
+                      "a quoted close preview cleared committed sampling state");
+    (void)session.commit_preview();
+    failures += check(!session.reasoning_close_pending() && !session.reasoning_closed(),
+                      "a quoted close switched the reasoning sampler");
+    (void)session.preview_model(close, 64, ninfer::FinishReason::OutputLimit);
+    (void)session.commit_preview();
+    const auto separator = fixture_tokens(" ");
+    const auto decision = session.preview_model(separator, 64, ninfer::FinishReason::OutputLimit);
+    failures += check(session.reasoning_close_pending() && !session.reasoning_closed() &&
+                          !decision.prefix_execution_split_after,
+                      "a presentation separator changed the canonical prefix frontier");
+    (void)session.commit_preview();
+    failures += check(session.reasoning_closed() && !session.reasoning_close_pending(),
+                      "a committed whitespace close did not switch sampling before the answer");
+    const auto answer = fixture_tokens("answer");
+    (void)session.preview_model(answer, 64, ninfer::FinishReason::OutputLimit);
+    failures += check(channel_text(session.commit_preview(), ninfer::OutputChannel::Content) ==
+                          "answer",
+                      "the close barrier changed answer bytes");
+
+    auto stopped = frontend.make_output_session(prompt, {});
+    const std::array<ninfer::TokenId, 2> stop_before_close{6, kFixtureThinkCloseToken};
+    const auto stop = stopped.preview_model(stop_before_close, 64, ninfer::FinishReason::OutputLimit);
+    (void)stopped.commit_preview();
+    failures += check(stop.accepted_tokens == 1 && !stopped.reasoning_close_pending(),
+                      "an unaccepted close after EOS published a sampling barrier");
+
+    auto raw = frontend.make_output_session(prompt, {}, ninfer::OutputOptions{.raw = true});
+    const auto raw_prefix = fixture_tokenizer().encode("\n</think>");
+    (void)raw.preview_model(raw_prefix, 64, ninfer::FinishReason::OutputLimit);
+    (void)raw.commit_preview();
+    failures += check(raw.reasoning_close_pending() && !raw.reasoning_closed(),
+                      "raw output lost its canonical close barrier");
+    for (int i = 0; i < 2; ++i) {
+        const auto newline = fixture_tokens("\n");
+        const auto split = raw.preview_model(newline, 64, ninfer::FinishReason::OutputLimit);
+        (void)raw.commit_preview();
+        failures += check(raw.reasoning_closed() == (i == 1) &&
+                              raw.reasoning_close_pending() == (i == 0) &&
+                              split.prefix_execution_split_after.has_value() == (i == 1),
+                          "raw sampling and canonical prefix boundaries diverged");
+    }
+    return failures;
 }
 
 int test_reasoning_close_requires_boundary(const Frontend& frontend) {
@@ -2795,6 +2969,9 @@ int test_forced_tool_call(const Frontend& frontend) {
     return failures;
 }
 
+#ifdef NINFER_TOOL_RECOVERY_ONLY
+int main() { return test_open_reasoning_tool_recovery() == 0 ? 0 : 1; }
+#else
 int main() {
     const FrontendResources owned = resources();
     const Frontend frontend       = make_frontend(owned);
@@ -2833,9 +3010,11 @@ int main() {
     failures += test_same_token_stop_priority(frontend);
     failures += test_terminal_flush(frontend);
     failures += test_structured_tool_output();
+    failures += test_open_reasoning_tool_recovery();
     failures += test_forced_tool_call(frontend);
     failures += test_tool_marker_after_quoted_marker();
     failures += test_reasoning_split(frontend);
+    failures += test_reasoning_sampling_barrier(frontend);
     failures += test_reasoning_close_requires_boundary(frontend);
     failures += test_reasoning_close_resolves_at_terminal(frontend);
     failures += test_thinking_budget_control(frontend);
@@ -2854,3 +3033,4 @@ int main() {
     failures += test_disabled_vision();
     return failures == 0 ? 0 : 1;
 }
+#endif

@@ -3,6 +3,7 @@
 #include "runtime/contract/request.h"
 #include "runtime/contract/timing.h"
 #include <compare>
+#include <algorithm>
 #include <span>
 
 namespace ninfer::runtime {
@@ -72,6 +73,16 @@ struct PrefillStepResult {
 
 struct RoundBudget {
     std::uint32_t generated_tokens_remaining = 0;
+    // A one-hot speculative proposal must not license a suffix after this token: a host-side
+    // sampling transition has to commit before another target distribution is sampled.
+    std::optional<TokenId> sampling_boundary_token;
+
+    [[nodiscard]] std::span<const TokenId>
+    drafts_before_sampling_boundary(std::span<const TokenId> drafts) const noexcept {
+        if (!sampling_boundary_token || drafts.empty()) { return drafts; }
+        const auto at = std::find(drafts.begin(), drafts.end(), *sampling_boundary_token);
+        return drafts.first(static_cast<std::size_t>(at - drafts.begin()));
+    }
 };
 
 } // namespace ninfer::runtime

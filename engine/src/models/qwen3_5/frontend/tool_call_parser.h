@@ -57,6 +57,26 @@ struct ToolCallOutputContract {
     std::string forced_tool_name;
 };
 
+// Markdown code state of a text read so far: an open fence (a run of three or more backticks or
+// tildes; a run of the same character at least as long, alone on its line, closes it) or matching
+// backtick runs in the current paragraph (inline code). A tool-call marker of free output
+// inside code is a quoted example and stays text. Only the text before a marker decides, so
+// streamed and whole outputs agree.
+class MarkdownCodeTracker {
+public:
+    void feed(std::string_view text);
+    // Whether the next byte lies inside a code fence or inline code.
+    [[nodiscard]] bool in_code() const noexcept;
+
+private:
+    void end_line();
+
+    std::string line_;               // the current, unfinished line
+    char fence_              = '\0'; // the open fence's character, '\0' when none is open
+    std::uint32_t fence_len_ = 0;    // the open fence's opening run length
+    std::size_t ticks_       = 0;    // open inline delimiter length, zero outside inline code
+};
+
 struct ParsedToolCallOutput {
     bool is_tool_call_response = false;
     std::string content;
@@ -72,9 +92,10 @@ build_tool_call_output_contract(std::span<const std::string> tool_jsons, bool en
 // non-strict values, with each declared parameter emitted at most once in declaration order.
 [[nodiscard]] std::string structured_tool_call_format(const ToolCallOutputContract& contract);
 
+// `code` is the Markdown code state of the text before `text`: a marker inside code is skipped.
 [[nodiscard]] ParsedToolCallOutput
 parse_qwen_tool_call_output(const std::string& text, std::size_t max_tool_name_length,
-                            const ToolCallOutputContract& contract);
+                            const ToolCallOutputContract& contract, MarkdownCodeTracker code = {});
 
 // Incrementally publishes bytes that are provably outside a possible terminal Qwen tool-call
 // suffix. At terminal time, valid calls are retained structurally. A region that opens a function
@@ -94,7 +115,11 @@ public:
                           std::size_t max_tool_name_length);
 
     [[nodiscard]] std::string feed(std::string_view text);
-    [[nodiscard]] Terminal finish();
+    // `open_reasoning` is the thinking of a turn that ended without closing it. When the turn ended
+    // on the model's stop token and no content was fed, complete declared calls that end that
+    // thinking become the structured turn.
+    [[nodiscard]] Terminal finish(FinishReason reason             = FinishReason::StopToken,
+                                  std::string_view open_reasoning = {});
 
 private:
     std::shared_ptr<const ToolCallOutputContract> contract_;
@@ -102,11 +127,15 @@ private:
     std::string tool_region_;
     // A '<' and what follows while it can still grow into a tool-call region opener.
     std::string pending_marker_;
+    // Markdown code state of the published text, and of the text before the held region.
+    MarkdownCodeTracker code_;
+    MarkdownCodeTracker region_code_;
     // Bytes of tool_region_ that came from the prompt's opener rather than from the model. The
     // fallback path returns the region as ordinary content, and these must not appear there.
     std::size_t seeded_prefix_bytes_  = 0;
     std::size_t max_tool_name_length_ = 0;
     bool saw_tool_marker_             = false;
+    bool fed_content_                 = false;
     bool forced_                      = false;
     bool finished_                    = false;
 };

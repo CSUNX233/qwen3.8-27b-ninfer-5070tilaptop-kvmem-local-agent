@@ -1,0 +1,655 @@
+{
+  "date": "2026-10-20",
+  "engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+  "backup_sha256": "8b449db9fe029d3ed442ef8e6ad1fdac6d3ea2dd61aaf3ee09315cc06bd87edd",
+  "engine_changed": false,
+  "source_base_commit": "389791f834880e77f31fcb46ebe288918074882e",
+  "production_baseline": {
+    "kv": "nvfp4",
+    "reasoning": "xhigh",
+    "mtp": 3,
+    "max_context": 262144,
+    "device_kv": 39168,
+    "host_kv_mib": 7168,
+    "sink": 12288,
+    "recent": 19456,
+    "retrieve": 6144,
+    "sampling": "unchanged production defaults"
+  },
+  "request_overrides": [
+    {
+      "scope": "forced-tool cutoff protocol checks only",
+      "reasoning_effort": "none",
+      "why": "existing forced tool contract"
+    }
+  ],
+  "host": {
+    "passed_suites": 18,
+    "total_suites": 18,
+    "build_scope": "Test objects compiled from current source; linked the qualified local override objects and original archives. Not a clean full build or full CTest."
+  },
+  "parser_properties": {
+    "seed": 20261020,
+    "valid_utf8_inputs": 3207,
+    "chunk_comparisons": 12825,
+    "failures": 0,
+    "includes_64k_argument": true
+  },
+  "utf8_output_pipeline": {
+    "invalid_inputs": 537,
+    "decoding_runs": 1611,
+    "failures": 0,
+    "initial_lower_level_exceptions": 5,
+    "classification": "Bypassing OutputSession with invalid UTF-8 violates the parser input contract; the production byte repair path passed all 537 inputs."
+  },
+  "python": {
+    "passed": 16,
+    "total": 16,
+    "command": "runtime/tool-call-recovery/pyenv/Scripts/python.exe -m pytest -q engine/tests/test_serve_corpus.py engine/tests/test_bench_matrix.py engine/tests/test_speed_of_light.py"
+  },
+  "node": {
+    "passed": 9,
+    "total": 9,
+    "command": "node --test integrations/tests/cache-guard.test.mjs integrations/tests/tool-grounded-execution.test.mjs"
+  },
+  "raw_http": {
+    "passed": 11,
+    "total": 11
+  },
+  "live_runs": {
+    "": {
+      "engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+      "cases": [
+        {
+          "name": "token-counts",
+          "passed": true,
+          "details": {
+            "responses": {
+              "input_tokens": 59,
+              "object": "response.input_tokens"
+            },
+            "anthropic": {
+              "input_tokens": 59
+            }
+          },
+          "wall_seconds": 0.009274999989429489
+        },
+        {
+          "name": "invalid-requests",
+          "passed": false,
+          "error": "AssertionError((200, {'choices': [{'finish_reason': 'stop', 'index': 0, 'logprobs': None, 'message': {'content': 'Working! 👋 How can I help?', 'reasoning_content': 'The user sent \"test\" - this is a very simple, minimal message. They\\'re likely checking if I\\'m responsive, testing the interface, or just sending a quick probe. I should respond in a friendly, concise way acknowledging their test without being overly formal or verbose.\\n', 'refusal': None, 'role': 'assistant'}}], 'created': 1792496096, 'id': 'chatcmpl-2d7843dfb78054b4', 'model': 'qwen3.8-27b-gsq-rco-iq3-xxs', 'object': 'chat.completion', 'timings': {'cache_n': 0, 'draft_n': 87, 'draft_n_accepted': 41, 'predicted_ms': 1016.5065, 'predicted_n': 68, 'predicted_per_second': 65.91202318922703, 'predicted_per_token_ms': 15.171738805970149, 'prompt_ms': 213.25140000000002, 'prompt_n': 53, 'prompt_per_second': 248.53295218694927, 'prompt_per_token_ms': 4.023611320754718}, 'usage': {'completion_tokens': 68, 'completion_tokens_details': {'reasoning_tokens': 58}, 'prompt_tokens': 53, 'prompt_tokens_details': {'cached_tokens': 0}, 'total_tokens': 121}}))",
+          "wall_seconds": 1.2426390999899013
+        },
+        {
+          "name": "chat-nonstream-unicode",
+          "passed": true,
+          "details": {
+            "finish_reason": "stop",
+            "usage": {
+              "completion_tokens": 60,
+              "completion_tokens_details": {
+                "reasoning_tokens": 49
+              },
+              "prompt_tokens": 72,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "total_tokens": 132
+            }
+          },
+          "wall_seconds": 1.0598389999940991
+        },
+        {
+          "name": "output-limit-stop-string",
+          "passed": true,
+          "details": {
+            "limit_usage": {
+              "completion_tokens": 8,
+              "completion_tokens_details": {
+                "reasoning_tokens": 8
+              },
+              "prompt_tokens": 68,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "total_tokens": 76
+            },
+            "stop_content": ""
+          },
+          "wall_seconds": 0.9348484999936773
+        },
+        {
+          "name": "responses-state-delete",
+          "passed": true,
+          "details": {
+            "stored_then_deleted": true,
+            "continued_code": "User asks for code, previously ORCHID-78243. They say reply with code only. Need final just code, likely ORCHID-78243. No explanation.\nORCHID-78243",
+            "usage": {
+              "input_tokens": 125,
+              "input_tokens_details": {
+                "cached_tokens": 102
+              },
+              "output_tokens": 55,
+              "output_tokens_details": {
+                "reasoning_tokens": 45
+              },
+              "total_tokens": 180
+            }
+          },
+          "wall_seconds": 1.578911100004916
+        },
+        {
+          "name": "responses-stream",
+          "passed": true,
+          "details": {
+            "event_count": 28,
+            "sequence_monotonic": true
+          },
+          "wall_seconds": 0.6699764999939362
+        },
+        {
+          "name": "anthropic-nonstream",
+          "passed": true,
+          "details": {
+            "stop_reason": "end_turn",
+            "usage": {
+              "cache_creation": null,
+              "cache_creation_input_tokens": null,
+              "cache_read_input_tokens": 0,
+              "inference_geo": null,
+              "input_tokens": 67,
+              "output_tokens": 44,
+              "output_tokens_details": {
+                "thinking_tokens": 31
+              },
+              "server_tool_use": {
+                "web_fetch_requests": 0,
+                "web_search_requests": 0
+              },
+              "service_tier": null
+            }
+          },
+          "wall_seconds": 0.6275110999995377
+        },
+        {
+          "name": "anthropic-stream",
+          "passed": true,
+          "details": {
+            "events": 23,
+            "valid_terminal": true
+          },
+          "wall_seconds": 0.5487350999901537
+        },
+        {
+          "name": "typed-unicode-tool",
+          "passed": true,
+          "details": {
+            "arguments": {
+              "text": "中文🧪\\path",
+              "count": 17,
+              "enabled": true,
+              "meta": {
+                "items": [
+                  1,
+                  2
+                ],
+                "label": "雪"
+              }
+            },
+            "finish_reason": "tool_calls"
+          },
+          "wall_seconds": 2.5181080999900587
+        },
+        {
+          "name": "multiple-tools",
+          "passed": true,
+          "details": {
+            "calls": 2,
+            "unique_ids": true
+          },
+          "wall_seconds": 1.3102711999963503
+        },
+        {
+          "name": "disconnect-cancel-recovery",
+          "passed": true,
+          "details": {
+            "events_before_disconnect": 12,
+            "subsequent_request_completed": true
+          },
+          "wall_seconds": 1.2748197999899276
+        },
+        {
+          "name": "cache-prefix-divergence",
+          "passed": true,
+          "details": {
+            "branch_a": {
+              "cache_n": 16149,
+              "draft_n": 129,
+              "draft_n_accepted": 71,
+              "predicted_ms": 1585.683,
+              "predicted_n": 115,
+              "predicted_per_second": 71.89331032747403,
+              "predicted_per_token_ms": 13.9095,
+              "prompt_ms": 163.8637,
+              "prompt_n": 30,
+              "prompt_per_second": 183.0789857668294,
+              "prompt_per_token_ms": 5.462123333333333
+            },
+            "branch_b": {
+              "cache_n": 0,
+              "draft_n": 52,
+              "draft_n_accepted": 35,
+              "predicted_ms": 626.4108,
+              "predicted_n": 53,
+              "predicted_per_second": 83.01261727926786,
+              "predicted_per_token_ms": 12.046361538461538,
+              "prompt_ms": 18091.3548,
+              "prompt_n": 16179,
+              "prompt_per_second": 894.2945500134682,
+              "prompt_per_token_ms": 1.1181998145744485
+            },
+            "no_cross_branch_leak": true
+          },
+          "wall_seconds": 40.885025399998995
+        },
+        {
+          "name": "long-multiturn-tool-audit",
+          "passed": false,
+          "error": "AssertionError({'correct': 0, 'total': 10, 'checks': {'ASTER-71': False, 'BRIDGE-39': False, 'CIRRUS-82': False, 'DELTA-26': False, 'EMBER-54': False, 'FROST-93': False, 'GROVE-48': False, 'HARBOR-65': False, 'READY_TOTAL': False, 'TRANSFER_TOTAL': False}, 'parsed': {}})",
+          "wall_seconds": 262.22812200000044
+        }
+      ],
+      "completed": true,
+      "server_exit_code": 1,
+      "server_stopped_by_test_harness": true,
+      "server_exit_note": "The test-owned process was terminated in finally; Windows TerminateProcess exit 1 here is not a spontaneous engine crash."
+    },
+    "-supplement": {
+      "engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+      "cases": [
+        {
+          "name": "invalid-requests",
+          "passed": true,
+          "details": [
+            {
+              "name": "missing-messages",
+              "error": {
+                "code": null,
+                "message": "messages must be a non-empty array",
+                "param": "messages",
+                "type": "invalid_request_error"
+              }
+            },
+            {
+              "name": "negative-budget",
+              "error": {
+                "code": null,
+                "message": "max_tokens must be nonnegative, or -1 for no limit",
+                "param": "max_tokens",
+                "type": "invalid_request_error"
+              }
+            },
+            {
+              "name": "invalid-role",
+              "error": {
+                "code": "unsupported_role",
+                "message": "unsupported role: alien",
+                "param": "messages",
+                "type": "invalid_request_error"
+              }
+            },
+            {
+              "name": "invalid-sampling",
+              "error": {
+                "code": null,
+                "message": "temperature must be in [0,2]",
+                "param": "temperature",
+                "type": "invalid_request_error"
+              }
+            },
+            {
+              "name": "unknown-tool-choice",
+              "error": {
+                "code": null,
+                "message": "tool_choice must be 'auto', 'none', 'required', or a function choice",
+                "param": "tool_choice",
+                "type": "invalid_request_error"
+              }
+            },
+            {
+              "name": "non-neutral-repetition",
+              "error": {
+                "code": "repetition_penalty_not_supported",
+                "message": "a non-neutral repetition_penalty requires a sampler transform that NInfer does not provide; only repetition_penalty=1 is accepted",
+                "param": "repetition_penalty",
+                "type": "invalid_request_error"
+              }
+            },
+            {
+              "name": "responses-invalid-budget",
+              "error": {
+                "error": {
+                  "code": null,
+                  "message": "max_output_tokens must be non-negative",
+                  "param": "max_output_tokens",
+                  "type": "invalid_request_error"
+                }
+              }
+            },
+            {
+              "name": "anthropic-invalid-budget",
+              "error": {
+                "error": {
+                  "message": "max_tokens must be positive",
+                  "type": "invalid_request_error"
+                },
+                "request_id": "req_7ebefccd109d9bb5",
+                "type": "error"
+              }
+            }
+          ],
+          "wall_seconds": 0.05168489999778103
+        },
+        {
+          "name": "tool-output-cutoffs",
+          "passed": true,
+          "details": [
+            {
+              "budget": 1,
+              "function": "malformed_tool_call",
+              "finish_reason": "tool_calls",
+              "usage": {
+                "completion_tokens": 1,
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0
+                },
+                "prompt_tokens": 372,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0
+                },
+                "total_tokens": 373
+              }
+            },
+            {
+              "budget": 8,
+              "function": "malformed_tool_call",
+              "finish_reason": "tool_calls",
+              "usage": {
+                "completion_tokens": 8,
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0
+                },
+                "prompt_tokens": 372,
+                "prompt_tokens_details": {
+                  "cached_tokens": 372
+                },
+                "total_tokens": 380
+              }
+            },
+            {
+              "budget": 16,
+              "function": "malformed_tool_call",
+              "finish_reason": "tool_calls",
+              "usage": {
+                "completion_tokens": 16,
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0
+                },
+                "prompt_tokens": 372,
+                "prompt_tokens_details": {
+                  "cached_tokens": 357
+                },
+                "total_tokens": 388
+              }
+            },
+            {
+              "budget": 64,
+              "function": "malformed_tool_call",
+              "finish_reason": "tool_calls",
+              "usage": {
+                "completion_tokens": 64,
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0
+                },
+                "prompt_tokens": 372,
+                "prompt_tokens_details": {
+                  "cached_tokens": 357
+                },
+                "total_tokens": 436
+              }
+            },
+            {
+              "budget": 256,
+              "function": "read_record",
+              "finish_reason": "tool_calls",
+              "usage": {
+                "completion_tokens": 88,
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0
+                },
+                "prompt_tokens": 372,
+                "prompt_tokens_details": {
+                  "cached_tokens": 357
+                },
+                "total_tokens": 460
+              }
+            }
+          ],
+          "wall_seconds": 2.383491900007357
+        },
+        {
+          "name": "responses-tool-roundtrip",
+          "passed": true,
+          "details": {
+            "function_call_roundtrip": true,
+            "usage": {
+              "input_tokens": 466,
+              "input_tokens_details": {
+                "cached_tokens": 421
+              },
+              "output_tokens": 63,
+              "output_tokens_details": {
+                "reasoning_tokens": 53
+              },
+              "total_tokens": 529
+            }
+          },
+          "wall_seconds": 2.6442222999903606
+        },
+        {
+          "name": "anthropic-tool-roundtrip",
+          "passed": true,
+          "details": {
+            "tool_use_roundtrip": true,
+            "usage": {
+              "cache_creation": null,
+              "cache_creation_input_tokens": null,
+              "cache_read_input_tokens": 396,
+              "inference_geo": null,
+              "input_tokens": 46,
+              "output_tokens": 56,
+              "output_tokens_details": {
+                "thinking_tokens": 45
+              },
+              "server_tool_use": {
+                "web_fetch_requests": 0,
+                "web_search_requests": 0
+              },
+              "service_tier": null
+            }
+          },
+          "wall_seconds": 1.9423583000025246
+        },
+        {
+          "name": "oversized-context-recovery",
+          "passed": true,
+          "details": {
+            "rejection": {
+              "error": {
+                "code": "context_length_exceeded",
+                "message": "prepared prompt exceeds Engine max_context 262144",
+                "param": "messages",
+                "type": "invalid_request_error"
+              }
+            },
+            "recovery": true
+          },
+          "wall_seconds": 7.53315429999202
+        }
+      ],
+      "completed": true,
+      "server_exit_code": 1,
+      "server_stopped_by_test_harness": true,
+      "server_exit_note": "The test-owned process was terminated in finally; Windows TerminateProcess exit 1 here is not a spontaneous engine crash."
+    },
+    "-long-followup": {
+      "engine_sha256": "d6c4f860c1d47680c68306aefba969d8c39f8ec792a49d6c743f51898d5fc96f",
+      "cases": [
+        {
+          "name": "long-multiturn-tool-audit",
+          "passed": false,
+          "error": "AssertionError({'correct': 0, 'total': 10, 'checks': {'ASTER-71': False, 'BRIDGE-39': False, 'CIRRUS-82': False, 'DELTA-26': False, 'EMBER-54': False, 'FROST-93': False, 'GROVE-48': False, 'HARBOR-65': False, 'READY_TOTAL': False, 'TRANSFER_TOTAL': False}, 'parsed': {}})",
+          "wall_seconds": 270.8870584000106
+        }
+      ],
+      "completed": true,
+      "server_exit_code": 1,
+      "server_stopped_by_test_harness": true,
+      "server_exit_note": "The test-owned process was terminated in finally; Windows TerminateProcess exit 1 here is not a spontaneous engine crash."
+    }
+  },
+  "distinct_live_scenarios": {
+    "total": 17,
+    "passed": 16,
+    "failed": 1,
+    "note": "Replace the initial invalid max_tokens=-1 expectation with its corrected -2 check; long direct-answer behavior remains failed after repetition/correction."
+  },
+  "generated_requests_by_run": {
+    "": 16,
+    "-supplement": 10,
+    "-long-followup": 2
+  },
+  "preserved_failure": {
+    "kind": "model_instruction_following_failure",
+    "request_seed": 20359323,
+    "fixture_tokens_without_tools": 98322,
+    "prompt_tokens": 98592,
+    "output_budget": 8192,
+    "requested_behavior": "Return ten-field JSON from inline manifests; do not call tools yet.",
+    "actual_content": "",
+    "actual_tool_calls": [
+      {
+        "type": "function",
+        "function": {
+          "name": "read_record",
+          "arguments": "{\"record_id\":\"expanded-recall-98304-20261019\"}"
+        },
+        "id": "call_b908b9d58d0cce8d"
+      }
+    ],
+    "direct_final_answer_score": {
+      "correct": 0,
+      "total": 10
+    },
+    "facts_in_reasoning": {
+      "checks": {
+        "ASTER-71": true,
+        "BRIDGE-39": true,
+        "CIRRUS-82": true,
+        "DELTA-26": true,
+        "EMBER-54": true,
+        "FROST-93": true,
+        "GROVE-48": true,
+        "HARBOR-65": true,
+        "READY_TOTAL": true,
+        "TRANSFER_TOTAL": true
+      },
+      "correct": 10,
+      "total": 10,
+      "note": "Diagnostic only; these are not a successful final answer."
+    },
+    "engine_diagnostics": {
+      "duplicate_parameters_repaired": 0,
+      "empty_arguments_omitted": 0,
+      "fallback_reason": "none",
+      "forced_call_closed": false,
+      "malformed_call_reported": false,
+      "marker_seen": true,
+      "recovered": false,
+      "recovered_call_count": 0,
+      "recovered_from_reasoning": false,
+      "schema_mismatch_arguments": 0,
+      "structured_call_count": 1,
+      "trailing_content_dropped": false
+    },
+    "finish_reason": "stop_token",
+    "repeat": {
+      "independent_cold_starts": 2,
+      "request_bodies_equal": true,
+      "repeated_same_function_and_arguments": true,
+      "repeated_prompt_tokens": 98592,
+      "corrective_turn": {
+        "empty_content": true,
+        "repeated_same_call": true,
+        "usage": {
+          "completion_tokens": 333,
+          "completion_tokens_details": {
+            "reasoning_tokens": 289
+          },
+          "prompt_tokens": 100634,
+          "prompt_tokens_details": {
+            "cached_tokens": 100541
+          },
+          "total_tokens": 100967
+        },
+        "diagnostics": {
+          "duplicate_parameters_repaired": 0,
+          "empty_arguments_omitted": 0,
+          "fallback_reason": "none",
+          "forced_call_closed": false,
+          "malformed_call_reported": false,
+          "marker_seen": true,
+          "recovered": false,
+          "recovered_call_count": 0,
+          "recovered_from_reasoning": false,
+          "schema_mismatch_arguments": 0,
+          "structured_call_count": 1,
+          "trailing_content_dropped": false
+        }
+      }
+    },
+    "classification_limit": "No old-engine, raw-token, or no-MTP paired control. The normal parser path does not establish whether the cause is model behavior, speculative decoding, or another generation fault; do not attribute it to NVFP4 or the parser patch.",
+    "followup_multiturn_not_reached": "The planned three explicit long-history tool rounds and final result audit were not reached because direct-answer validation failed, including after correction.",
+    "reproduction": "benchmarks/qualification/tool_choice_long_context.py"
+  },
+  "other_observations": [
+    "Initial max_tokens=-1 rejection expectation was wrong: this engine documents -1 as unbounded output. Corrected invalid request to -2 and all eight invalid request checks passed.",
+    "An explicitly supplied stop string matched thinking before content, yielding an empty final body. This synthetic diagnostic does not establish the cause of previous user task early stops.",
+    "With rolling cache, max_shared_prefixes=0 and release_diverged_checkpoints, editing the earlier suffix produced a full prefix cache miss; straight-line continuation reused the prefix. Correctness passed, branching performance is limited.",
+    "Tool truncation budgets 1/8/16/64 returned malformed_tool_call; 256 yielded the complete real call. API tool_calls does not distinguish budget termination; inspect engine output_limit diagnostics."
+  ],
+  "gpu_samples": {
+    "count": 120,
+    "interval_seconds": 5,
+    "max_used_mib": 11491,
+    "min_free_mib": 454,
+    "interpretation": "nvidia-smi/WDDM samples; not CUDA-allocatable memory or a guaranteed instantaneous peak"
+  },
+  "not_covered": [
+    "full 256K model inference",
+    "multi-model quality comparison",
+    "old-engine paired long-context comparison",
+    "complete real dsh/browser task",
+    "clean full build",
+    "remaining upstream fixes"
+  ],
+  "cleanup": {
+    "deleted_test_artifacts": 24,
+    "freed_bytes": 2736378969,
+    "kept": "Installed engine, sole rollback engine, source fixtures, logs, evidence and necessary previous build cache"
+  },
+  "artifact_sha256": {
+    "benchmarks/qualification/tool_choice_long_context.py": "dbee125cdb3b61e7611fe8aca1659db74c8c1081ad6fb63242837e6c858956cb",
+    "benchmarks/qualification/tool_parser_properties.cpp": "7ea8e0efffc93063e2c44e47f8c1a1f6f23317fafed40e6beb989c4a5ea63963"
+  }
+}
