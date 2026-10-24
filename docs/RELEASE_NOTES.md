@@ -7,7 +7,7 @@
 - **滚动长锚点：** 在追加消息边界补充近尾锚点，按间距节流，同时保留有用的早期回退点。相同 lineage 恢复可消费旧活动 owner，保留 immutable KV/状态；不同 named session 与 readonly 请求继续隔离。
 - **批量冷页回迁：** eligible 冷页最多 32 页一批；Host 连续 extent 不足时逐级减半至单页，允许部分推进，避免大块申请失败阻断仍可完成的回迁。保留 oldest-first、sink、preferred-page、source-pin 与尾页约束，已有 Host 副本直接复用。
 - **公开启动器接入 C2.1：** 启用 `--auto-long-anchors`，默认 `NINFER_C2_ROLLING_ANCHOR=1`、`NINFER_C2_CONSUME_ANCHOR=1`、`NINFER_KV_DEMOTE_BATCH=32`；Host state slots 8、长锚点间距 49152、每 continuation 最多 2 个，Device state slots 0。诊断时可在启动前显式设两项锚点开关为 0、batch 为 1，然后正常重启。
-- **双整合包：** 无模型版可指定自己的 v3 `.ninfer`；完整版包含两份文字+MTP模型及可选完整视觉制品。均包含引擎和用户态依赖，上传夸克后由维护者提供链接。CPU 视觉采用显式开关，模型切回文字时同步关闭视觉声明。配置读取显式使用 UTF-8，避免 Windows PowerShell 5.1 把中文模型路径读成乱码。
+- **双整合包：** 无模型版可指定自己的 v3 `.ninfer`；完整版仅保留 GSQ-RCO 文字+MTP 和完整 Huihui 文字+视觉+MTP 两份制品，不再重复附带 Huihui 纯文字副本，减少约10.80GB。均包含引擎和用户态依赖，上传夸克后由维护者提供链接。完整版默认GSQ纯文字；CPU视觉显式切到Huihui，关闭视觉切回GSQ。配置读取显式使用 UTF-8，避免 Windows PowerShell 5.1 把中文模型路径读成乱码。
 - **文档刷新：** 更新 README、安装/纠错入口、模型与硬件说明；移除把旧测量称为当前结果的首页表述。
 - **安装器后续修订（引擎不变）：** 安装与 `04-verify.cmd` 默认只校验程序、依赖及部署文件，不强制任何模型存在；部署/启动再检查当前所选模型。可选 `-CheckModels` 只额外校验仍保留的原包模型，缺少未选模型不报错。整合包包含部署、纠错提示词与显存不足处理顺序；README 顶部恢复项目介绍和明确标注版本条件的 5070 Ti Laptop 历史测速。此修订随源码 `main` 和重打整合包提供，已发布的 `v0.1.5` 源码标签与引擎附件保持原样；报告问题请同时记录整合包 `source_commit`。
 

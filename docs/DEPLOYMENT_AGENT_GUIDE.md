@@ -79,7 +79,7 @@ CUDA 驱动系统内存回退强烈建议仅对实际引擎 exe 禁用；保留 
 38bc4d8c6be07afd6c74b902cc33403bf2ee139a2c50129d363d68d74a7609d6
 ```
 
-原版GSQ模型精确文件：`ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF` 的 **`Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf`**，转换成含 `text,mtp` 的 **v3 `.ninfer`**。Huihui Swift变体、模型 revision、tokenizer 来源与转换命令见 [MODELS.md](MODELS.md)。GitHub附件不包含权重，夸克包分无模型版和双文字模型加完整可选视觉制品版，默认都不启用视觉；不能把 GGUF 路径直接传给服务器，也不能将不带 MTP 的文件套用这套启动参数。
+原版GSQ模型精确文件：`ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF` 的 **`Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf`**，转换成含 `text,mtp` 的 **v3 `.ninfer`**。Huihui Swift变体、模型 revision、tokenizer 来源与转换命令见 [MODELS.md](MODELS.md)。GitHub附件不包含权重，夸克包分无模型版和GSQ文字+MTP加完整Huihui文字+视觉+MTP版，默认GSQ纯文字、不启用视觉；完整版不含单独Huihui纯文字副本。不能把 GGUF 路径直接传给服务器，也不能将不带 MTP 的文件套用这套启动参数。
 
 v0.1.5 默认启用滚动/消费长锚点与batch32回迁：Host state slots=8、spacing=49152、每continuation最多2个，Device state slots=0。公开页池仍36864/3840。VisionCPU缺省false；完整版可显式切换CPU视觉，见[离线包说明](OFFLINE_BUNDLE.md)。构建与测试边界见[C2.1移植记录](C2P1_V014_PORT.md)。
 

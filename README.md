@@ -27,7 +27,7 @@
 |---|---|
 | RTX 30 / 40 系，12GB+ | 使用对应架构的兼容构建；参考[编译说明](docs/BUILD.md)，不能直接运行本次 sm120a 附件 |
 | RTX 50 系，12GB+ | 本次 Windows x64 / sm120a 附件；直接实测设备为 5070 Ti Laptop 12GB |
-| 16GB 及以上 | 可以选择更大的 IQ3_S 文字模型，另行准备含 MTP 的 `.ninfer` 并验证预算；本次完整版附带的两份文字模型仍是 IQ3_XXS |
+| 16GB 及以上 | 可以选择更大的 IQ3_S 文字模型，另行准备含 MTP 的 `.ninfer` 并验证预算；本次完整版两份制品的文字权重仍是 IQ3_XXS |
 
 推荐 32GB 系统内存、SSD，以及兼容 CUDA 13 的 NVIDIA 驱动。不同架构还需适配内核与依赖，不能只改 exe 文件名。
 
@@ -36,7 +36,7 @@
 - **减少长历史续接的重复预填充。** 在消息边界保留靠近尾部的滚动长锚点，同时保留有用的早期回退点；同 lineage 恢复时可消费旧 owner，保留可复用的不可变 KV/状态。
 - **减少冷页逐页回迁的开销。** 合格冷页按最多 32 页批量回迁 Host；大块分配失败逐级缩批，允许部分推进，保留 sink、页顺序、来源 pin 和尾页约束。
 - **基线明确回到 v0.1.4。** 保留上一版正确性修复，没有改变模型权重、KV 格式、注意力公式或检索窗口；这轮重点是缓存生命周期，不能据此宣称总体模型质量提升。
-- **安装包拆成两种。** 无模型版支持自己的 `.ninfer`；完整版含双文字模型及可选 CPU 视觉制品，均自带引擎和用户态运行依赖。
+- **安装包拆成两种。** 无模型版支持自己的 `.ninfer`；完整版只含 GSQ-RCO 文字+MTP 和 Huihui 文字+视觉+MTP 两份制品，均自带引擎和用户态运行依赖。
 
 | 本轮检查 | 结果与边界 |
 |---|---|
@@ -55,9 +55,9 @@
 | 网盘包 | 内容与入口 |
 |---|---|
 | `NInfer-v0.1.5-Windows-sm120a-no-models.zip` | 不含模型；运行 `01-setup-your-model.cmd` 选择自己的文字+MTP v3 `.ninfer` |
-| `NInfer-v0.1.5-Windows-sm120a-full.zip` | Huihui Swift-1.5 与原版 GSQ-RCO 两份 IQ3_XXS 文字模型，加完整 Huihui CPU 视觉制品；先运行 `01-setup-huihui.cmd` 或 `01-setup-gsq.cmd` |
+| `NInfer-v0.1.5-Windows-sm120a-full.zip` | GSQ-RCO IQ3_XXS 文字+MTP，以及完整 Huihui 文字+视觉+MTP 制品；先运行 `01-setup-gsq.cmd`，不再附带 Huihui 纯文字副本 |
 
-**完整版也默认关闭视觉**，不同时加载两个文字模型。需要读图时，停止服务后显式运行 `09-enable-cpu-vision.cmd`；视觉塔和前处理全部使用 CPU，文字/MTP 仍使用 GPU。首次读图会增加等待与 RAM 占用。[整合包说明](docs/OFFLINE_BUNDLE.md) · [安装提示词](docs/INSTALL_PROMPT.md) · [纠错文档](docs/TROUBLESHOOTING.md)
+**完整版默认 GSQ 纯文字，关闭视觉**，一次只加载一个模型。需要读图时，停止服务后显式运行 `09-enable-cpu-vision.cmd`；切换至 Huihui，视觉塔和前处理全部使用 CPU，文字/MTP 仍使用 GPU。首次读图会增加等待与 RAM 占用。`09-disable-vision-gsq.cmd` 切回 GSQ 并关闭视觉。[整合包说明](docs/OFFLINE_BUNDLE.md) · [安装提示词](docs/INSTALL_PROMPT.md) · [纠错文档](docs/TROUBLESHOOTING.md)
 
 两包根目录均有中文安装说明、安装提示词、纠错文档、更新说明及独立的 `显存不足处理顺序.txt`。**安装完整性与 `04-verify.cmd` 不强制要求模型**，没有某个未选用模型也能通过；部署/启动只检查当前选择的模型。需要额外核对已保留模型时可用 `-CheckModels`。[具体用法](docs/OFFLINE_BUNDLE.md)
 

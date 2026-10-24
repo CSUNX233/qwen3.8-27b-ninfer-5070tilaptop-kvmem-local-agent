@@ -6,7 +6,7 @@
 请部署NInfer v0.1.5离线整合包。
 安装目录：D:\AI\ninfer-v015
 包类型：完整版 / 无模型版（填写其一）
-优先模型：完整版Huihui或gsq；无模型版填写自己的文字+MTP v3 .ninfer路径。
+优先模型：完整版默认gsq纯文字；无模型版填写自己的文字+MTP v3 .ninfer路径。
 
 先读本目录AGENTS.md、docs/OFFLINE_BUNDLE.md、docs/TROUBLESHOOTING.md及更新说明。
 核对Windows x64、显卡型号/显存、RAM、驱动、Edge与端口1234/1236/3080。
@@ -18,15 +18,15 @@
 默认完整性检查不要求模型存在，不因缺少未选用的文字/视觉模型报错；
 实际部署和启动只要求当前所选模型存在。需要排查模型损坏时显式用-CheckModels，
 只校验仍保留的原包模型，不把缺少其他模型当作安装失败。
-不要从GitHub重下或擅自升级npm。完整版含双文字模型及完整Huihui视觉制品，
-使用scripts/setup-bundle.ps1 -Model huihui（或gsq），不要求重新转换模型。
+不要从GitHub重下或擅自升级npm。完整版只含GSQ文字+MTP与完整Huihui文字+视觉+MTP，
+使用scripts/setup-bundle.ps1 -Model gsq，不要求重新转换模型，不要求Huihui纯文字副本。
 无模型版使用scripts/setup-bundle.ps1 -ModelPath <自己的.ninfer>，必要时指定ModelId。
 缺VC++运行库可用包内Microsoft签名安装器；驱动/Edge仍是系统前置。
 
 默认只启用文字+MTP，VisionCPU=false；不要因为包里有视觉文件就启用。
 用户明确需要视觉时，停止后用09-enable-cpu-vision.cmd；必须完全CPU视觉，
 参数--vision-cpu --vision-max-merged 256，dsh输入text,image；文字/MTP仍使用GPU。
-切回文字使用05-use-huihui或05-use-gsq，确保同时关闭视觉。
+切回文字使用05-use-gsq或09-disable-vision-gsq，切回GSQ并关闭视觉，建议新开会话。
 
 保留NVFP4、xhigh、MTP3、262144逻辑容量、DeviceKV36864/Retrieve3840、
 HostKV7168MiB、sink12288/recent19456、AnswerPenaltyScope=answer，及C2.1默认。

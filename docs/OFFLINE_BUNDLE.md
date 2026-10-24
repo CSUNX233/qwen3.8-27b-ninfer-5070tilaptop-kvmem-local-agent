@@ -9,11 +9,11 @@
 | 包名 | 模型内容 | 首次安装入口 |
 |---|---|---|
 | `NInfer-v0.1.5-Windows-sm120a-no-models.zip` | 无权重，适合已有模型 | `01-setup-your-model.cmd`，输入自己的文字+MTP v3 `.ninfer` 完整路径 |
-| `NInfer-v0.1.5-Windows-sm120a-full.zip` | Huihui Swift-1.5、原版GSQ-RCO，两份IQ3_XXS文字+MTP；另含完整Huihui文字+BF16视觉+MTP制品 | `01-setup-huihui.cmd` 或 `01-setup-gsq.cmd` |
+| `NInfer-v0.1.5-Windows-sm120a-full.zip` | GSQ-RCO IQ3_XXS文字+MTP，以及完整Huihui文字+BF16视觉+MTP；不含单独的Huihui纯文字副本 | `01-setup-gsq.cmd` |
 
-两份文字模型各约10.06GiB，视觉制品约10.91GiB；**视觉制品也含完整文字权重**，额外体积用于开箱即用，无需下载/转换GGUF。三份制品一次只加载所选一个；不是同时加载三个模型。本包不含IQ3_S。裸mmproj GGUF不能直接交给本服务器。
+GSQ文字模型约10.06GiB，Huihui视觉制品约10.91GiB；**视觉制品也含完整文字权重**，无需下载/转换GGUF。完整版只保留这两份制品，相比三模型包减少约10.80GB；一次只加载所选一个。默认使用GSQ纯文字；启用CPU视觉时切换到Huihui，关闭视觉时切回GSQ。本包不含IQ3_S。裸mmproj GGUF不能直接交给本服务器。
 
-压缩包采用ZIP64，放NTFS/exFAT盘，不能用FAT32。完整包下载加解压建议预留至少85GB，无模型版至少15GB；实际大小以ZIP及清单为准。解压到短路径如 `D:\AI\ninfer-v015`，不要在压缩包里直接运行。
+压缩包采用ZIP64，放NTFS/exFAT盘，不能用FAT32。完整包下载加解压建议预留至少60GB，无模型版至少15GB；实际大小以ZIP及清单为准。解压到短路径如 `D:\AI\ninfer-v015`，不要在压缩包里直接运行。
 
 ## 显存准备顺序
 
@@ -30,7 +30,7 @@
 ## 安装与启动
 
 1. 完整解压。首次可用 `00-install-vc-runtime.cmd` 安装Microsoft运行库，已安装兼容版本可跳过。
-2. 按上表运行安装入口。安装完整性检查只对引擎、依赖和部署文件做SHA-256校验，**不强制任何模型存在**；缺少未选用的Huihui、GSQ或视觉模型不会报错，也不扫描约31GiB模型。实际部署/启动只要求当前选用的模型存在；不发送推理请求，不下载依赖。
+2. 按上表运行安装入口。安装完整性检查只对引擎、依赖和部署文件做SHA-256校验，**不强制任何模型存在**；缺少未选用的文字或视觉模型不会报错，也不扫描约21GiB模型。实际部署/启动只要求当前选用的模型存在；不发送推理请求，不下载依赖。
 3. 运行 `02-start.cmd`，等待权重加载和CUDA Graph捕获，然后自动打开本机dsh网页。关闭使用 `03-stop.cmd`，只停止本包进程，保留会话和模型。
 4. `04-verify.cmd`重查程序和依赖完整性，没有模型也能通过。包内 `offline-bundle.json`、`SHA256SUMS`记录打包时的文件与模型身份；外层 `.zip.sha256`供上传/下载核对。需要排查模型损坏时，可运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify-bundle.ps1 -CheckModels`，额外校验仍在目录中的模型，缺失模型仍跳过；原包内模型有损坏会明确报错。制作发布ZIP时仍校验全部实际分发的模型。
 
@@ -44,13 +44,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-bundle.ps1 -
 
 ## 文字与CPU视觉切换
 
-**默认纯文字，不启用视觉**；第一次安装Huihui/GSQ时写入 `VisionCPU=false`，dsh只声明text输入。完整包文件存在不代表加载视觉。
+**默认GSQ纯文字，不启用视觉**；第一次安装GSQ时写入 `VisionCPU=false`，dsh只声明text输入。完整包文件存在不代表加载视觉。
 
 等待当前任务结束、运行 `03-stop.cmd` 后：
 
-- `05-use-huihui.cmd` / `05-use-gsq.cmd`：选择文字模型，同时关闭视觉。
+- `05-use-gsq.cmd`：选择GSQ文字模型，同时关闭视觉。
 - `09-enable-cpu-vision.cmd`：切到完整Huihui视觉制品，设置 `VisionCPU=true`；启动器加入 `--vision-cpu --vision-max-merged 256`，dsh声明text,image。前处理和视觉塔完全CPU，文字/MTP仍GPU。
-- `09-disable-vision-huihui.cmd`：切回Huihui文字制品并关闭视觉。
+- `09-disable-vision-gsq.cmd`：切回GSQ文字制品并关闭视觉；此操作也会切换模型。
 
 保存后运行 `02-start.cmd`。切模型建议新开会话；旧磁盘会话保留，进程缓存重建。CPU视觉增加RAM和首次图片编码等待，256 merged-token cap可能丢失细小文字/复杂图像细节。[视觉说明](VISION.md)
 

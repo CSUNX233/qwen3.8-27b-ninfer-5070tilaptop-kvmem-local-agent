@@ -1,6 +1,6 @@
 # 可选：视觉编码完全放 CPU
 
-默认发布预设为**纯文字 + MTP**，不加载视觉塔。v0.1.5完整离线包提供完整Huihui text,vision,mtp制品及显式切换入口：停止服务后运行 `09-enable-cpu-vision.cmd`，再启动。切回文字用 `05-use-huihui.cmd` 或 `05-use-gsq.cmd`。无模型/源码安装须先准备下述独立制品。
+默认发布预设为**纯文字 + MTP**，不加载视觉塔。v0.1.5完整离线包默认GSQ，另提供完整Huihui text,vision,mtp制品及显式切换入口：停止服务后运行 `09-enable-cpu-vision.cmd`，切换Huihui并启用CPU视觉，再启动。切回文字用 `05-use-gsq.cmd` 或 `09-disable-vision-gsq.cmd`，同时切回GSQ；不附带单独Huihui纯文字副本。无模型/源码安装须先准备下述独立制品。
 
 下载 [ISTA-DASLab GGUF 仓库](https://huggingface.co/ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF) 的 `mmproj-Qwen3.8-27B-BF16.gguf`。在 [文本转换](MODELS.md) 命令中增加：
 

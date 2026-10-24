@@ -59,7 +59,6 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--variant', choices=['no-models', 'full'])
     p.add_argument('--engine', type=Path)
-    p.add_argument('--huihui', type=Path)
     p.add_argument('--gsq', type=Path)
     p.add_argument('--vision', type=Path, help='Huihui text+vision+MTP v3 artifact; CPU vision is opt-in')
     p.add_argument('--dependencies', type=Path, help='Directory with pinned dependency downloads')
@@ -75,9 +74,9 @@ def main():
         return
     if not all([args.variant, args.engine, args.dependencies, args.dependency_manifest]):
         p.error('Building requires --variant, --engine, --dependencies and --dependency-manifest')
-    if args.variant == 'full' and not all([args.huihui, args.gsq, args.vision]):
-        p.error('The full variant requires --huihui, --gsq and --vision')
-    if args.variant == 'no-models' and any([args.huihui, args.gsq, args.vision]):
+    if args.variant == 'full' and not all([args.gsq, args.vision]):
+        p.error('The full variant requires --gsq and --vision')
+    if args.variant == 'no-models' and any([args.gsq, args.vision]):
         p.error('The no-models variant must not receive model paths')
     if output.exists():
         raise SystemExit('Output already exists; choose a new directory')
@@ -152,7 +151,6 @@ def main():
         copy_file(output / ('integrations/dsh/patches/' + name + '.js'), folder / 'lib/index.js')
     models = []
     model_inputs = [
-        ('huihui', args.huihui, 'Huihui-Qwen3.8-27B-abliterated-Swift-1.5-GSQ-RCO-IQ3_XXS-mtp.ninfer', 'huihui-qwen3.8-27b-swift1.5-iq3-xxs'),
         ('gsq', args.gsq, 'qwen3.8-27b-gsq-rco-iq3-xxs.ninfer', 'qwen3.8-27b-gsq-rco-iq3-xxs'),
         ('huihui-vision', args.vision, 'Huihui-Qwen3.8-27B-abliterated-Swift-1.5-GSQ-RCO-IQ3_XXS-mtp-vision-bf16.ninfer', 'huihui-qwen3.8-27b-swift1.5-iq3-xxs-vision'),
     ] if args.variant == 'full' else []
@@ -184,12 +182,10 @@ def main():
                       ('VRAM_GUIDE.md', '显存不足处理顺序.txt')]:
         (output / name).write_text((ROOT / 'docs' / doc).read_text('utf8'), encoding='utf-8-sig')
     write_cmd(output / '00-install-vc-runtime.cmd', 'start /wait "" "%~dp0dependencies\\vc_redist.x64.exe" /install')
-    choices = [('01-setup-huihui.cmd', 'scripts/setup-bundle.ps1', '-Model huihui'),
-        ('01-setup-gsq.cmd', 'scripts/setup-bundle.ps1', '-Model gsq'),
-        ('05-use-huihui.cmd', 'scripts/set-bundle-option.ps1', '-Model huihui'),
+    choices = [('01-setup-gsq.cmd', 'scripts/setup-bundle.ps1', '-Model gsq'),
         ('05-use-gsq.cmd', 'scripts/set-bundle-option.ps1', '-Model gsq'),
         ('09-enable-cpu-vision.cmd', 'scripts/set-bundle-option.ps1', '-Model huihui-vision'),
-        ('09-disable-vision-huihui.cmd', 'scripts/set-bundle-option.ps1', '-Model huihui')
+        ('09-disable-vision-gsq.cmd', 'scripts/set-bundle-option.ps1', '-Model gsq')
     ] if args.variant == 'full' else [('01-setup-your-model.cmd', 'scripts/setup-bundle.ps1', '')]
     for name, script, flags in choices + [
         ('02-start.cmd', 'start.ps1', ''), ('03-stop.cmd', 'stop.ps1', ''),
@@ -219,7 +215,7 @@ def main():
         source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
         source_has_uncommitted_changes=bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT)),
         engine_sha256=engine_spec['files'][0]['sha256'], models=models, dependencies=dependencies,
-        variant=args.variant, default_model='huihui' if models else None,
+        variant=args.variant, default_model='gsq' if models else None,
         default_vision_cpu=False, default_penalty_scope='answer',
         system_prerequisites=['Windows x64', 'CUDA 13 compatible NVIDIA driver', 'Microsoft Edge', 'x64 VC++ runtime (installer included)'],
         files=files)

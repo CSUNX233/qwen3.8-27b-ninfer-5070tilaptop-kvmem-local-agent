@@ -42,9 +42,9 @@ Quark links will be supplied by the maintainer in the video description/pinned c
 | Offline archive | Contents / entry |
 |---|---|
 | `NInfer-v0.1.5-Windows-sm120a-no-models.zip` | No weights; `01-setup-your-model.cmd` selects your text+MTP v3 `.ninfer` |
-| `NInfer-v0.1.5-Windows-sm120a-full.zip` | Huihui Swift-1.5 and original GSQ-RCO IQ3_XXS text models, plus a complete Huihui text+vision+MTP artifact; use `01-setup-huihui.cmd` or `01-setup-gsq.cmd` |
+| `NInfer-v0.1.5-Windows-sm120a-full.zip` | GSQ-RCO IQ3_XXS text+MTP and complete Huihui text+vision+MTP; use `01-setup-gsq.cmd`. No separate Huihui text-only copy is included. |
 
-Both default to text-only. After stopping the full bundle, `09-enable-cpu-vision.cmd` opts into CPU preprocessing/vision encoding; text/MTP still run on GPU. This adds RAM use and first-image latency. Start with `02-start.cmd`, stop with `03-stop.cmd`. A compatible NVIDIA driver and Microsoft Edge remain system prerequisites. [Offline guide](docs/OFFLINE_BUNDLE.md)
+Both default to text-only; the full bundle defaults to GSQ. After stopping the full bundle, `09-enable-cpu-vision.cmd` switches to Huihui with CPU preprocessing/vision encoding; text/MTP still run on GPU. This adds RAM use and first-image latency. `09-disable-vision-gsq.cmd` returns to GSQ text-only. Only one model is loaded at a time. Start with `02-start.cmd`, stop with `03-stop.cmd`. A compatible NVIDIA driver and Microsoft Edge remain system prerequisites. [Offline guide](docs/OFFLINE_BUNDLE.md)
 
 Both include deployment instructions, Agent installation/troubleshooting prompts and the VRAM adjustment order. **Installation integrity checks and `04-verify.cmd` require no models.** Missing unselected models do not fail verification; setup/start require the selected model. Optional `-CheckModels` additionally hashes bundled models that are still present. The installer revision is available on `main` and in rebuilt offline bundles; the published engine and source tag are unchanged.
 
