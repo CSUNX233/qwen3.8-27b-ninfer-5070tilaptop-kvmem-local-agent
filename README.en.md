@@ -1,6 +1,23 @@
 # NInfer + KVMem: a local 27B Agent on 12GB GPUs
 
-**v0.1.5 ports C2.1 onto the explicit v0.1.4 baseline**, improving long-history cache restoration and Host KV demotion. It retains v0.1.4 parsing, sampling, NVFP4 reducer, FP16 GDN and answer-only penalty fixes. Text+MTP and xhigh remain the defaults; vision is off. [Release](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.5) · [中文](README.md)
+Run a **Qwen3.8-27B local Agent** for coding, files and web tools on consumer GPUs. NInfer handles inference; KVMem stores historical KV in RAM and retrieves pages into GPU memory. MTP speculative decoding, a cache guard and an optional dsh web UI support long task continuations. The logical context is configured to 256K; this does not imply attending to all history every step or completed full-256K validation. [中文](README.md)
+
+## RTX 5070 Ti Laptop 12GB historical measurements
+
+Hardware: **RTX 5070 Ti Laptop 12GB / i7-14650HX / 32GB RAM / Windows**. Model: Qwen3.8-27B GSQ-RCO IQ3_XXS + MTP3. These retained records used the older RK4V4 setup; **they are not v0.1.5 / NVFP4 remeasurements**.
+
+| Workload | Measured speed | Conditions |
+|---|---:|---|
+| Short writing decode | 71.81 tokens/s | Small-matrix dispatch enabled; mean of two runs |
+| Short code decode | 84.49 tokens/s | Same short-task group; mean of two runs |
+| Cached repeated code decode | 85.00 tokens/s | Same group, cached requests; mean of two runs |
+| Cold prefill, 110,019 tokens | 620.48 tokens/s, about 177.31 seconds | Earlier single measurement; subsequent decode 69.28 tokens/s |
+
+Short throughput fixtures explicitly used temperature=0, seed=1234 and reasoning=none; daily use defaults to xhigh. Power, workload, KV format and cache hits affect speed. Records from different stages are not a single combined benchmark. [Full conditions](docs/BENCHMARKS.md) · [Demo](docs/demo/README.md)
+
+## v0.1.5 update
+
+**C2.1 is ported onto the explicit v0.1.4 baseline**, improving long-history cache restoration and Host KV demotion. It retains v0.1.4 parsing, sampling, NVFP4 reducer, FP16 GDN and answer-only penalty fixes. Text+MTP and xhigh remain the defaults; vision is off. [Release](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.5) · [Release notes](docs/RELEASE_NOTES.md)
 
 Community users report stable operation on **RTX 30 series and later with at least 12GB VRAM**, using architecture-matched engines and suitable budgets. **16GB cards can use larger IQ3_S models**, usually with better quality. This is community feedback, not qualification of every GPU/workload. The included models are IQ3_XXS; IQ3_S must be obtained separately.
 
@@ -28,6 +45,8 @@ Quark links will be supplied by the maintainer in the video description/pinned c
 | `NInfer-v0.1.5-Windows-sm120a-full.zip` | Huihui Swift-1.5 and original GSQ-RCO IQ3_XXS text models, plus a complete Huihui text+vision+MTP artifact; use `01-setup-huihui.cmd` or `01-setup-gsq.cmd` |
 
 Both default to text-only. After stopping the full bundle, `09-enable-cpu-vision.cmd` opts into CPU preprocessing/vision encoding; text/MTP still run on GPU. This adds RAM use and first-image latency. Start with `02-start.cmd`, stop with `03-stop.cmd`. A compatible NVIDIA driver and Microsoft Edge remain system prerequisites. [Offline guide](docs/OFFLINE_BUNDLE.md)
+
+Both include deployment instructions, Agent installation/troubleshooting prompts and the VRAM adjustment order. **Installation integrity checks and `04-verify.cmd` require no models.** Missing unselected models do not fail verification; setup/start require the selected model. Optional `-CheckModels` additionally hashes bundled models that are still present. The installer revision is available on `main` and in rebuilt offline bundles; the published engine and source tag are unchanged.
 
 For the online source installer, install Node.js 24+, VC++ x64 runtime and prepare a text+MTP model:
 

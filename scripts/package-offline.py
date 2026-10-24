@@ -180,7 +180,8 @@ def main():
         # Keep original relative Markdown links valid by using small root entry documents.
         (output / name).write_text(f'# {name}\n\nSee [Chinese instructions](docs/{doc}).\n', encoding='utf8')
     for doc, name in [('OFFLINE_BUNDLE.md', '00-先读安装说明.txt'), ('INSTALL_PROMPT.md', '安装提示词.txt'),
-                      ('TROUBLESHOOTING.md', '纠错文档和提示词.txt'), ('RELEASE_NOTES.md', '更新提升说明.txt')]:
+                      ('TROUBLESHOOTING.md', '纠错文档和提示词.txt'), ('RELEASE_NOTES.md', '更新提升说明.txt'),
+                      ('VRAM_GUIDE.md', '显存不足处理顺序.txt')]:
         (output / name).write_text((ROOT / 'docs' / doc).read_text('utf8'), encoding='utf-8-sig')
     write_cmd(output / '00-install-vc-runtime.cmd', 'start /wait "" "%~dp0dependencies\\vc_redist.x64.exe" /install')
     choices = [('01-setup-huihui.cmd', 'scripts/setup-bundle.ps1', '-Model huihui'),

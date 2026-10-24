@@ -1,8 +1,23 @@
 # NInfer + KVMem：12GB 显卡运行 27B 本地 Agent
 
-**v0.1.5 已发布：在 v0.1.4 上移植 C2.1，改善长任务的缓存恢复和 KV 回迁。** 保留工具解析、采样、NVFP4、FP16 GDN 和回答独立惩罚计数修复，默认仍为纯文字 + MTP、xhigh，不启用视觉。[下载 v0.1.5](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.5) · [更新说明](docs/RELEASE_NOTES.md) · [English](README.en.md)
+在消费级显卡上运行 **Qwen3.8-27B 本地 Agent**，支持代码、文件与网页工具任务。NInfer 负责模型推理，KVMem 把历史 KV 保存在 RAM、按需调入 GPU，配合 MTP 推测解码、缓存守卫和可选 dsh 网页界面，减少长任务续接时的重复计算。逻辑上下文配置为 256K；不代表每步读取全部历史，也不代表已完成满 256K 验收。[English](README.en.md)
 
-维护者在 **RTX 5070 Ti Laptop 12GB / 32GB RAM / Windows** 上使用 Qwen3.8-27B GSQ-RCO IQ3_XXS；KVMem 把历史 KV 保存在 RAM、按需调入 GPU，配合 MTP、缓存守卫和可选 dsh 网页工具。逻辑上下文配置为 256K；不代表每步读取全部历史，也不代表已完成满 256K 验收。
+## RTX 5070 Ti Laptop 12GB 历史实测
+
+实测机器：**RTX 5070 Ti Laptop 12GB / i7-14650HX / 32GB RAM / Windows**；模型为 Qwen3.8-27B GSQ-RCO IQ3_XXS + MTP3。下表保留旧版 RK4V4 条件下的记录，**不是 v0.1.5 / NVFP4 重新测得的速度**。
+
+| 任务 | 实测速度 | 测量条件 |
+|---|---:|---|
+| 短写作解码 | 71.81 tokens/s | 小矩阵调度开启，两轮算术均值 |
+| 短代码解码 | 84.49 tokens/s | 同组短任务，两轮算术均值 |
+| 缓存重复代码解码 | 85.00 tokens/s | 同组缓存请求，两轮算术均值 |
+| 110,019-token 冷预填充 | 620.48 tokens/s，约 177.31 秒 | 更早阶段单次记录，随后解码 69.28 tokens/s |
+
+短任务测速显式使用 temperature=0、seed=1234、reasoning=none，日常预设为 xhigh；功耗、任务、KV 格式和缓存命中都会影响速度。不同阶段记录不能拼成一次统一测试。[完整条件与历史实测](docs/BENCHMARKS.md) · [作品展示](docs/demo/README.md)
+
+## v0.1.5 更新
+
+**在 v0.1.4 上移植 C2.1，改善长任务的缓存恢复和 KV 回迁。** 保留工具解析、采样、NVFP4、FP16 GDN 和回答独立惩罚计数修复，默认仍为纯文字 + MTP、xhigh，不启用视觉。[下载 v0.1.5](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.5) · [更新说明](docs/RELEASE_NOTES.md)
 
 ## 显卡与模型选择
 
@@ -43,6 +58,8 @@
 | `NInfer-v0.1.5-Windows-sm120a-full.zip` | Huihui Swift-1.5 与原版 GSQ-RCO 两份 IQ3_XXS 文字模型，加完整 Huihui CPU 视觉制品；先运行 `01-setup-huihui.cmd` 或 `01-setup-gsq.cmd` |
 
 **完整版也默认关闭视觉**，不同时加载两个文字模型。需要读图时，停止服务后显式运行 `09-enable-cpu-vision.cmd`；视觉塔和前处理全部使用 CPU，文字/MTP 仍使用 GPU。首次读图会增加等待与 RAM 占用。[整合包说明](docs/OFFLINE_BUNDLE.md) · [安装提示词](docs/INSTALL_PROMPT.md) · [纠错文档](docs/TROUBLESHOOTING.md)
+
+两包根目录均有中文安装说明、安装提示词、纠错文档、更新说明及独立的 `显存不足处理顺序.txt`。**安装完整性与 `04-verify.cmd` 不强制要求模型**，没有某个未选用模型也能通过；部署/启动只检查当前选择的模型。需要额外核对已保留模型时可用 `-CheckModels`。[具体用法](docs/OFFLINE_BUNDLE.md)
 
 ## 快速安装
 

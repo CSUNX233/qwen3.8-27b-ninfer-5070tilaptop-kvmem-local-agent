@@ -15,6 +15,9 @@
 识别已有服务，只停止本包启动的进程；保留会话、模型和用户配置。
 
 核对offline-bundle.json和SHA-256；两包均已含引擎、Node/dsh与用户态依赖，
+默认完整性检查不要求模型存在，不因缺少未选用的文字/视觉模型报错；
+实际部署和启动只要求当前所选模型存在。需要排查模型损坏时显式用-CheckModels，
+只校验仍保留的原包模型，不把缺少其他模型当作安装失败。
 不要从GitHub重下或擅自升级npm。完整版含双文字模型及完整Huihui视觉制品，
 使用scripts/setup-bundle.ps1 -Model huihui（或gsq），不要求重新转换模型。
 无模型版使用scripts/setup-bundle.ps1 -ModelPath <自己的.ninfer>，必要时指定ModelId。

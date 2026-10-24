@@ -1,0 +1,61 @@
+{
+  "version": "0.1.5",
+  "scope": "Isolated Windows PowerShell 5.1 integrity and selected-model validation; no inference or services.",
+  "checks": [
+    {
+      "case": "missing unselected Huihui and vision accepted",
+      "result": "passed",
+      "expected_success": true
+    },
+    {
+      "case": "explicit check hashes existing GSQ and accepts missing models",
+      "result": "passed",
+      "expected_success": true
+    },
+    {
+      "case": "no model files at all accepted",
+      "result": "passed",
+      "expected_success": true
+    },
+    {
+      "case": "no model files accepted with explicit model check",
+      "result": "passed",
+      "expected_success": true
+    },
+    {
+      "case": "default ignores unused damaged model",
+      "result": "passed",
+      "expected_success": true
+    },
+    {
+      "case": "explicit model check rejects damaged existing model",
+      "result": "passed",
+      "expected_success": false
+    },
+    {
+      "case": "legacy SkipModels accepted",
+      "result": "passed",
+      "expected_success": true
+    },
+    {
+      "case": "runtime hash corruption rejected",
+      "result": "passed",
+      "expected_success": false
+    },
+    {
+      "case": "missing runtime rejected",
+      "result": "passed",
+      "expected_success": false
+    },
+    {
+      "case": "invalid model path rejected before optional skip",
+      "result": "passed",
+      "expected_success": false
+    },
+    {
+      "case": "setup rejects only the selected absent model before writing config",
+      "result": "passed",
+      "expected_success": false
+    }
+  ]
+}

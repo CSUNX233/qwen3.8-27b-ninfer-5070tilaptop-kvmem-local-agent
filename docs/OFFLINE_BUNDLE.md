@@ -17,6 +17,8 @@
 
 ## 显存准备顺序
 
+包根目录的 `显存不足处理顺序.txt` 可单独打开，内容对应[显存处理指南](VRAM_GUIDE.md)。
+
 1. **优先开混合显卡模式**（Hybrid/Optimus），让桌面和浏览器尽量用核显；按设备要求重启，没有核显则跳过。
 2. **关闭实际引擎的驱动溢出内存：** NVIDIA控制面板 → 管理3D设置 → 程序设置 → 添加本包 `runtime/engine/ninfer-serve.exe` → `CUDA - Sysmem Fallback Policy` → `Prefer No Sysmem Fallback`。只针对实际exe设置，重启引擎生效。**保留KVMem HostKV7168MiB**，它与驱动系统内存回退不同。
 3. 关闭无关后台、游戏和其他独显应用。
@@ -28,9 +30,9 @@
 ## 安装与启动
 
 1. 完整解压。首次可用 `00-install-vc-runtime.cmd` 安装Microsoft运行库，已安装兼容版本可跳过。
-2. 按上表运行安装入口。安装会读取全部文件做SHA-256校验，完整包需要读取约31GiB模型，可能耗时数分钟；不发送推理请求，不下载依赖。
+2. 按上表运行安装入口。安装完整性检查只对引擎、依赖和部署文件做SHA-256校验，**不强制任何模型存在**；缺少未选用的Huihui、GSQ或视觉模型不会报错，也不扫描约31GiB模型。实际部署/启动只要求当前选用的模型存在；不发送推理请求，不下载依赖。
 3. 运行 `02-start.cmd`，等待权重加载和CUDA Graph捕获，然后自动打开本机dsh网页。关闭使用 `03-stop.cmd`，只停止本包进程，保留会话和模型。
-4. `04-verify.cmd`重查完整性。包内 `offline-bundle.json`、`SHA256SUMS`记录实际文件与模型身份；外层 `.zip.sha256`供上传/下载核对。
+4. `04-verify.cmd`重查程序和依赖完整性，没有模型也能通过。包内 `offline-bundle.json`、`SHA256SUMS`记录打包时的文件与模型身份；外层 `.zip.sha256`供上传/下载核对。需要排查模型损坏时，可运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify-bundle.ps1 -CheckModels`，额外校验仍在目录中的模型，缺失模型仍跳过；原包内模型有损坏会明确报错。制作发布ZIP时仍校验全部实际分发的模型。
 
 无模型版也可命令行安装：
 
