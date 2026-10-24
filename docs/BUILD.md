@@ -4,6 +4,8 @@
 
 原分享包中的 Git worktree 与编译缓存指向作者电脑，因此没有把其静态库、MSVC、完整 CUDA SDK 或损坏 `.git` 上传。请在自己的环境配置干净构建；不要使用上游文档的 RTX 3090/sm86 测速来推断本版性能。
 
+2026-10-24 的 [v0.1.5（v0.1.4 + C2.1）](C2P1_V014_PORT.md)重编 71 个 Host 覆盖单元，复用 11 个已验证 CUDA 对象和其余原静态库，未重配旧构建树或完成干净全量构建。此二进制作为v0.1.5发布，定向测试及长上下文结果见移植记录。正常的新构建树已注册 `ninfer_qwen3_5_rolling_long_anchor_test` 和 `ninfer_qwen3_5_ring_demote_test`，可用 `ctest --test-dir runtime/build -R 'qwen3_5_(rolling_long_anchor|ring_demote)_test$' --output-on-failure` 执行；本机实际采用等价独立进程增量链接验证。
+
 ## Windows 前置条件
 
 - Visual Studio 2022 Build Tools：C++ x64 工具链、Windows SDK；打开 **x64 Native Tools Command Prompt**，或在 PowerShell 导入对应 vcvars 环境。
@@ -36,7 +38,7 @@ cmake --build runtime/build --target ninfer-serve -j
 
 v0.1.2继续使用相同工具链增量重编全部Program/查询快照相关Host消费者、norm/RoPE采集CUDA单元及既有mean-K/检索和5070小矩阵单元，复用其余原静态库。`test_kvmem_decode_query`含30次Graph重放、独立FP64归一化、精确Q/K位对照、提交索引与缓存查询oracle；GPU测试通过的原始记录摘要在[语义历史实测](BENCHMARKS.md#语义历史修复与检索预算2026-10-16)。保留增量构建边界，不将源码公开等同于全量干净构建验证。
 
-RTX 50 系、12GB 及以上显存的其他设备欢迎尝试并提交参数与实测；目前明确验证的是 RTX 5070 Ti Laptop 12GB。**非 50 系显卡须自行按实际 CUDA 架构重新编译**，不要原样照搬上面针对本机的 `120a` 参数。按上游对该架构的支持情况配置内核路径，再调整 Device KV / Host KV 等预算，并验证模型正确性和稳定性。欢迎通过 Issue / PR 补齐不同设备的编译步骤、适配修复和测速。
+社区反馈RTX30系及以后12GB以上可运行，16GB可选IQ3_S；维护者直接验证RTX5070Ti Laptop12GB，本附件仍是sm120a。**非 50 系显卡须自行按实际 CUDA 架构重新编译**，不要原样照搬上面针对本机的 `120a` 参数。按上游对该架构的支持情况配置内核路径，再调整 Device KV / Host KV 等预算，并验证模型正确性和稳定性。欢迎通过 Issue / PR 补齐不同设备的编译步骤、适配修复和测速。
 
 ## v0.1.3 NVFP4 调度与独立检查
 

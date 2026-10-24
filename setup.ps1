@@ -7,7 +7,7 @@ if ($Offline) {
 $model = Resolve-ProjectPath $ModelPath
 if (-not (Test-Path -LiteralPath $model -PathType Leaf)) { throw ('Model not found: ' + $model) }
 if ([IO.Path]::GetExtension($model) -ne '.ninfer') { throw 'The server needs a converted v3 .ninfer artifact. See docs/MODELS.md.' }
-$manifest = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'config/downloads.json') -Raw | ConvertFrom-Json
+$manifest = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'config/downloads.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $engineDir = Join-Path $script:RuntimeRoot 'engine'
 New-Item -ItemType Directory -Path $engineDir -Force | Out-Null
 foreach ($spec in $manifest.archives) {
@@ -25,7 +25,7 @@ foreach ($spec in $manifest.archives) {
 }
 $configFile = Join-Path $PSScriptRoot 'config/local.json'
 if (Test-Path -LiteralPath $configFile) { $config = Read-LocalConfig } else {
-    $config = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'config/example.json') -Raw | ConvertFrom-Json
+    $config = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'config/example.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 }
 $config.ModelPath = $model
 Write-LocalJson $configFile $config

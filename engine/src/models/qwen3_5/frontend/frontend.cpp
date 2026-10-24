@@ -2,6 +2,7 @@
 
 #include "models/qwen3_5/frontend/resources.h"
 #include "models/qwen3_5/frontend/prepared_prompt.h"
+#include "models/qwen3_5/frontend/rolling_anchor.h"
 
 #include "models/qwen3_5/frontend/chat_template.h"
 #include "models/qwen3_5/frontend/media_cache.h"
@@ -600,6 +601,28 @@ PreparedContextCache prepare_context_cache(
         }
         add_opportunity(PromptCacheMarkerKind::PrivateLongAnchor,
                         SharedCandidateEvidence::EngineStructural, *boundary, engine_order++);
+    }
+    // A backward grid alone is unreachable in a sequence of short append cache
+    // hits. Offer one near-tail structural boundary as well; admission throttles
+    // it against the source's actually retained anchors using the same spacing.
+    // This adds a candidate, not an extra retained StateImage or a larger budget.
+    if (automatic_long_anchors != 0 && long_anchor_min_spacing != 0 &&
+        detail::rolling_long_anchor_enabled()) {
+        for (auto it = message_boundaries.rbegin(); it != message_boundaries.rend(); ++it) {
+            if (!*it || **it < long_anchor_min_spacing || **it >= full_prompt_frontier ||
+                !exact_vision_frontier(**it, vision_items)) { continue; }
+            if (std::none_of(out.opportunities.begin(), out.opportunities.end(),
+                             [&](const auto& existing) {
+                                 return existing.kind == PromptCacheMarkerKind::PrivateLongAnchor &&
+                                        existing.frontier == **it;
+                             })) {
+                add_opportunity(PromptCacheMarkerKind::PrivateLongAnchor,
+                                SharedCandidateEvidence::EngineStructural |
+                                    SharedCandidateEvidence::EngineObserved,
+                                **it, engine_order++);
+            }
+            break;
+        }
     }
     return out;
 }

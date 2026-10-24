@@ -1,6 +1,6 @@
 # 可选：视觉编码完全放 CPU
 
-默认发布预设为**纯文字 + MTP**，不加载视觉塔。CPU 视觉已经在该机器和较早引擎修复阶段测试过；它不是默认启动器的现成开关，需要转换含视觉组件的独立制品并使用下列服务选项。
+默认发布预设为**纯文字 + MTP**，不加载视觉塔。v0.1.5完整离线包提供完整Huihui text,vision,mtp制品及显式切换入口：停止服务后运行 `09-enable-cpu-vision.cmd`，再启动。切回文字用 `05-use-huihui.cmd` 或 `05-use-gsq.cmd`。无模型/源码安装须先准备下述独立制品。
 
 下载 [ISTA-DASLab GGUF 仓库](https://huggingface.co/ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF) 的 `mmproj-Qwen3.8-27B-BF16.gguf`。在 [文本转换](MODELS.md) 命令中增加：
 
@@ -10,7 +10,7 @@
 --out ../models/qwen3.8-27b-gsq-rco-iq3-xxs-vision-bf16.ninfer
 ```
 
-视觉权重在制品内仍为 BF16，本机 CPU 路径加载为 FP32 运算；前处理和视觉编码在 CPU，文字与 MTP 仍在 GPU。直接运行 `ninfer-serve.exe` 时使用 **`--vision-cpu --vision-max-merged 256`**，其余参数沿用 `start.ps1`。若自行把该参数加入公开启动器，还需把 dsh 模型 input 改为 `text,image` 并重新验证。
+视觉权重在制品内仍为 BF16，本机 CPU 路径加载为 FP32 运算；前处理和视觉编码在 CPU，文字与 MTP 仍在 GPU。直接运行 `ninfer-serve.exe` 时使用 **`--vision-cpu --vision-max-merged 256`**，其余参数沿用 `start.ps1`。源码安装可在config/local.json指定含视觉组件的ModelPath/ModelId，并设置JSON布尔值 `VisionCPU=true`；启动器自动加入这些参数，dsh自动声明 `text,image`。缺省false。回到文字模型时同步改false；不直接把裸GGUF交给服务器。
 
 ## 本机旧阶段实测
 

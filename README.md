@@ -1,97 +1,54 @@
-# NInfer 5070 Ti Laptop 12GB｜Qwen3.8-27B · 256K KVMem · 本地 AI Agent
+# NInfer + KVMem：12GB 显卡运行 27B 本地 Agent
 
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
-[![Windows x64](https://img.shields.io/badge/Windows-x64-0078D4)](docs/INSTALL.md)
-[![CUDA 13 · sm120a](https://img.shields.io/badge/CUDA-13%20%7C%20sm120a-76B900)](docs/BUILD.md)
-[![Download](https://img.shields.io/github/v/release/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent)](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases)
+**v0.1.5 已发布：在 v0.1.4 上移植 C2.1，改善长任务的缓存恢复和 KV 回迁。** 保留工具解析、采样、NVFP4、FP16 GDN 和回答独立惩罚计数修复，默认仍为纯文字 + MTP、xhigh，不启用视觉。[下载 v0.1.5](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.5) · [更新说明](docs/RELEASE_NOTES.md) · [English](README.en.md)
 
-**在 RTX 5070 Ti Laptop 12GB 上运行 Qwen3.8-27B：KVMem 长上下文、RAM 历史 KV、MTP 投机解码，以及可选的 dsh 本地 Agent、免费联网搜索和浏览器工具。**
+维护者在 **RTX 5070 Ti Laptop 12GB / 32GB RAM / Windows** 上使用 Qwen3.8-27B GSQ-RCO IQ3_XXS；KVMem 把历史 KV 保存在 RAM、按需调入 GPU，配合 MTP、缓存守卫和可选 dsh 网页工具。逻辑上下文配置为 256K；不代表每步读取全部历史，也不代表已完成满 256K 验收。
 
-这是基于 [NInfer-all](https://github.com/iamwavecut/ninfer-all)、[NInfer](https://github.com/Neroued/ninfer) 与沈三殊 KVMem 方案的 **Windows 优化发行版**，由 [CSUNX233](https://github.com/CSUNX233) 维护。基础引擎、模型与量化技术属于各自上游；本仓库公开整合源码、本机修复、部署脚本和验证证据。[完整来源与许可证 →](docs/UPSTREAM_DOWNSTREAM.md)
+## 显卡与模型选择
 
-## 特别感谢：Bilibili UP 主 **0xFFFF7**
+**经多位使用者实测反馈，RTX 30 系及以后、12GB 及以上显卡可以稳定运行本项目；16GB 卡可选更大的 IQ3_S 模型，通常能获得更高质量。** 这是社区使用反馈，需选择匹配显卡架构的引擎，并给系统、后台和 KV 留足余量，不是对每种设备/任务的逐卡保证。
 
-**本项目所用的基础架构，下载自 Bilibili 的 [0xFFFF7](https://search.bilibili.com/upuser?keyword=0xFFFF7) 提供的版本；此前遇到的死循环问题也是由他解决的。** 感谢他的基础工作、修复与分享。这里继续公开本机后续适配和部署成果，也保留 NInfer、KVMem、Qwen、ISTA-DASLab 及其他上下游贡献者的归属。
+| 硬件 | 引擎与模型建议 |
+|---|---|
+| RTX 30 / 40 系，12GB+ | 使用对应架构的兼容构建；参考[编译说明](docs/BUILD.md)，不能直接运行本次 sm120a 附件 |
+| RTX 50 系，12GB+ | 本次 Windows x64 / sm120a 附件；直接实测设备为 5070 Ti Laptop 12GB |
+| 16GB 及以上 | 可以选择更大的 IQ3_S 文字模型，另行准备含 MTP 的 `.ninfer` 并验证预算；本次完整版附带的两份文字模型仍是 IQ3_XXS |
 
-> **256K 是配置的逻辑上下文容量。** 已完成128K / 200K合成召回、生成历史与工具续接验证；6144档128K为5/5，200K为4/5，尚未跑满256K整模型压力测试。KVMem在长历史中选择部分页面参与注意力，不等同于全长稠密注意力。
+推荐 32GB 系统内存、SSD，以及兼容 CUDA 13 的 NVIDIA 驱动。不同架构还需适配内核与依赖，不能只改 exe 文件名。
 
-**维护者反馈200K日常使用稳定，重复任务更快。** 工程测试进一步记录了6144档200K首次预填充424.62秒、完全重复112毫秒；冷预填充仍随长度增加而变慢，不能将日常观察理解为任何阶段都不降速。**建议使用 `xhigh` 思考**，启动预设与 dsh 默认均已配置。
+## 这一版改善了什么
 
-> **强烈建议：针对 NInfer 禁用 CUDA 系统内存自动回退。** 在 NVIDIA 控制面板的“管理 3D 设置 → 程序设置”中，添加本项目的 `runtime/engine/ninfer-serve.exe`，将 **CUDA - Sysmem Fallback Policy** 设为 **Prefer No Sysmem Fallback**。只设置该程序，保留全局设置。显存不足时驱动回退到 RAM 可能造成明显降速；本项目的 **7 GiB Host KV 是引擎主动管理的 RAM 缓存，仍需保留**。禁用驱动回退不会增加显存，不足时仍可能报错，启动前需预留显存。[详细设置与排障 →](docs/INSTALL.md#cuda-系统内存回退强烈建议禁用)
+- **减少长历史续接的重复预填充。** 在消息边界保留靠近尾部的滚动长锚点，同时保留有用的早期回退点；同 lineage 恢复时可消费旧 owner，保留可复用的不可变 KV/状态。
+- **减少冷页逐页回迁的开销。** 合格冷页按最多 32 页批量回迁 Host；大块分配失败逐级缩批，允许部分推进，保留 sink、页顺序、来源 pin 和尾页约束。
+- **基线明确回到 v0.1.4。** 保留上一版正确性修复，没有改变模型权重、KV 格式、注意力公式或检索窗口；这轮重点是缓存生命周期，不能据此宣称总体模型质量提升。
+- **安装包拆成两种。** 无模型版支持自己的 `.ninfer`；完整版含双文字模型及可选 CPU 视觉制品，均自带引擎和用户态运行依赖。
 
-## v0.1.4：工具调用与长上下文生成修复
+| 本轮检查 | 结果与边界 |
+|---|---|
+| 12 项定向回归 | 通过，覆盖锚点、解析器、回迁、Host 压力、缓存恢复与隔离 |
+| 约 68K 藏针，7 次请求 | 压缩前后均 7/7；最后一次压缩后请求复用 58,330 tokens、耗时 1.93 秒 |
+| 约 68K 小游戏状态/代码续接，7 次请求 | 压缩前后均 6/6 字段、6/6 Node 运行检查；最后一次请求复用 58,459 tokens、耗时 2.77 秒 |
+| 日常 API 合成冒烟 | 7 项通过，含短 xhigh、工具续接及 CPU 读图 |
 
-**[下载v0.1.4](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.4)**。合入工具解析/截断错误回执、思考到回答的MTP采样边界、耦合抽样、NVFP4验证分区和FP16 GDN状态舍入修复。新增回答阶段独立惩罚计数，部署默认启用，回答presence仍为1；可用 `AnswerPenaltyScope=carry-over` 关闭。最终无探针引擎固定短题9/10→10/10，功能12/12、98K及六次工具续接7/7；这不是总体能力或速度承诺，误调用尚未根治。
+两个长夹具各总耗时约 153/156 秒，thinking-off、greedy；上表的 1.93/2.77 秒仅为最后一次请求。14 个输出 token 序列与旧 C2.1 同夹具一致。整卡显存每 5 秒采样峰值约 11,176/11,174 MiB；**没有原版 v0.1.4 同条件峰值对照，不能声称显存零增量或普遍提速。** 锚点会使用有界 Host 内存，压力下可被回收。[完整记录与限制](docs/C2P1_V014_PORT.md) · [脱敏证据](benchmarks/evidence/c2p1-v014-port/verification.json)
 
-**夸克一键包包含引擎、两个ninfer模型及全部用户态运行依赖，只下载网盘包即可部署。** 建议显存处理顺序：优先开混合显卡模式 → 对引擎关闭CUDA系统内存回退（溢出内存）→ 关闭无关后台应用 → 仍不足优先RK4V4 → 再适当配套缩小页池/检索窗口。[详细设置](docs/OFFLINE_BUNDLE.md)。
+## 下载方式
 
-[本版提升、代价与验证](docs/RELEASE_NOTES.md) · [离线两模型整合包说明](docs/OFFLINE_BUNDLE.md) · [安装提示词](docs/INSTALL_PROMPT.md) · [纠错文档](docs/TROUBLESHOOTING.md)。GitHub附件不含权重，网盘整合包由维护者另行上传。Swift-1.5衍生模型适用单独许可，见[模型与许可](docs/MODELS.md)。
+1. **GitHub：** [v0.1.5 Release](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.5) 提供引擎 ZIP、SHA-256 和源码。引擎附件不是整合包，不含模型、Node 或运行 DLL；配合源码安装器使用。
+2. **夸克网盘：** 链接见维护者的视频简介/置顶评论；上传后由维护者提供，不在此编造链接。两个整合包都含引擎、Node、dsh、运行 DLL、VC++ 安装器、安装与纠错文档，无需从 GitHub 获取部署文件。
 
-## v0.1.3：NVFP4、长输入调度与累计缓存修复
+| 网盘包 | 内容与入口 |
+|---|---|
+| `NInfer-v0.1.5-Windows-sm120a-no-models.zip` | 不含模型；运行 `01-setup-your-model.cmd` 选择自己的文字+MTP v3 `.ninfer` |
+| `NInfer-v0.1.5-Windows-sm120a-full.zip` | Huihui Swift-1.5 与原版 GSQ-RCO 两份 IQ3_XXS 文字模型，加完整 Huihui CPU 视觉制品；先运行 `01-setup-huihui.cmd` 或 `01-setup-gsq.cmd` |
 
-**历史版本：[下载 v0.1.3](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.3)**。发布维护者当时引擎：NVFP4 KV，5070 Ti Laptop 专用 prompt 调度，以及 Host 重复副本 / Host-only 闲置缓存压力回收；延续此前的生成历史索引与缓存问句修复。公开页预算仍从 `36864 / 3840` 起步。
+**完整版也默认关闭视觉**，不同时加载两个文字模型。需要读图时，停止服务后显式运行 `09-enable-cpu-vision.cmd`；视觉塔和前处理全部使用 CPU，文字/MTP 仍使用 GPU。首次读图会增加等待与 RAM 占用。[整合包说明](docs/OFFLINE_BUNDLE.md) · [安装提示词](docs/INSTALL_PROMPT.md) · [纠错文档](docs/TROUBLESHOOTING.md)
 
-**当前 NVFP4 配置相对此前 RK4V4 增加了一些显存占用；显存很紧张，可在 `config/local.json` 设置 `"KVDType": "rk4v4"` 并重启。** 同一新版引擎支持两者，无需回滚 exe；缺少该字段的旧配置默认采用 NVFP4。[切换方法](docs/INSTALL.md#nvfp4-显存与-rk4v4-切换)
+## 快速安装
 
-本轮 NVFP4 内部对照：128K / 200K 冷 prompt 耗时减少 18.86% / 26.66%，不代表 decode 同比提速；累计冷暖缓存后一次完成 512 行、六工具与 18/18 召回。Host 压力下可能淘汰闲置旧缓存，重访需重算。新测试使用维护者的 Huihui Swift-1.5 IQ3_XXS + MTP 变体，不能与旧版 GSQ-RCO 测量直接比较为量化质量提升；尚未证明 NVFP4 总体优于 RK4V4。[更新说明](docs/RELEASE_NOTES.md) · [性能与边界](docs/NVFP4_SM120.md) · [缓存压力修复](docs/KV_HOST_PRESSURE.md)
+使用网盘包按上表入口安装后运行 `02-start.cmd`，关闭用 `03-stop.cmd`。系统仍需驱动、VC++ 运行库与 Microsoft Edge；包内提供 VC++ 安装器，不捆绑显卡驱动。
 
-## v0.1.2：补全生成历史索引，保护缓存问句续接（历史版本）
-
-**[下载v0.1.2](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.2)**。该历史版本发布的引擎中，普通decode / MTP只索引主模型实际提交的历史；缓存问句在有新增历史的合法恢复时重评分，恰好到问句末尾的完全重复请求保留原排名。非评分分块融合QK norm + RoPE与旋转前K采集。
-
-**部署先从较小完整组合 `36864页池 / 3840检索` 起步，清理显存，通过短任务、缓存和工具续接后再逐档加大。** v0.1.2 RK4V4 的`39168 / 6144`是进阶档，当时CUDA启动余量约84MiB；128K首次/重复5/5，200K均4/5。64K三任务六工具调用续接约396–679ms，加权decode84.11tok/s。没有宣称全长全召回或整体提速。[实测与边界](docs/BENCHMARKS.md#语义历史修复与检索预算2026-10-16) · [部署顺序](docs/INSTALL.md#先从较小页池部署再逐档增加) · [Agent部署提示词](docs/DEPLOYMENT_AGENT_GUIDE.md#1-可直接交给部署-agent-的提示词)
-
-## v0.1.1：修复检索上下文和工具续接（前一版）
-
-**[下载 v0.1.1](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.1)**。修复长/短会话切换及缓存恢复时可能沿用其他上下文的检索索引；索引与排名随缓存检查点恢复，修正非对齐页追加、重复累加和缺失页计数。同步公开截图后的进度续接与取消透传补丁。
-
-实测 **62K 输入 → 累计 43,775 tokens 生成 → 工具调用 → 三轮续接**，工具结果只新算 52 tokens，TTFT **915 ms**，随后三轮 **382–411 ms**。没有新增 GPU buffer，xhigh、采样、MTP 和检索预算保持原样；新增索引快照使用 RAM。单次 49K 冷输入约慢 3%，不宣称整体提速；满 256K 压力及原 177K 截图任务行为尚未重放。[优化、对照与边界](docs/BENCHMARKS.md#原生检索上下文修复2026-10-15) · [已有安装升级](docs/INSTALL.md#从-v010-升级)
-
-## 实际作品：鹈鹕骑自行车，约 7 分钟
-
-维护者使用本机模型生成的单文件动画，**报告耗时约 7 分钟**，HTML 原文件保持原样。纯 SVG + CSS + JavaScript，无外部依赖；这是一个实际生成样例，不是能力榜单分数或解码测速。
-
-![本机模型生成的鹈鹕骑自行车动画预览](output/playwright/pelican-preview.png)
-
-[下载 / 查看 HTML 源文件](docs/demo/tihuriding.html) · [样例说明与运行方法](docs/demo/README.md)
-
-## 为什么值得试
-
-- **12GB 笔记本运行 27B 模型。** 使用 GSQ-RCO IQ3_XXS 权重、NVFP4 KV（可选 RK4V4）、36K GPU 页池和 7 GiB Host KV；历史 KV 保存在 RAM，按需调入。
-- **长上下文保留快速续接。** 修复大缓存接管的页预算、尾页写时复制与异步生命周期；一次 84,925-token 工具续接命中 84,873 tokens，仅新算 52 tokens，预填充约 **814 ms**。
-- **显存留给模型。** 检索索引从 GPU 移到 RAM，使用双缓冲预取；256K 索引约 256.25 MiB，GPU scratch 共 32 MiB，相对原 GPU 索引净省约 **224.25 MiB**。
-- **为这张卡实测调度。** 46 SM / cc1200 的指定 IQ2_S、IQ3_XXS、Q2_K 小矩阵路线；固定短任务两轮 A/B 总解码吞吐约 **+2.44%**，已有算子与输出一致性检查。
-- **可选的完整本地 Agent。** dsh 网页、严格缓存守卫、工具结果裁剪优化、待办收尾提醒；新增工具验证与分步执行规则，引导模型在下一步明确时读取、实现、测试，保留 xhigh 和必要的深入思考。本地执行网页搜索/读取，Edge 浏览器按需启动，不要求付费搜索 API。[接入、开关与验证 →](integrations/README.md)
-- **可选 CPU 视觉。** 视觉编码可全部放 CPU，文字推理继续使用 GPU；图片首次编码明显增加延迟。[视觉实测 →](docs/VISION.md)
-
-## 实测速览
-
-硬件：**RTX 5070 Ti Laptop 12GB / i7-14650HX / 32GB RAM / Windows / NVIDIA 617.14**。CUDA 13.0.48，MSVC 14.44.35207。模型为 **Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp** 转换的 `.ninfer`。不同任务的投机接受率、功耗和缓存状态会改变结果。
-
-| 工作负载 | 结果 | 测量边界 |
-|---|---|---|
-| 短写作 / 代码 / 缓存重复 | 新调度约 **65–85 token/s** | 各类两轮均值；temperature=0，seed=1234，关闭思考 |
-| 62,002 tokens 冷输入 | 预填充 **557 token/s**，解码 **76.87 token/s** | 新版单次；旧版预填充 571.86、解码 71.97 |
-| 110,019 tokens 冷输入 | 预填充约 **620 token/s**，解码 **69.28 token/s** | 较早优化阶段的单次记录 |
-| 约 85K 历史工具续接 | 仅重算 **52 tokens**，预填充 **813.5 ms**，TTFT **1,234 ms** | 前一轮正常生成 22,528 tokens |
-| 随后三轮短续接 | TTFT **313–445 ms** | 验证码全部正确；小样本 |
-| v0.1.1：106K 历史工具结果续接 | 仅新算 **52 tokens**，TTFT **915 ms** | 累计生成 43,775 tokens 后；后续三轮 382–411 ms |
-| 本轮 GPU 峰值 | 约 **11,120–11,124 MiB** | 分项轮询测量，不能排除瞬时峰值 |
-
-**这不是所有场景的保底速度。** 最新调度优化没有证明预填充或 TTFT 普遍变快；原版与新版的完整对照、质量验证和局限见 [实测报告](docs/BENCHMARKS.md)。重复文本触发近乎全接受的 221 token/s 不作为普通 Agent 速度宣传。
-
-## 后续可能的优化
-
-**动态 / 自适应 MTP 也许能继续提升 decode 速度，目前未在本机做对照验证，默认未启用。** 它需要根据接受率调整草稿宽度，并核对额外验证计算、页预算和 CUDA Graph 成本；不能预先承诺收益或质量等价。[当前优化范围](docs/MODIFICATIONS.md)
-
-## 下载与运行
-
-**交给自己或 Agent 部署前，先读 [部署与维护交接手册](docs/DEPLOYMENT_AGENT_GUIDE.md)**：包含可复制的 Agent 提示词、关键组件版本、显存准备、启动设置、分层验收、实际踩坑及处理办法。
-
-1. [下载仓库源码 ZIP](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/archive/refs/heads/main.zip)，解压到 D 盘等空间充足的位置；或使用下面的 Git 命令。
-2. 准备 **Windows x64、可用的 RTX 5070 Ti Laptop 12GB、32GB RAM、Node.js 24+、x64 VC++ 运行库**，以及兼容 CUDA 13 的 NVIDIA 驱动。
-3. 准备带 MTP 的 **v3 `.ninfer` 模型**。[模型来源、精确文件与转换步骤 →](docs/MODELS.md) 权重不包含在本仓库或 Release 中。
-4. 在项目目录执行：
+使用 GitHub 源码安装（Node.js 24+，自行准备模型）：
 
 ```powershell
 git clone https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent.git
@@ -100,44 +57,22 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1 -ModelPath "D:\M
 .\start.cmd
 ```
 
-`setup.ps1` 从 [Release](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases) 下载引擎，从 NVIDIA/BtbN 下载固定版本依赖，逐项核验 SHA-256，再安装固定版本 dsh。下载、缓存、会话与日志留在本项目目录。启动后自动打开带本机登录凭据的网页；关闭时运行 **`stop.cmd`**。
+新部署默认 NVFP4、xhigh、MTP3、DeviceKV **36864** / Retrieve **3840** / HostKV **7168 MiB**，sink 12288、recent 19456。不要直接套用维护者的 39168/6144 进阶档。升级已有安装见[安装说明](docs/INSTALL.md)，只 `git pull` 不会替换旧 exe。
 
-只用 API：安装时加 `-SkipDsh`，启动时执行 `powershell -ExecutionPolicy Bypass -File .\start.ps1 -EngineOnly`。
+显存不足依次处理：**优先混合显卡模式 → 对实际引擎关闭 CUDA 系统内存回退 → 关闭后台应用 → 优先换 RK4V4 → 再配套缩小页池与检索窗口。** 保留 KVMem 的 7GiB Host KV，它与驱动溢出不同。缩检索窗口可能影响历史召回；NVFP4 与 RK4V4 也不保证相同输出。[操作步骤](docs/OFFLINE_BUNDLE.md)
 
-| 接口 | 默认地址 |
-|---|---|
-| OpenAI 兼容 API | `http://127.0.0.1:1234/v1` |
-| dsh 使用的缓存守卫 | `http://127.0.0.1:1236/v1` |
-| dsh 网页 | `http://127.0.0.1:3080`；实际登录 URL 在本地日志 |
-| 健康检查 | `http://127.0.0.1:1234/health` |
+默认接口：引擎 `http://127.0.0.1:1234/v1`，缓存守卫 `http://127.0.0.1:1236/v1`，dsh 网页 `http://127.0.0.1:3080`。登录凭据只保存在本机日志，不要公开。
 
-同时支持 `/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` 等接口；具体兼容范围见 [引擎服务文档](engine/docs/serving.md)。[安装与排障](docs/INSTALL.md) · [从源码编译](docs/BUILD.md)
+## 作品、来源与边界
 
-## 使用条件与边界
+维护者使用本地模型制作了[鹈鹕骑自行车动画](docs/demo/README.md)，也用近期候选制作了象棋游戏。作品展示不是受控性能或质量评测；旧版测速保留在[历史实测](docs/BENCHMARKS.md)，不当作本轮复测。
 
-- **明确实测可用：RTX 5070 Ti Laptop 12GB。** 本机已经稳定完成长任务与日常 Agent 使用；这是本仓库直接验证的设备。
-- **推荐独显 + 核显混合模式。** 桌面、网页和浏览器渲染尽量交给核显，独显显存留给推理引擎。当前启动预设按这种使用方式整理，脚本不会自动切换系统显卡模式。没有核显或混合模式也可以尝试，但启动前应关闭不需要的 GPU 程序和后台进程，预留足够显存。
-- **其他 RTX 50 系、12GB 及以上显存的显卡欢迎尝试。** 当前参数和预编译包以本机为准，尚未逐卡验证；**非 50 系显卡需针对自己的 CUDA 架构重新编译**，并调整显存预算。欢迎通过 Issue / PR 补齐其他显卡的编译方法、参数和实测结果。
-- 代码以 **Apache-2.0** 开源；可以下载、修改、再分发和商用，须保留适用许可证、归属及修改说明。第三方目录、dsh 和外部运行库分别遵守各自许可；模型权重另遵守模型仓库条款。
-- 预编译引擎为 **Windows x64 / sm120a**；主要验证设备就是 RTX 5070 Ti Laptop。其他显卡需要自行编译、调参和验证，不能直接套用速度或显存承诺。
-- 该预设接近 12GB 显存预算；其他 GPU 程序和独显直连桌面可能影响启动。脚本不修改全局代理、驱动策略或其他程序的 GPU 设置。
-- 长历史中段通过检索选择页面，**保存了历史 KV 不代表每次生成都读取全部历史**；检索预算、量化、原模型能力都会影响召回和回答质量。NVFP4 内部调度对照保持既有权重、KV 编码和检索预算；切换 KV 格式本身可能改变输出，已通过的检查不等同于完整能力评测。
-- 只有相同 token 前缀才能复用缓存；改写历史、删思考、换模板或压缩会使变化部分重新计算。
-- 搜索和浏览器后端在本机执行，访问互联网仍需网络。无付费 API 不等于离线搜索；网站验证码、限流和页面变化可能导致工具失败。
-- 默认单并发、回环地址，本项目按个人本地部署提供。女娲及人物技能不会自动安装或启用。
+![本地模型生成的鹈鹕动画](output/playwright/pelican-preview.png)
 
-## 项目导航
+特别感谢 Bilibili [0xFFFF7](https://search.bilibili.com/upuser?keyword=0xFFFF7)：维护者使用的基础架构来自他分享的版本，此前死循环问题也由他解决。基础引擎、KVMem 及其他作者归属见[上下游与许可](docs/UPSTREAM_DOWNSTREAM.md)与 [NOTICE](NOTICE)。
 
-| 内容 | 位置 |
-|---|---|
-| 引擎完整源码与原上游说明 | [`engine/`](engine/) |
-| 本机修复与优化说明 | [MODIFICATIONS.md](docs/MODIFICATIONS.md) |
-| 固定版本安装、启动与关闭 | `setup.ps1` / `start.cmd` / `stop.cmd` |
-| 给部署者与 Agent 的交接手册 | [DEPLOYMENT_AGENT_GUIDE.md](docs/DEPLOYMENT_AGENT_GUIDE.md) |
-| dsh、搜索、浏览器与缓存守卫 | [`integrations/`](integrations/) |
-| 实测数据与复现方法 | [`benchmarks/`](benchmarks/) · [报告](docs/BENCHMARKS.md) |
-| 上下游、许可证、署名 | [UPSTREAM_DOWNSTREAM.md](docs/UPSTREAM_DOWNSTREAM.md) · [NOTICE](NOTICE) |
+代码以 Apache-2.0 开源，第三方组件遵守各自许可。模型另行授权，**Huihui Swift 衍生部分适用 Swift Open License v1.0，含商业收入门槛**；不能将整个模型当作纯 Apache-2.0。[模型与许可](docs/MODELS.md)
 
-**English:** A Windows NInfer + KVMem distribution tuned on an RTX 5070 Ti **Laptop** 12GB: local Qwen3.8-27B IQ3_XXS inference, 256K configured logical context, RAM-backed KV, MTP speculative decoding, fast cached tool continuations, and optional DeepSeek Harness Agent/search/browser integration. Tested at 110K input and 62K+44K multi-turn continuation; full 256K end-to-end stress is pending. See [English overview](README.en.md).
+本版是增量构建：从明确 v0.1.4 基线重编 71 个 Host 单元，复用 11 个已验证 CUDA 对象及原静态库，尚非干净全量构建。未重跑全量 CTest、全 256K、所有架构或长期 xhigh 真实项目评测。长历史中段通过检索选页，缓存保存不等于每次全量读取；搜索访问互联网仍需网络。默认单并发、回环地址，不自动修改驱动或启用人物技能。
 
-Keywords: RTX 5070 Ti Laptop · 12GB VRAM · Qwen 27B · Qwen3.8 · NInfer · KVMem · long context · speculative decoding · local LLM · local AI agent · DeepSeek Harness · Windows CUDA · 本地大模型 · 长上下文 · 笔记本推理。
+[部署维护手册](docs/DEPLOYMENT_AGENT_GUIDE.md) · [源码编译](docs/BUILD.md) · [修改范围](docs/MODIFICATIONS.md) · [集成组件](integrations/README.md) · [v0.1.4 历史更新](docs/RELEASE_NOTES-v0.1.4.md)

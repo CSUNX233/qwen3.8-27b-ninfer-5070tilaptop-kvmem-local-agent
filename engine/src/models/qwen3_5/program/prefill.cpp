@@ -631,26 +631,29 @@ void ProgramImpl::start_sequence(std::uint32_t lane, SequenceState& sequence,
             sequence.prefix_digests.truncate(base);
             reserve_state_entitlement(sequence, state_slots);
             refresh_state_views(sequence);
-        } else if (is_rewrite_checkpoint_restore(request_plan.reuse)) {
+        } else if (is_rewrite_checkpoint_restore(request_plan.reuse) ||
+                   request_plan.reuse == ReusePath::PrivateLongAnchor) {
             if (!sequence.kv || sequence.text_kv_valid < base) {
                 throw std::logic_error("resident rewrite checkpoint has no complete KV allocation");
             }
-            if (!sequence.rewrite_state || !state_store->valid(*sequence.rewrite_state) ||
-                state_store->role(*sequence.rewrite_state) != StateImageRole::CheckpointImmutable ||
+            const bool from_anchor = request_plan.reuse == ReusePath::PrivateLongAnchor;
+            const StateImageHandle checkpoint =
+                selected_state(sequence, request_plan.reuse, request_plan.selected_checkpoint);
+            if (!state_store->valid(checkpoint) ||
+                state_store->role(checkpoint) != StateImageRole::CheckpointImmutable ||
                 (sequence.endpoint_valid &&
                  (!state_store->valid(sequence.state.read) ||
                   sequence.state.read != sequence.state.write || sequence.state.fork_pending ||
                   state_store->role(sequence.state.read) != StateImageRole::CheckpointImmutable))) {
                 throw std::logic_error("resident rewrite StateImage is not movable");
             }
-            const StateImageHandle checkpoint = *sequence.rewrite_state;
             if (sequence.endpoint_valid && sequence.state.read == checkpoint) {
                 throw std::logic_error("resident endpoint aliases its rewrite StateImage");
             }
             if (sequence.endpoint_valid && !state_store->release(sequence.state.read)) {
                 throw std::logic_error("superseded endpoint StateImage could not be released");
             }
-            if (!preserve_rewrite) {
+            if (!from_anchor && !preserve_rewrite) {
                 state_store->release_checkpoint_reference(checkpoint);
                 sequence.rewrite_state.reset();
                 sequence.rewrite_checkpoint = {};

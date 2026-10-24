@@ -4,6 +4,7 @@
 #include "models/qwen3_5/program/planning/rebuild_work.h"
 #include "models/qwen3_5/program/context.h"
 #include "models/qwen3_5/program/context_work.h"
+#include "models/qwen3_5/frontend/rolling_anchor.h"
 #include <algorithm>
 #include <cmath>
 #include <iterator>
@@ -568,7 +569,13 @@ std::optional<AdmissionCandidate> ProgramImpl::inspect_lane(
             }
             plan->reuse              = ReusePath::PrivateLongAnchor;
             plan->reuse_base         = selected.frontier;
-            plan->source_mode = runtime::PrivateSourceMode::Retain;
+            // C2 opt-in: the manager already requires Retain for a different named
+            // session or a read-only reuse. Otherwise consume the current lineage,
+            // keeping only immutable checkpoints at or before the verified prefix.
+            const char* consume_anchor = std::getenv("NINFER_C2_CONSUME_ANCHOR");
+            if (consume_anchor == nullptr || consume_anchor[0] != '1') {
+                plan->source_mode = runtime::PrivateSourceMode::Retain;
+            }
         } else {
             if (selected.ordinal != 0) {
                 throw std::logic_error("private rewrite checkpoint ordinal is invalid");
@@ -695,7 +702,8 @@ std::optional<AdmissionCandidate> ProgramImpl::inspect_lane(
             selected_state_requires_fork(*source, plan->reuse, plan->rewrite_disposition,
                                          plan->selected_checkpoint, plan->reuse_base);
     }
-    if (source != nullptr && is_rewrite_checkpoint_restore(plan->reuse) &&
+    if (source != nullptr && (is_rewrite_checkpoint_restore(plan->reuse) ||
+                             plan->reuse == ReusePath::PrivateLongAnchor) &&
         plan->source_mode == runtime::PrivateSourceMode::ConsumeToActive) {
         std::vector<StateImageHandle> optional_states;
         optional_states.reserve(1U + source->long_anchors.size());
@@ -728,9 +736,31 @@ std::optional<AdmissionCandidate> ProgramImpl::inspect_lane(
         }
     }
 
+    std::uint32_t last_retained_long_anchor = 0;
+    if (source != nullptr && plan->source_mode == runtime::PrivateSourceMode::ConsumeToActive) {
+        for (const LongAnchorCheckpoint& anchor : source->long_anchors) {
+            if (anchor.frontier <= plan->reuse_base) {
+                last_retained_long_anchor = std::max(last_retained_long_anchor, anchor.frontier);
+            }
+        }
+    }
     plan->capture_groups.reserve(base.capture_groups.size());
     for (CaptureGroup group : base.capture_groups) {
         if (group.frontier <= plan->reuse_base) { continue; }
+        if (group.long_anchor && rolling_long_anchor_enabled()) {
+            const auto rolling = std::find_if(
+                base.context_cache.opportunities.begin(), base.context_cache.opportunities.end(),
+                [&](const PreparedCacheOpportunity& opportunity) {
+                    return opportunity.frontier == group.frontier &&
+                           is_rolling_long_anchor(opportunity);
+                });
+            if (rolling != base.context_cache.opportunities.end() &&
+                !rolling_long_anchor_due(group.frontier, plan->reuse_base,
+                                         context_cache.long_anchor_min_spacing_tokens,
+                                         last_retained_long_anchor)) {
+                group.long_anchor = false;
+            }
+        }
         if (group.rewrite &&
             (plan->rewrite_disposition !=
                  RewriteCheckpointDisposition::ReplaceAtCommittedFrontier ||
@@ -738,6 +768,9 @@ std::optional<AdmissionCandidate> ProgramImpl::inspect_lane(
             group.rewrite.reset();
         }
         if (!group.rewrite && !group.shared && !group.long_anchor) { continue; }
+        if (group.long_anchor) {
+            last_retained_long_anchor = std::max(last_retained_long_anchor, group.frontier);
+        }
         plan->capture_groups.push_back(std::move(group));
     }
     plan->shared_candidates.reserve(base.shared_candidates.size());

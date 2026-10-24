@@ -6,6 +6,7 @@
 #include "models/qwen3_5/frontend/media_cache.h"
 #include "models/qwen3_5/frontend/processor.h"
 #include "models/qwen3_5/frontend/test_access.h"
+#include "models/qwen3_5/frontend/rolling_anchor.h"
 #include "models/qwen3_5/frontend/tokenizer.h"
 #include "text/unicode.h"
 #include "text/structured_output.h"
@@ -1610,6 +1611,98 @@ int test_engine_automatic_long_anchor_spacing() {
     return failures;
 }
 
+int test_engine_rolling_long_anchor_opportunities() {
+    struct EnvGuard {
+        std::string previous;
+        bool existed;
+        EnvGuard() : existed(std::getenv("NINFER_C2_ROLLING_ANCHOR") != nullptr) {
+            if (existed) previous = std::getenv("NINFER_C2_ROLLING_ANCHOR");
+        }
+        static void set(const char* value) {
+#ifdef _WIN32
+            _putenv_s("NINFER_C2_ROLLING_ANCHOR", value);
+#else
+            setenv("NINFER_C2_ROLLING_ANCHOR", value, 1);
+#endif
+        }
+        ~EnvGuard() {
+#ifdef _WIN32
+            _putenv_s("NINFER_C2_ROLLING_ANCHOR", existed ? previous.c_str() : "");
+#else
+            if (existed) setenv("NINFER_C2_ROLLING_ANCHOR", previous.c_str(), 1);
+            else unsetenv("NINFER_C2_ROLLING_ANCHOR");
+#endif
+        }
+    } guard;
+    FrontendOptions options;
+    options.vision_enabled = false;
+    options.max_context = 8192;
+    options.automatic_long_anchors = 2;
+    options.long_anchor_min_spacing_tokens = 64;
+    const auto input = [] {
+        ninfer::PromptInput p;
+        for (int i = 0; i < 4; ++i) {
+            ninfer::ChatMessage m;
+            m.role = ninfer::ChatRole::User;
+            m.parts.push_back({.kind=ninfer::MessagePartKind::Text,
+                               .text=std::string(100, 'a'+i),.media={}});
+            p.messages.push_back(std::move(m));
+        }
+        p.options.enable_thinking = false;
+        return p;
+    };
+    const auto frontend = make_frontend(resources(), options);
+    guard.set("0");
+    const auto old = frontend.prepare(input());
+    const auto& a = FrontendFactory::inspect(old);
+    guard.set("1");
+    const auto current = frontend.prepare(input());
+    const auto& b = FrontendFactory::inspect(current);
+    using namespace ninfer::models::qwen3_5::detail;
+    const auto rolling = std::find_if(b.context_cache.opportunities.begin(),
+                                     b.context_cache.opportunities.end(), is_rolling_long_anchor);
+    int failures = 0;
+    failures += check(a.token_ids == b.token_ids && a.token_types == b.token_types &&
+                          a.positions == b.positions &&
+                          a.identity.rewrite_execution_frontiers == b.identity.rewrite_execution_frontiers,
+                      "rolling candidate changed model-facing token/position identity");
+    failures += check(rolling != b.context_cache.opportunities.end(),
+                      "append catch-up opportunity missing");
+    if (rolling != b.context_cache.opportunities.end()) {
+        const auto frontier = rolling->frontier;
+        failures += check(frontier < b.token_ids.size() &&
+                              b.token_ids.size() - frontier < options.long_anchor_min_spacing_tokens,
+                          "catch-up candidate is not the near-tail structural boundary");
+        failures += check(rolling_long_anchor_due(frontier, frontier-1, 64, 0),
+                          "reachable catch-up candidate was rejected");
+        failures += check(!rolling_long_anchor_due(frontier, frontier-1, 64, frontier-63),
+                          "short append would repeatedly capture state images");
+        auto marked=input();
+        marked.context_cache.markers.push_back({.after_message_count=4,
+            .kind=ninfer::PromptCacheMarkerKind::PrivateLongAnchor,
+            .location=ninfer::PromptCacheMarkerLocation::MessageBoundary});
+        const auto explicit_prompt=frontend.prepare(std::move(marked));
+        const auto& explicit_data=FrontendFactory::inspect(explicit_prompt);
+        failures += check(std::none_of(explicit_data.context_cache.opportunities.begin(),
+                                      explicit_data.context_cache.opportunities.end(),is_rolling_long_anchor),
+                          "explicit tail marker was replaced by throttled automatic marker");
+    }
+    options.automatic_long_anchors = 0;
+    const auto disabled = make_frontend(resources(),options).prepare(input());
+    const auto& d=FrontendFactory::inspect(disabled);
+    failures += check(std::none_of(d.context_cache.opportunities.begin(),
+                                  d.context_cache.opportunities.end(),is_rolling_long_anchor),
+                      "rolling enabled with zero anchor capacity");
+    options.automatic_long_anchors=2;
+    options.long_anchor_min_spacing_tokens=0;
+    const auto unspaced=make_frontend(resources(),options).prepare(input());
+    const auto& u=FrontendFactory::inspect(unspaced);
+    failures += check(std::none_of(u.context_cache.opportunities.begin(),
+                                  u.context_cache.opportunities.end(),is_rolling_long_anchor),
+                      "legacy zero-spacing grid changed");
+    return failures;
+}
+
 int test_media_admission_uses_aggregate_resources(const Frontend& frontend) {
     constexpr std::size_t kMediaItems     = 17;
     const std::vector<std::uint8_t> bytes = gradient_ppm();
@@ -3002,6 +3095,7 @@ int main() {
     failures += test_explicit_leading_instruction_cache_boundary();
     failures += test_engine_automatic_long_anchor_opportunities();
     failures += test_engine_automatic_long_anchor_spacing();
+    failures += test_engine_rolling_long_anchor_opportunities();
     failures += test_media_admission_uses_aggregate_resources(frontend);
     failures += test_multimodal_prompt_over_removed_32k_cap(frontend);
     failures += test_attention_pairs_are_diagnostic(frontend);

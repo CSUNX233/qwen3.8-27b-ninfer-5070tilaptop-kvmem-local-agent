@@ -1,52 +1,50 @@
-# v0.1.4 — 工具调用、长上下文生成与状态一致性修复
+# v0.1.5 — 长历史缓存恢复与批量 KV 回迁
 
-本版将维护者当前使用的引擎及对应源码整理发布。主要改善工具输出解析和思考转回答边界，并修复 NVFP4 与 FP16 GDN 的一致性问题；新增回答阶段独立惩罚计数。本版定位是正确性与任务续接，未测得可对外承诺的通用提速倍率。
+本版把已试用的 C2.1 移植到明确的 **v0.1.4 / 4e4ee4262f333b75b4d94afdf41d31d2c1f4e500** 基线。重点是减少长任务续接的重复计算和改善 Host 回迁行为，保留 v0.1.4 的工具解析、采样阶段/耦合采样、NVFP4 分区、FP16 GDN 舍入和回答独立惩罚修复。[上一版说明](RELEASE_NOTES-v0.1.4.md)
 
-## 改了什么
+## 主要变化
 
-- **工具示例不再误当调用：** Markdown围栏、行内代码和转义中的工具XML保留为文字。只在自然结束、思考未闭合且末尾确有完整已声明调用时恢复结构化工具；不对取消或额度耗尽进行此恢复。
-- **截断参数不再被猜补执行：** 去掉无明确边界的第三次抢救解析；半截命令/写文件参数返回 `malformed_tool_call`，保留之前完整调用。原有8项解析器及1项前端失败已定位修复，可能需要客户端重试一轮。
-- **思考转回答使用正确采样阶段：** MTP验证前截住跨越思考关闭标记的草稿，确认分隔符后再用回答采样；普通、Graph与point-proposal使用一致的位置抽样。移植并适配上游耦合采样，不整体升级上游。
-- **NVFP4验证列分区：** 按物理列宽固定producer/reducer窗口，并限制reducer循环展开，修复固定输入对照的列差异和可复现的特定形状非法访问。编码与KV精度不变。
-- **FP16 GDN状态一致性：** record/fold在每个token的状态存储边界模拟FP16舍入，避免省略舍入后累积偏离普通路径；独立FP64、Graph及长链资格验证通过。
-- **回答独立惩罚计数：** 已提交思考闭合时可清零当前lane的presence/frequency计数，回答仍保留presence=1。引擎默认carry-over；本版部署脚本默认 `AnswerPenaltyScope=answer`，旧配置缺少字段也采用answer。设为 `carry-over` 并正常重启即可恢复跨阶段计数，保留其他修复。
-- **便携整合包支持：** 增加离线安装、完整性校验、便携Node识别、两模型选择及配置切换入口；整合包由维护者另行提供网盘下载，GitHub引擎附件不含权重。
+- **滚动长锚点：** 在追加消息边界补充近尾锚点，按间距节流，同时保留有用的早期回退点。相同 lineage 恢复可消费旧活动 owner，保留 immutable KV/状态；不同 named session 与 readonly 请求继续隔离。
+- **批量冷页回迁：** eligible 冷页最多 32 页一批；Host 连续 extent 不足时逐级减半至单页，允许部分推进，避免大块申请失败阻断仍可完成的回迁。保留 oldest-first、sink、preferred-page、source-pin 与尾页约束，已有 Host 副本直接复用。
+- **公开启动器接入 C2.1：** 启用 `--auto-long-anchors`，默认 `NINFER_C2_ROLLING_ANCHOR=1`、`NINFER_C2_CONSUME_ANCHOR=1`、`NINFER_KV_DEMOTE_BATCH=32`；Host state slots 8、长锚点间距 49152、每 continuation 最多 2 个，Device state slots 0。诊断时可在启动前显式设两项锚点开关为 0、batch 为 1，然后正常重启。
+- **双整合包：** 无模型版可指定自己的 v3 `.ninfer`；完整版包含两份文字+MTP模型及可选完整视觉制品。均包含引擎和用户态依赖，上传夸克后由维护者提供链接。CPU 视觉采用显式开关，模型切回文字时同步关闭视觉声明。配置读取显式使用 UTF-8，避免 Windows PowerShell 5.1 把中文模型路径读成乱码。
+- **文档刷新：** 更新 README、安装/纠错入口、模型与硬件说明；移除把旧测量称为当前结果的首页表述。
 
-## 实测改善与范围
+## 实测结果
 
-RTX5070Ti Laptop12GB，Huihui Swift-1.5 GSQ-RCO IQ3_XXS+MTP，NVFP4、xhigh、MTP3及原页预算。以下是最终无探针二进制的资格检查：
+12 项定向回归全部通过，覆盖锚点选择、frontend、工具解析、materialization budget、resource manager、sampling defaults、batch32/batch1 回迁、Host 压力、context store、KV cache 和真实模型恢复/隔离。20 页回迁夹具的复制批次从 20 次变 1 次，只表示该夹具，不能直接换算整模型加速倍数。
 
-| 检查 | 结果与含义 |
-|---|---|
-| 同一短任务十seed | carry-over 9/10，answer 10/10；仅说明该固定任务改善，不能外推整体成功率 |
-| 六类直接任务和工具/结果步骤 | 12/12 |
-| 98,592-token输入及三工具/三结果续接 | 7/7，最终十项召回全对；六次续接整轮约1.02–1.35秒，非受控提速对照 |
-| 最终二进制开启组汇总 | 29/29，缺省carry-over短组9/10 |
-| 与最终对象匹配的Host回归 | frontend55组、parser39组通过 |
-| 较早独立计数原型的另一模型对照 | 原版GSQ同题7/10→9/10，仍有误调用；此行是原型证据，不冒充最终二进制复测 |
+| 长任务（各 7 次请求） | 压缩前后正确性 | 最后一次压缩后续接 |
+|---|---|---|
+| 藏针，最高 68,358-token 输入 | 均 7/7 字段 | 复用 58,330 tokens，新增 186，1.925 秒 |
+| 小游戏状态与代码，最高 68,540-token 输入 | 均 6/6 字段、6/6 Node 运行检查 | 复用 58,459 tokens，新增 200，2.766 秒 |
 
-各阶段测试不能全部当作最终引擎重复实测。早期205K工具续接、GDN数值及NVFP4关系测试有各自二进制/条件记录，见[完整说明](ANSWER_PENALTY_SCOPE.md)、[GDN修复](GDN_FP16_CONSISTENCY.md)、[耦合采样与NVFP4分区](COUPLED_SAMPLING.md)、[工具解析](TOOL_PARSER_EDGE_CASES.md)和[最终安装证据](../benchmarks/evidence/long-context-tool-loop/answer-scope-trial-installation.json)。
+整个任务各约 153/156 秒，包含首次预填充；最后请求耗时不能当成全任务耗时。14 个输出 token 序列与旧 C2.1 同夹具贪心结果一致。测试为 thinking-off 合成夹具，不是长期 xhigh 网页项目开发。替换日常后另有 7 项 API 冒烟通过：冷/热文字、短 xhigh、工具调用/结果续接、CPU 读图、图片后文字续接。[完整记录](C2P1_V014_PORT.md) · [脱敏结果](../benchmarks/evidence/c2p1-v014-port/verification.json)
 
-## 代价和未解决问题
+## 默认设置、硬件与代价
 
-发布安装验收通过：整合包35,053文件及两模型哈希、引擎help、便携Node/dsh、离线配置与两模型切换、独立端口认证网页；9项工具管线测试、2项Python测试、16组合启动配置和5类完整性校验通过。没有新增模型推理或完整Agent任务实测，日常服务未重启。[发布验收](../benchmarks/evidence/publication/verification-v014.json)。
+**发布默认纯文字 + MTP，不启用视觉。** 保留 NVFP4、xhigh、MTP3、回答 presence=1、AnswerPenaltyScope=answer、逻辑上下文 262144。公开起步组合仍为 DeviceKV36864 / Retrieve3840 / HostKV7168MiB，sink12288 / recent19456，不自动套用本机进阶预算。
 
-没有新增本轮常驻GPU计数数组；重用已有计数并在边界清零。GDN按原FP16状态存储精度计算，可能改变输出及投机接受率；采样边界也可能增加少量target步骤。独立计数有意改变回答分布，无法保证所有模型/写作任务都更好。工具恢复额外使用少量CPU处理和随思考长度增长的RAM文本。没有通用decode速度或显存降低承诺。
+社区多位用户实测反馈：**30 系及以后、12GB 及以上卡可稳定使用项目；16GB 卡可用更大的 IQ3_S 模型，通常质量更高。** 需要对应架构引擎与合适预算。此次预编译附件仍为 **Windows x64 / sm120a / 50 系**，30/40 系需自行编译或使用已验证的对应版本，不能直接使用此附件。网盘完整版附带 IQ3_XXS，不含 IQ3_S。
 
-满256K、多lane、其他GPU、非零frequency和DFlash工作流未验收；仍有模型误调用、事实错误及部分耗尽思考额度的案例。真实dsh隔离夹具在发送模型请求前因依赖映射启动失败，最终完整Agent任务由维护者继续实际使用验证。网页200不代表Agent全链路通过。群友的 `pi-ai stream idle timeout` 仍缺对应日志，不能宣称本次根治；见[排错说明](TROUBLESHOOTING.md)。
+显存不足按“混合显卡模式 → 对引擎关闭驱动溢出 → 关闭后台 → 优先 RK4V4 → 再配套缩页池/检索”处理，保留 KVMem Host KV。[操作入口](OFFLINE_BUNDLE.md)
 
-构建为受影响单元增量重编及复用原库，未完成干净全量构建或全部上游测试。当前预编译目标Windows x64/sm120a，直接验证设备为RTX5070Ti Laptop12GB。
+锚点使用有界 Host 状态/KV，捕获有额外工作，压力下仍可能被淘汰；批量回迁可能增加单批等待。未修改注意力公式、KV 量化编码或检索窗口，不保证所有任务更快或整体质量提高。每 5 秒整卡显存采样峰值 11,176/11,174 MiB，与旧 C2.1 同任务记录相同；**没有原正式 v0.1.4 同条件对照，无法给出相对该版的峰值增量**。
 
-## 下载、升级及回退
+## 下载、升级与回退
 
-使用v0.1.4源码和引擎附件，原安装先完成任务、运行其 `stop.cmd`，保留会话、配置与模型，再更新源码并重跑 `setup.ps1 -ModelPath "<现有模型.ninfer>"`。只更新源码不会替换已下载exe。历史Release资产保留供回退；回退引擎时同时使用匹配版本启动脚本。
+[v0.1.5 Release](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.5) 提供引擎和 SHA-256。源码安装用户先停止本安装、备份配置及旧引擎，更新源码，再执行原 `setup.ps1 -ModelPath "<模型.ninfer>"`；只拉源码不会更新 exe。无需重新下载现有模型或清空磁盘会话，进程缓存会重建。[升级步骤](INSTALL.md)
 
-新部署保持完整保守组合DeviceKV36864 / Retrieve3840 / HostKV7168MiB、sink12288、recent19456，逻辑容量262144。**NVFP4相对此前RK4V4配置增加一些显存占用；显存紧张可设置 `KVDType=rk4v4` 并正常重启，同一引擎支持两者。** 不能把驱动整卡空闲当作CUDA可分配预算，切KV或模型后缓存重新建立。
+夸克包分 `no-models` 与 `full`，都自带引擎；详细见[整合包说明](OFFLINE_BUNDLE.md)。完整包的视觉制品含 text,vision,mtp；启用后视觉前处理/编码固定 CPU，文字仍在 GPU；默认不启用。回退请成套恢复旧引擎与启动配置，或解压旧版到独立目录，避免旧 exe 接收新增参数；旧 Release 保留。
 
-显存处理建议按顺序进行：优先混合显卡模式 → 对引擎关闭CUDA系统内存回退 → 关闭无关后台应用 → 优先切RK4V4 → 再配套适当缩小页池和检索窗口。保留7GiB KVMem Host KV，关闭驱动溢出不等于关闭历史缓存。小页池34560/1536档未做新的实模质量验收，缩检索可能降低召回。
+## 构建与未覆盖范围
 
-夸克一键整合包已包含引擎、两个ninfer模型和用户态运行依赖，无需GitHub即可安装。整合包详见[离线整合包说明](OFFLINE_BUNDLE.md)，包含安装提示词、纠错提示词、依赖及两模型许可。Swift-1.5衍生权重适用Swift Open License v1.0（含商业使用门槛），不能套用仓库代码Apache-2.0许可；原版GSQ-RCO模型另按其Apache-2.0条款。
+CUDA13.0.48 / MSVC14.44.35207 / sm120a；71 个 Host 覆盖单元重编，复用 11 个已验证 CUDA 对象和原静态库，**不是干净全量构建**。未重跑全量 CTest、满 256K、所有显卡或总体质量评测，未宣称循环问题全部解决。发布打包验收不重复占用日常显卡做长测试。
 
-特别感谢Bilibili [0xFFFF7](https://search.bilibili.com/upuser?keyword=0xFFFF7)提供基础分享版本；保留NInfer、KVMem、Qwen、ISTA-DASLab、Huihui、UkisAI及各依赖作者归属。
+最终引擎 SHA-256：
 
-引擎SHA-256：`8804cb04470214f68e01e38cb07004c90e748507a77134995335d1edbd768472`。附件ZIP校验见 `SHA256SUMS`。GitHub仅分发源码/引擎；网盘包不含私人会话、登录信息或本机配置。
+```text
+38bc4d8c6be07afd6c74b902cc33403bf2ee139a2c50129d363d68d74a7609d6
+```
+
+[来源与历史记录](../SOURCE_PROVENANCE.json) · [源码构建](BUILD.md) · [模型许可](MODELS.md)

@@ -504,7 +504,8 @@ ProgramImpl::materialization_source_protection(const ResourceCandidateState& adm
                 state_store->checkpoint_references(*protection.state) !=
                 protection.consumed_state_references;
 
-            if (is_rewrite_checkpoint_restore(admission.reuse)) {
+            if (is_rewrite_checkpoint_restore(admission.reuse) ||
+                admission.reuse == ReusePath::PrivateLongAnchor) {
                 const auto append_optional_state = [&](StateImageHandle state) {
                     if (!state_store->valid(state) || state_exclusive_to_sequence(source, state) ||
                         std::any_of(

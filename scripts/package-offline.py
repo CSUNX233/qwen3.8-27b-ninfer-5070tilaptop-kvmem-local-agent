@@ -1,4 +1,4 @@
-"""Build an isolated Windows bundle from explicit models and pinned dependencies.
+"""Build an isolated Windows bundle with optional models and pinned dependencies.
 
 Does not start services or copy user runtime state. Output is local, never uploaded.
 """
@@ -57,11 +57,13 @@ def write_cmd(path, command):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--engine', type=Path, required=True)
-    p.add_argument('--huihui', type=Path, required=True)
-    p.add_argument('--gsq', type=Path, required=True)
-    p.add_argument('--dependencies', type=Path, required=True, help='Directory with pinned dependency downloads')
-    p.add_argument('--dependency-manifest', type=Path, required=True)
+    p.add_argument('--variant', choices=['no-models', 'full'])
+    p.add_argument('--engine', type=Path)
+    p.add_argument('--huihui', type=Path)
+    p.add_argument('--gsq', type=Path)
+    p.add_argument('--vision', type=Path, help='Huihui text+vision+MTP v3 artifact; CPU vision is opt-in')
+    p.add_argument('--dependencies', type=Path, help='Directory with pinned dependency downloads')
+    p.add_argument('--dependency-manifest', type=Path)
     p.add_argument('--output', type=Path, required=True, help='New directory, never an existing installation')
     p.add_argument('--archive-only', action='store_true', help='Archive a previously verified built directory')
     args = p.parse_args()
@@ -71,6 +73,12 @@ def main():
             raise SystemExit('No built manifest found')
         archive_bundle(output)
         return
+    if not all([args.variant, args.engine, args.dependencies, args.dependency_manifest]):
+        p.error('Building requires --variant, --engine, --dependencies and --dependency-manifest')
+    if args.variant == 'full' and not all([args.huihui, args.gsq, args.vision]):
+        p.error('The full variant requires --huihui, --gsq and --vision')
+    if args.variant == 'no-models' and any([args.huihui, args.gsq, args.vision]):
+        p.error('The no-models variant must not receive model paths')
     if output.exists():
         raise SystemExit('Output already exists; choose a new directory')
     if output.is_relative_to(ROOT) and output.parts[len(ROOT.parts)] != 'dist':
@@ -139,17 +147,22 @@ def main():
         folder = output / 'integrations/dsh/node_modules/@deepseek-ai' / name
         if json.loads((folder / 'package.json').read_text('utf8'))['version'] != '0.1.5-rc.3':
             raise SystemExit('Unsupported dsh patch version')
-        copy_file(folder / 'lib/index.js', folder / 'lib/index.js.ninfer-original')
+        if not (folder / 'lib/index.js.ninfer-original').exists():
+            copy_file(folder / 'lib/index.js', folder / 'lib/index.js.ninfer-original')
         copy_file(output / ('integrations/dsh/patches/' + name + '.js'), folder / 'lib/index.js')
     models = []
-    for model_id, source, filename, public_id in [
+    model_inputs = [
         ('huihui', args.huihui, 'Huihui-Qwen3.8-27B-abliterated-Swift-1.5-GSQ-RCO-IQ3_XXS-mtp.ninfer', 'huihui-qwen3.8-27b-swift1.5-iq3-xxs'),
         ('gsq', args.gsq, 'qwen3.8-27b-gsq-rco-iq3-xxs.ninfer', 'qwen3.8-27b-gsq-rco-iq3-xxs'),
-    ]:
+        ('huihui-vision', args.vision, 'Huihui-Qwen3.8-27B-abliterated-Swift-1.5-GSQ-RCO-IQ3_XXS-mtp-vision-bf16.ninfer', 'huihui-qwen3.8-27b-swift1.5-iq3-xxs-vision'),
+    ] if args.variant == 'full' else []
+    for model_id, source, filename, public_id in model_inputs:
         target = output / 'models' / filename
         print('Copying and hashing model:', model_id, flush=True)
         copy_file(source, target)
-        models.append(dict(id=model_id, path='models/' + filename, model_id=public_id, bytes=target.stat().st_size, sha256=sha(target)))
+        models.append(dict(id=model_id, path='models/' + filename, model_id=public_id, bytes=target.stat().st_size,
+            sha256=sha(target), components=['text','vision','mtp'] if model_id == 'huihui-vision' else ['text','mtp'],
+            vision_cpu=model_id == 'huihui-vision'))
     shutil.copytree(ROOT / 'licenses/models', output / 'model-notices')
     (output / 'model-notices/CONVERSION-NOTICE.txt').write_text(
         'Converted and integrated by CSUNX233 using ninfer-v3 qwen3_8_27b_gguf on CPU.\n'
@@ -158,6 +171,8 @@ def main():
         'Copyright 2026 UkisAI. Swift Contribution licensed under Swift Open License v1.0.\n'
         'Derivative of Qwen3.8-27B, Copyright 2026 Alibaba Cloud, Apache License 2.0.\n'
         'Huihui, ISTA-DASLab and other contributors retain attribution.\n'
+        'The optional vision artifact contains complete Huihui text+MTP weights and the BF16 Qwen vision tower.\n'
+        'The no-models variant distributes no model weights.\n'
         'Original GGUF revision was not pinned in the historical conversion record;\n'
         'included cards are source-page snapshots, not historical remote-byte verification.\n', encoding='utf8')
     for doc, name in [('OFFLINE_BUNDLE.md', '00-READ-FIRST.md'), ('INSTALL_PROMPT.md', 'INSTALL-PROMPT.md'),
@@ -168,12 +183,16 @@ def main():
                       ('TROUBLESHOOTING.md', '纠错文档和提示词.txt'), ('RELEASE_NOTES.md', '更新提升说明.txt')]:
         (output / name).write_text((ROOT / 'docs' / doc).read_text('utf8'), encoding='utf-8-sig')
     write_cmd(output / '00-install-vc-runtime.cmd', 'start /wait "" "%~dp0dependencies\\vc_redist.x64.exe" /install')
-    for name, script, flags in [('01-setup-huihui.cmd', 'scripts/setup-bundle.ps1', '-Model huihui'),
+    choices = [('01-setup-huihui.cmd', 'scripts/setup-bundle.ps1', '-Model huihui'),
         ('01-setup-gsq.cmd', 'scripts/setup-bundle.ps1', '-Model gsq'),
-        ('02-start.cmd', 'start.ps1', ''), ('03-stop.cmd', 'stop.ps1', ''),
-        ('04-verify.cmd', 'scripts/verify-bundle.ps1', ''),
         ('05-use-huihui.cmd', 'scripts/set-bundle-option.ps1', '-Model huihui'),
         ('05-use-gsq.cmd', 'scripts/set-bundle-option.ps1', '-Model gsq'),
+        ('09-enable-cpu-vision.cmd', 'scripts/set-bundle-option.ps1', '-Model huihui-vision'),
+        ('09-disable-vision-huihui.cmd', 'scripts/set-bundle-option.ps1', '-Model huihui')
+    ] if args.variant == 'full' else [('01-setup-your-model.cmd', 'scripts/setup-bundle.ps1', '')]
+    for name, script, flags in choices + [
+        ('02-start.cmd', 'start.ps1', ''), ('03-stop.cmd', 'stop.ps1', ''),
+        ('04-verify.cmd', 'scripts/verify-bundle.ps1', ''),
         ('06-answer-counts.cmd', 'scripts/set-bundle-option.ps1', '-PenaltyScope answer'),
         ('06-carry-over-counts.cmd', 'scripts/set-bundle-option.ps1', '-PenaltyScope carry-over'),
         ('07-kv-nvfp4.cmd', 'scripts/set-bundle-option.ps1', '-KVDType nvfp4'),
@@ -199,7 +218,8 @@ def main():
         source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
         source_has_uncommitted_changes=bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT)),
         engine_sha256=engine_spec['files'][0]['sha256'], models=models, dependencies=dependencies,
-        default_model='huihui', default_penalty_scope='answer',
+        variant=args.variant, default_model='huihui' if models else None,
+        default_vision_cpu=False, default_penalty_scope='answer',
         system_prerequisites=['Windows x64', 'CUDA 13 compatible NVIDIA driver', 'Microsoft Edge', 'x64 VC++ runtime (installer included)'],
         files=files)
     (output / 'offline-bundle.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf8')

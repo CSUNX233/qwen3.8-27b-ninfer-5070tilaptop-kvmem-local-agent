@@ -2,6 +2,8 @@
 
 基础引擎和大多数内核来自上游及原分享包；本页描述后续本机工作。逐项 patch 和验证记录在 `benchmarks/evidence/`。继承的 Windows/TMA、KVMem-ring、头部保留、MTP 取消恢复、one-dot 检索等修复也随源码保留，不将其归为本轮原创。
 
+v0.1.5（2026-10-24）将 [C2.1 长锚点与批量回迁移植到 v0.1.4](C2P1_V014_PORT.md)，保留 v0.1.4 的采样、工具和 GDN 修复。12 项定向回归及两个多轮长上下文夹具通过；同一二进制现作为v0.1.5发布；保留增量构建边界。构建来源、正确性范围与代价见该记录。
+
 | 后续改动 | 目的 | 关键位置 |
 |---|---|---|
 | 检索索引移到 Host RAM | 释放显存，保留原 FP32 索引与打分数学 | `engine/src/core/mapped_host_buffer.*`、`ops/kvmem/mean_k_index.*` |
@@ -12,7 +14,7 @@
 | decode历史索引与缓存问句 | 仅追加主模型已提交历史，隔离MTP头；合法缓存问句重评分，精确问句末尾保留原排名 | `decode.cpp`、`prefill.cpp`、`speculative/mtp.cpp`、`kvmem_score.h`、`mean_k_index.*` |
 | 融合采集旋转前K | 非查询评分分块恢复norm/RoPE融合并同核采集，独立FP64及精确Q/K位验证 | `execution/attention.cpp`、`ops/rmsnorm_rope/` |
 | 5070 Ti 小矩阵调度 | 只改变指定 IQ2_S / IQ3_XXS / Q2_K、T=1/4 的线程与行分组 | `engine/src/ops/linear/gguf/ggml_bridge_vec.cuh` |
-| 本地未发布：工具输出解析 | 代码中的工具示例保留为文本；自然结束的未闭合思考中，仅恢复完整且已声明的末尾调用；增加诊断 | `frontend/tool_call_parser.*`、`frontend/output_session.cpp`、`serve/*log*` |
+| v0.1.4：工具输出解析 | 代码中的工具示例保留为文本；自然结束的未闭合思考中，仅恢复完整且已声明的末尾调用；增加诊断 | `frontend/tool_call_parser.*`、`frontend/output_session.cpp`、`serve/*log*` |
 | dsh 接入与公开部署 | 相对路径、隔离 home、固定依赖和哈希、严格守卫、搜索/浏览器、收尾提醒、工具验证执行规则 | 根目录脚本、`scripts/`、`integrations/` |
 
 既有小矩阵 CUDA 调度只匹配 compute capability 1200 且 46 SM 的设备以及实际验证过的形状，共 11 个路由；其他形状保留原调度。每行数学、量化解码、累加和归约顺序保持原样，无新增 GPU buffer。启动前设置 `NINFER_VEC5070_DISABLE=1` 可以关闭这项调度；必须重启，不能对已经捕获的 CUDA Graph 热切换。

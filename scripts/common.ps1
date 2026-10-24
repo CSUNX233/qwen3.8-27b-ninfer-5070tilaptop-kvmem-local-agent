@@ -28,7 +28,7 @@ function Initialize-LocalEnvironment {
 function Read-LocalConfig([string]$Path = 'config/local.json') {
     $resolved = Resolve-ProjectPath $Path
     if (-not (Test-Path -LiteralPath $resolved)) { throw 'Run setup.ps1 -ModelPath <your-model.ninfer> first.' }
-    return Get-Content -LiteralPath $resolved -Raw | ConvertFrom-Json
+    return Get-Content -LiteralPath $resolved -Raw -Encoding UTF8 | ConvertFrom-Json
 }
 
 function Write-LocalJson([string]$Path, $Value) {

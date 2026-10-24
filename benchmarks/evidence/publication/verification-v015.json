@@ -1,0 +1,60 @@
+{
+  "version": "0.1.5",
+  "date": "2026-10-24",
+  "stage": "prepublication-source-and-release-asset-qualification",
+  "base_tag": "v0.1.4",
+  "base_commit": "4e4ee4262f333b75b4d94afdf41d31d2c1f4e500",
+  "engine": {
+    "sha256": "38bc4d8c6be07afd6c74b902cc33403bf2ee139a2c50129d363d68d74a7609d6",
+    "bytes": 1347053568,
+    "archive_sha256": "bf7f73d96fbc9b4698d5c6957737116d18c432626ed6c5ba17a01667c0ff4e72",
+    "archive_bytes": 846921102,
+    "archive_crc_and_embedded_executable_hash": "passed",
+    "architecture": "Windows x64 sm120a",
+    "real_engine_qualification": "../c2p1-v014-port/verification.json"
+  },
+  "checks": {
+    "powershell_syntax": "passed: 7 files",
+    "javascript_syntax": "passed: 12 files",
+    "packager_python_compile": "passed",
+    "node_tests": {
+      "passed": 9,
+      "failed": 0,
+      "command": "node --test integrations/tests/cache-guard.test.mjs integrations/tests/tool-grounded-execution.test.mjs"
+    },
+    "launcher_configuration_matrix": {
+      "powershell": "5.1.26100.4652",
+      "configurations_passed": 64,
+      "dimensions": ["vision", "KV dtype", "answer penalty scope"],
+      "automatic_long_anchors_argument": "passed",
+      "C2_defaults_and_diagnostic_overrides": "passed",
+      "success_and_failure_environment_cleanup": "passed",
+      "engine_process": "mocked; no inference started"
+    },
+    "bundle_model_routing": {
+      "routes_passed": 7,
+      "invalid_selections_rejected": 3,
+      "unicode_and_space_model_path": "passed on Windows PowerShell 5.1",
+      "modality_and_default_route": "passed",
+      "original_compaction_backup": "preserved",
+      "public_page_budgets": "preserved",
+      "setup_process": "stubbed in this fixture; not a full offline installation test"
+    },
+    "public_metadata_links_and_credential_pattern_scan": "passed",
+    "git_diff_check": "passed"
+  },
+  "defaults": {
+    "vision_cpu": false,
+    "device_kv": 36864,
+    "retrieve_tokens": 3840,
+    "host_kv_mib": 7168,
+    "sink_tokens": 12288,
+    "recent_tokens": 19456
+  },
+  "scope": [
+    "The historical engine qualification remains a local-trial snapshot; this record covers subsequent publication preparation.",
+    "Final offline bundle setup, ZIP CRC and delivery hashes are checked after the source commit and recorded beside the local delivery artifacts.",
+    "No additional long GPU workload or interruption of the daily service was needed for these packaging checks.",
+    "No all-GPU, full CTest, full-256K or overall model quality claim."
+  ]
+}

@@ -1,6 +1,6 @@
 # 安装与使用条件
 
-v0.1.4离线两模型包请先读[整合包安装](OFFLINE_BUNDLE.md)和[纠错文档](TROUBLESHOOTING.md)。新部署默认 `AnswerPenaltyScope=answer`（旧配置缺少也采用answer），设为 `carry-over` 后正常重启可关闭；引擎自身缺省仍为carry-over。
+v0.1.5离线双版本包请先读[整合包安装](OFFLINE_BUNDLE.md)和[纠错文档](TROUBLESHOOTING.md)。新部署默认 `AnswerPenaltyScope=answer`（旧配置缺少也采用answer），设为 `carry-over` 后正常重启可关闭；引擎自身缺省仍为carry-over。
 
 显存处理顺序：优先开启混合显卡模式 → 对实际引擎关闭CUDA系统内存回退（保留7GiB KVMem Host KV）→ 关闭无关后台应用 → 仍不足优先切RK4V4 → 再配套适当缩小页池和检索窗口。网盘包提供对应一键配置入口，详见[完整步骤](OFFLINE_BUNDLE.md)。
 
@@ -12,13 +12,13 @@ v0.1.4离线两模型包请先读[整合包安装](OFFLINE_BUNDLE.md)和[纠错�
 
 **新设备 / 新部署先用 `DeviceKV=36864`、`RetrieveTokens=3840` 的完整默认组合。** 这是相对进阶档较保守的起点，不是所有 12GB 设备都能无条件启动的保证。先关闭不需要的独显应用，为实际引擎单独禁用 CUDA 系统内存回退；确认权重和 Graph 正常加载，再验收短任务、完全相同请求的缓存重复、工具结果续接和对应目标长度的召回。
 
-维护者的 **`39168 / 6144` 是进阶组合**，不是安装默认值。配套 `SinkTokens=12288`、`RecentTokens=19456`、Host KV 7168 MiB、MTP3、chunk128、xhigh。v0.1.3 当前使用 NVFP4；旧 v0.1.2 的 RK4V4 实测启动 CUDA 可用约 84 MiB，128K 藏针首次/重复 5/5、200K 均 4/5。这是历史结果，不适合作为当前 NVFP4 的显存或质量承诺。8192 检索档长文测试未完成。[历史实测](BENCHMARKS.md#语义历史修复与检索预算2026-10-16) · [当前 NVFP4 实测](NVFP4_SM120.md)
+维护者的 **`39168 / 6144` 是进阶组合**，不是安装默认值。配套 `SinkTokens=12288`、`RecentTokens=19456`、Host KV 7168 MiB、MTP3、chunk128、xhigh。自 v0.1.3 起默认使用 NVFP4；旧 v0.1.2 的 RK4V4 实测启动 CUDA 可用约 84 MiB，128K 藏针首次/重复 5/5、200K 均 4/5。这是历史结果，不适合作为当前 NVFP4 的显存或质量承诺。8192 检索档长文测试未完成。[历史实测](BENCHMARKS.md#语义历史修复与检索预算2026-10-16) · [NVFP4 历史实测](NVFP4_SM120.md)
 
 每次只增加一档并记录配置、启动 CUDA 余量、GPU 峰值、缓存续接和召回；出现分配失败或页池耗尽时恢复上一档，再定位原因。**不要只把 DeviceKV 调小而维持装不下的 sink/recent/retrieve/MTP/尾页预算**；若默认组合也放不下，先查实际占用，必须缩窗口时说明召回影响并单独验证，不能称为无损适配。扩大 DeviceKV 也不会自动扩大逻辑上下文上限。
 
 ## NVFP4 显存与 RK4V4 切换
 
-v0.1.4 延续 v0.1.3 的默认 `KVDType=nvfp4`。**相对此前 RK4V4 配置，NVFP4 增加了一些显存占用；显存很紧张时可以自行换回 RK4V4。** 两者都由同一个新版 exe 支持，Host 压力回收等通用修复继续保留。NVFP4 专用调度不新增常驻 GPU buffer；显存增量与 KV 格式 / 工作区有关，实际差值随配置变化，不给固定 MiB 承诺。
+v0.1.5 延续 v0.1.3 的默认 `KVDType=nvfp4`。**相对此前 RK4V4 配置，NVFP4 增加了一些显存占用；显存很紧张时可以自行换回 RK4V4。** 两者都由同一个新版 exe 支持，Host 压力回收等通用修复继续保留。NVFP4 专用调度不新增常驻 GPU buffer；显存增量与 KV 格式 / 工作区有关，实际差值随配置变化，不给固定 MiB 承诺。
 
 先等待任务结束，用本安装 `stop.cmd` 关闭，在 `config/local.json` 添加或修改以下字段，再运行 `start.cmd`：
 
@@ -34,7 +34,7 @@ v0.1.4 延续 v0.1.3 的默认 `KVDType=nvfp4`。**相对此前 RK4V4 配置，N
 
 本仓库明确实测可用的设备是 **RTX 5070 Ti Laptop 12GB**。建议使用独显 + 核显混合模式，把桌面和浏览器交给核显渲染，为模型保留独显显存；启动脚本不自动修改系统显卡模式。没有核显或混合模式也可尝试，启动前关闭不需要的游戏、GPU 加速应用和后台进程，确认显存足够。
 
-其他 **RTX 50 系、12GB 及以上显存**的显卡欢迎尝试，参数需按实际设备调整。**非 50 系需按对应 CUDA 架构自行编译**，参考 [编译说明](BUILD.md)。欢迎提交其他显卡的编译步骤、稳定配置及实测数据。
+根据多位使用者实测反馈，**RTX30系及以后、12GB以上卡可稳定使用本项目；16GB卡可选更大的IQ3_S模型，通常质量更高**。参数仍需按设备调整，本次sm120a附件只供50系。**非 50 系需按对应 CUDA 架构自行编译**，参考 [编译说明](BUILD.md)。欢迎提交其他显卡的编译步骤、稳定配置及实测数据。
 
 ## CUDA 系统内存回退：强烈建议禁用
 
@@ -65,11 +65,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1 -ModelPath "D:\M
 
 `config/local.json`、`runtime/`、`node_modules/`、模型及浏览器 profile 均被 Git 忽略。启动后等待权重和 CUDA Graph 加载，再自动打开 dsh 私有登录 URL。不要公开 `runtime/logs/dsh.stdout.log` 中的 token。首次安装需要网络，纯文字推理本身可离线。
 
-## 从 v0.1.0 升级
+## 从 v0.1.0–v0.1.4 升级
 
 先等待当前任务结束，用这份安装的 `stop.cmd` 关闭服务；备份自己的 `config/local.json`。Git 安装使用 `git pull --ff-only` 获取源码，ZIP 安装则解压新源码并保留原来的模型路径、私有配置和 `runtime/dsh-home`。不要把旧的 `config/downloads.json` 覆盖到新版本。
 
-在项目目录重新执行原 `setup.ps1 -ModelPath "<现有模型.ninfer>"` 命令（API-only 安装仍可加 `-SkipDsh`），再运行 `start.cmd`。安装器保留本地配置并按哈希替换旧引擎；需要联网下载约 0.8 GiB 的新引擎归档，模型无需重下。当前 v0.1.4 的 exe SHA-256 见 [来源记录](../SOURCE_PROVENANCE.json)。从 v0.1.1 / v0.1.2 / v0.1.3 升级同样执行此流程；旧 Release 保留。只 `git pull` 不会替换已经下载的 exe，也不会重设自己的页池。
+在项目目录重新执行原 `setup.ps1 -ModelPath "<现有模型.ninfer>"` 命令（API-only 安装仍可加 `-SkipDsh`），再运行 `start.cmd`。安装器保留本地配置并按哈希替换旧引擎；需要联网下载约 0.8 GiB 的新引擎归档，模型无需重下。当前 v0.1.5 的 exe SHA-256 见 [来源记录](../SOURCE_PROVENANCE.json)。从 v0.1.1 / v0.1.2 / v0.1.3 / v0.1.4 升级同样执行此流程；旧 Release 保留。只 `git pull` 不会替换已经下载的 exe，也不会重设自己的页池。
 
 用户会话、浏览器 profile 和权重无需清空；原有会话首次换用新插件可能重算变化的前缀。该版本 KVMem 内容检索明确要求单并发与 Legacy 缓存，Hybrid/多并发配置会直接报不支持。引擎 ZIP 和 Source code ZIP 用途不同，不要将整个引擎 ZIP 当作源码或完整安装包。
 

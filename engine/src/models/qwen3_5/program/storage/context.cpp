@@ -2,6 +2,7 @@
 #include "models/qwen3_5/program/program_impl.h"
 #include "models/qwen3_5/program/context_work.h"
 #include "models/qwen3_5/program/storage/ring_host_pressure.h"
+#include "models/qwen3_5/program/storage/ring_demote.h"
 #include "core/device.h"
 // LOCAL (KVMem content scoring): the published content ranking consumed by select_retrieval_pages.
 #include "ops/kvmem/kvmem_score.h"
@@ -2002,67 +2003,26 @@ std::uint32_t ProgramImpl::demote_kv_pages_to_host(KVAddressSpaceStore& addresse
                                                    std::uint32_t target_free,
                                                    std::span<const std::uint32_t> preferred) {
     if (host_kv_extents == nullptr || !addresses.valid(address) || target_free == 0) { return 0; }
-    const std::uint32_t mapped = addresses.mapped_pages(address);
-    const auto is_preferred = [&](std::uint32_t page) {
-        return !preferred.empty() && std::binary_search(preferred.begin(), preferred.end(), page);
-    };
-    // Oldest first, skipping the attention sink and (in the first pass) the pages retrieval wants to
-    // keep. If that is not enough the second pass gives up the retrieved pages too, so the caller is
-    // guaranteed to get the room it asked for whenever the Device can supply it at all.
-    std::uint32_t demoted   = 0;
-    std::uint32_t page      = sink_pages;
-    bool second_pass        = false;
-    while (demoted < target_free) {
-        if (page >= mapped) {
-            if (second_pass) { break; }
-            second_pass = true;
-            page        = sink_pages;
-            continue;
-        }
-        const std::uint32_t current       = page;
-        const LogicalKVPageHandle logical = addresses.logical_page(address, current);
-        ++page;
-        if (!second_pass && is_preferred(current)) { continue; }
-        if (!pages.valid(logical) || !pages.device_resident(logical) ||
-            pages.source_pins(logical) != 0) {
-            continue;
-        }
-        // LOCAL FIX (ring decode; prescription: 交棒-ninfer解耦第四棒 §4.3): only a page that can never
-        // receive another coverage commit may be demoted. The tail page the decode step is still
-        // writing (or the current prefill chunk's pages) is partially committed and keeps a live
-        // commit path; demoting it made the next commit throw "logical KV committed coverage is not
-        // monotonic" (measured 2026-09-30: pool 16 pages, context grew past the pool during decode).
-        if (pages.committed_columns(logical) != static_cast<std::uint32_t>(kPagedKVPageSize)) {
-            continue;
-        }
-        if (!pages.host_resident(logical)) {
-            // The content is not on the Host yet: copy it there first. The Host extent store pins
-            // through `can_pin_source`, which requires the writer reference to be clear; an active
-            // sequence keeps one on every mapped page and these pages are outside the window.
-            pages.set_writer(logical, false);
-            std::vector<LogicalKVPageHandle> one{logical};
-            std::optional<HostKVExtentReservation> reserved = host_kv_extents->prepare(pages, one);
-            if (!reserved) { break; }   // Host arena full: nothing more can be moved
-            const std::vector<DeviceKVPageHandle> sources =
-                host_kv_extents->device_sources(*reserved);
-            // Copy on the compute stream so the D2H is ordered after the kernels that wrote it.
-            pages.physical_pool().copy_to_host(sources, host_kv_extents->writable_view(*reserved),
-                                               device.stream);
-            (void)host_kv_extents->publish(std::move(*reserved));
-        } else {
-            // Already preserved on the Host (demoted before and then retrieved): no transfer needed.
-            if (!pages.host_replica_current(logical)) { continue; }
-            pages.set_writer(logical, false);
-        }
-        if (kv_trace_head_pages() != 0 && current < kv_trace_head_pages()) {
-            std::fprintf(stderr, "[trace] demote_kv page=%u sink=%u host=%d\n", current, sink_pages,
-                         pages.host_resident(logical) ? 1 : 0);
-        }
-        pages.release_active_reference(logical);
-        if (!pages.drop_device_replica(logical)) { continue; }
-        ++demoted;
+    // C2.1 opt-in; one page retains the earlier transfer granularity for A/B checks.
+    static const std::uint32_t batch_limit = [] {
+        const char* value = std::getenv("NINFER_KV_DEMOTE_BATCH");
+        const long requested = value != nullptr ? std::strtol(value, nullptr, 10) : 1;
+        return static_cast<std::uint32_t>(std::clamp(requested, 1L, 64L));
+    }();
+    static const bool report = [] {
+        const char* value = std::getenv("NINFER_KV_TRANSFER_STATS");
+        return value != nullptr && std::strcmp(value, "1") == 0;
+    }();
+    static thread_local RingDemoteStats stats;
+    static thread_local std::uint64_t calls = 0;
+    const auto freed = demote_ring_pages(addresses, pages, address, *host_kv_extents,
+        device.stream, sink_pages, target_free, preferred, batch_limit, report ? &stats : nullptr);
+    if (report && (++calls == 1 || calls % 1024 == 0)) {
+        std::fprintf(stderr, "[ring-demote] batch_limit=%u calls=%llu copied_pages=%u copy_batches=%u last_freed=%u\n",
+            batch_limit, static_cast<unsigned long long>(calls), stats.copied_pages,
+            stats.copy_batches, freed);
     }
-    return demoted;
+    return freed;
 }
 
 namespace {

@@ -1,48 +1,65 @@
-# v0.1.4 两模型一键整合包
+# v0.1.5 离线整合包：无模型版与完整版
 
-适用Windows x64、RTX5070Ti Laptop12GB和32GB RAM；其他50系需单独验证，非50系需要重新编译。**网盘一键包已包含引擎、两个ninfer模型、Node、dsh和所需运行依赖，只下载夸克包即可部署，不需要访问GitHub或再下载这些文件。** 网盘包由维护者上传，GitHub Release仍只放引擎与源码。
+两个包均包含**引擎、便携 Node24.14.1、固定 dsh0.1.5-rc.3、网页工具 npm 依赖、cuBLAS13、LGPL shared FFmpeg、VC++ x64 安装器、源码、许可、安装提示词、纠错文档和更新说明**，不依赖 GitHub 在线部署。网盘由维护者上传，链接见视频简介/置顶评论。
 
-## 包内内容
+社区反馈 RTX30 系及以后、12GB+ 可运行本项目；16GB 可选择更大的 IQ3_S 模型。**这两包的预编译引擎均为 Windows x64 / sm120a（50系），30/40系需对应架构的兼容引擎和依赖，不能直接使用本 exe。** 建议32GB RAM和SSD。系统仍需兼容CUDA13的NVIDIA驱动及Microsoft Edge；不捆绑或自动修改驱动。
 
-- v0.1.4引擎，固定版本cuBLAS13和LGPL shared FFmpeg；完整许可和来源。
-- 两个v3 `.ninfer` 文本+MTP模型：Huihui Qwen3.8-27B abliterated Swift-1.5 GSQ-RCO IQ3_XXS、原版Qwen3.8-27B GSQ-RCO IQ3_XXS。分别约10.06GiB，只加载所选一个，不含额外视觉塔。
-- 便携Node24.14.1、锁定dsh0.1.5-rc.3及网页工具npm依赖，离线安装无需重新npm下载。附Microsoft VC++ x64运行库安装器。
-- 启动/停止、模型切换、回答惩罚作用范围和KV格式切换入口，安装/纠错提示词及更新说明。
-- `offline-bundle.json` 与 `SHA256SUMS`记录文件大小、来源和SHA-256；`04-verify.cmd`完整核对。
+## 选择哪个包
 
-**系统仍需已安装兼容CUDA13的NVIDIA驱动和Microsoft Edge。** 驱动按显卡/系统从NVIDIA或电脑厂商获取，本包不安装或修改驱动。预编译文字服务无需完整CUDA Toolkit、Python、Visual Studio或额外下载模型。
+| 包名 | 模型内容 | 首次安装入口 |
+|---|---|---|
+| `NInfer-v0.1.5-Windows-sm120a-no-models.zip` | 无权重，适合已有模型 | `01-setup-your-model.cmd`，输入自己的文字+MTP v3 `.ninfer` 完整路径 |
+| `NInfer-v0.1.5-Windows-sm120a-full.zip` | Huihui Swift-1.5、原版GSQ-RCO，两份IQ3_XXS文字+MTP；另含完整Huihui文字+BF16视觉+MTP制品 | `01-setup-huihui.cmd` 或 `01-setup-gsq.cmd` |
 
-## 解压和安装
+两份文字模型各约10.06GiB，视觉制品约10.91GiB；**视觉制品也含完整文字权重**，额外体积用于开箱即用，无需下载/转换GGUF。三份制品一次只加载所选一个；不是同时加载三个模型。本包不含IQ3_S。裸mmproj GGUF不能直接交给本服务器。
 
-启动前建议依次处理显存：
+压缩包采用ZIP64，放NTFS/exFAT盘，不能用FAT32。完整包下载加解压建议预留至少85GB，无模型版至少15GB；实际大小以ZIP及清单为准。解压到短路径如 `D:\AI\ninfer-v015`，不要在压缩包里直接运行。
 
-1. **优先开启混合显卡模式**（电脑厂商控制中心/BIOS中的Hybrid/Optimus），让桌面和浏览器使用核显，独显留给推理；按厂商要求重启。无核显的设备跳过此项。
-2. **关闭引擎的CUDA系统内存回退（溢出内存）**：NVIDIA控制面板 → 管理3D设置 → 程序设置 → 添加本包 `runtime/engine/ninfer-serve.exe` → `CUDA - Sysmem Fallback Policy` → `Prefer No Sysmem Fallback`。只对引擎设置，正常重启引擎后生效；本包不自动修改驱动。此项防止显存不足时悄悄落入系统内存而严重变慢，不会凭空增加显存。**保留KVMem的HostKV=7168MiB**，它与驱动溢出不同。
-3. 关闭无关后台应用、游戏和其他独显负载，确保不是另一个模型占着显存。
-4. 仍不足时，优先用 `07-kv-rk4v4.cmd` 切回RK4V4，再启动。
-5. 仍不足，再用 `08-pool-small.cmd` 适当缩小整套预算：DeviceKV34560 / Retrieve1536，sink12288 / recent19456保持，给临时页保留与默认组合相同的1280-token名义余量。该小档只核对配置和名义容量，未追加实模验收；检索窗口减少可能损失历史召回，需验证自己的长任务。逻辑上下文上限仍262144，不等于仍有相同有效召回。`08-pool-default.cmd` 恢复36864/3840。切换前均先停止本包，不自动降低页池或思考强度。
+## 显存准备顺序
 
-1. 从网盘完整下载ZIP64，解压到较短路径，例如 `D:\AI\ninfer-v014`，不要直接在压缩包里运行。模型较大，所在磁盘应使用NTFS/exFAT，不能放FAT32；下载+解压建议至少55GB空间。
-2. 第一次双击 `00-install-vc-runtime.cmd`，按Microsoft安装器提示完成运行库安装；已安装兼容版本可跳过。需要重启时先完成系统重启。
-3. 双击 `01-setup-huihui.cmd`（日常Huihui），或 `01-setup-gsq.cmd`（原版GSQ）。安装器核对文件、检测引擎依赖并生成本包独立的dsh配置；不启动模型推理。
-4. 双击 `02-start.cmd`。第一次加载权重和捕获CUDA Graph需要等待；就绪后自动打开本机Agent网页。关闭用 `03-stop.cmd`，保留会话、模型和配置。
+1. **优先开混合显卡模式**（Hybrid/Optimus），让桌面和浏览器尽量用核显；按设备要求重启，没有核显则跳过。
+2. **关闭实际引擎的驱动溢出内存：** NVIDIA控制面板 → 管理3D设置 → 程序设置 → 添加本包 `runtime/engine/ninfer-serve.exe` → `CUDA - Sysmem Fallback Policy` → `Prefer No Sysmem Fallback`。只针对实际exe设置，重启引擎生效。**保留KVMem HostKV7168MiB**，它与驱动系统内存回退不同。
+3. 关闭无关后台、游戏和其他独显应用。
+4. 仍显存不足，优先在停止后用 `07-kv-rk4v4.cmd` 切换，再启动；同一引擎支持两种KV格式，输出可能变化。
+5. 还不足，用 `08-pool-small.cmd` 配套设为 DeviceKV34560 / Retrieve1536，sink12288 / recent19456保留。小档减少检索预算，可能损失召回，未新增实模长任务验收；不能只缩池而保留装不下的窗口。`08-pool-default.cmd`恢复36864/3840。
 
-不在整合包内运行 `setup.ps1` 的在线流程；上述一键安装入口会指定 `-Offline`。首次校验会读取两个模型和全部依赖，可能需要数分钟，不应误判卡死。仅API可用 `scripts/setup-bundle.ps1 -Model huihui -SkipDsh`，之后 `start.ps1 -EngineOnly`。
+脚本不自动更改驱动、显卡模式或其他应用。驱动整卡空闲不等于CUDA可分配余量。
 
-## 设置与文件位置
+## 安装与启动
 
-默认NVFP4、xhigh、MTP3、逻辑262144、DeviceKV36864 / Retrieve3840 / HostKV7168MiB、sink12288 / recent19456；回答presence=1且 `AnswerPenaltyScope=answer`。公开预算比维护者的39168/6144更保守。NVFP4比此前RK4V4配置多占一些显存，不能承诺所有12GB设备均能启动。
+1. 完整解压。首次可用 `00-install-vc-runtime.cmd` 安装Microsoft运行库，已安装兼容版本可跳过。
+2. 按上表运行安装入口。安装会读取全部文件做SHA-256校验，完整包需要读取约31GiB模型，可能耗时数分钟；不发送推理请求，不下载依赖。
+3. 运行 `02-start.cmd`，等待权重加载和CUDA Graph捕获，然后自动打开本机dsh网页。关闭使用 `03-stop.cmd`，只停止本包进程，保留会话和模型。
+4. `04-verify.cmd`重查完整性。包内 `offline-bundle.json`、`SHA256SUMS`记录实际文件与模型身份；外层 `.zip.sha256`供上传/下载核对。
 
-等待任务结束并运行 `03-stop.cmd` 后，可双击 `05-use-huihui.cmd` / `05-use-gsq.cmd` 切模型；`06-answer-counts.cmd` / `06-carry-over-counts.cmd` 开关独立回答计数；`07-kv-nvfp4.cmd` / `07-kv-rk4v4.cmd` 切KV。切换只保存配置，之后运行 `02-start.cmd`；不会自动停止其他服务。更换模型后建议新开会话以免混用旧模型输出，磁盘旧会话保留。
+无模型版也可命令行安装：
 
-`config/local.json`为本包设置；`runtime/dsh-home`为独立会话；`runtime/logs`为日志；`runtime/node`为便携Node；`runtime/engine`为引擎与DLL。登录URL只在本机日志，不随分享包提供。移动已安装包后先停止，再重跑一键安装以重建路径。
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-bundle.ps1 -ModelPath "D:\Models\model.ninfer" -ModelId "my-qwen-model"
+```
 
-模型来源和许可见[模型说明](MODELS.md)及包内 `model-notices/`。Swift派生部分适用Swift Open License v1.0，包含商业使用收入门槛；保留Huihui模型卡和UkisAI许可，不能将其当作纯Apache-2.0模型。包内模型由现有GGUF转换为ninfer-v3，不重新训练或量化。
+默认NVFP4、xhigh、MTP3、逻辑262144、DeviceKV36864 / Retrieve3840 / HostKV7168MiB、sink12288 / recent19456、AnswerPenaltyScope=answer，启用C2.1锚点和batch32。16GB卡选择IQ3_S时同样先保留起步预算再验证，不自动扩大页池。
 
-[安装提示词](INSTALL_PROMPT.md) · [纠错文档与提示词](TROUBLESHOOTING.md) · [本版提升与边界](RELEASE_NOTES.md)
+## 文字与CPU视觉切换
 
-## 构建与验证范围
+**默认纯文字，不启用视觉**；第一次安装Huihui/GSQ时写入 `VisionCPU=false`，dsh只声明text输入。完整包文件存在不代表加载视觉。
 
-本次35,053文件（含两个模型）完整校验、离线安装、两模型路由及KV/计数/页池配置切换通过；便携dsh在独立端口认证网页HTTP200，未连接日常模型或发送推理请求。修正Windows PowerShell的Node版本检测兼容性；完整性校验另覆盖篡改、缺失与路径越界拒绝。[发布验收记录](../benchmarks/evidence/publication/verification-v014.json)。
+等待当前任务结束、运行 `03-stop.cmd` 后：
 
-维护者用 `scripts/package-offline.py` 从公开源码文件、明确模型和全新npm依赖构建；不打入旧dsh home、cookie、token、用户配置、缓存、原始私有日志或本机Node目录。模型/依赖SHA写入包内清单；解压校验、便携Node、引擎帮助和离线dsh配置属于安装验收，不等于真实模型任务验收。引擎已有29/29等固定夹具结果见更新说明，最终整合包不额外生成模型输出。
+- `05-use-huihui.cmd` / `05-use-gsq.cmd`：选择文字模型，同时关闭视觉。
+- `09-enable-cpu-vision.cmd`：切到完整Huihui视觉制品，设置 `VisionCPU=true`；启动器加入 `--vision-cpu --vision-max-merged 256`，dsh声明text,image。前处理和视觉塔完全CPU，文字/MTP仍GPU。
+- `09-disable-vision-huihui.cmd`：切回Huihui文字制品并关闭视觉。
+
+保存后运行 `02-start.cmd`。切模型建议新开会话；旧磁盘会话保留，进程缓存重建。CPU视觉增加RAM和首次图片编码等待，256 merged-token cap可能丢失细小文字/复杂图像细节。[视觉说明](VISION.md)
+
+`06-answer-counts.cmd` / `06-carry-over-counts.cmd`控制回答惩罚计数；`07-*`控制KV格式；`08-*`控制池/检索。全部要求先停止本包，只保存设置，不自动启动。
+
+## 文件、许可与验证
+
+`config/local.json`为私有配置，`runtime/dsh-home`为会话，`runtime/logs`为日志；登录URL不公开。移动已安装目录后先停止，再重新运行安装入口更新路径。升级建议新目录解压，保留旧包作回退；不要把新默认配置覆盖自己的设置或删除会话。
+
+模型来源与许可见[MODELS.md](MODELS.md)、包内 `model-notices/`；Swift部分遵守Swift Open License v1.0及商业收入门槛，不能当作纯Apache模型。
+
+由 `scripts/package-offline.py`从Git公开文件、明确模型、固定哈希归档与锁定npm依赖构建，不复制用户home、cookie、token、缓存或原始日志。归档仅包含manifest内文件及两个校验清单；安装后的配置不会进入分享ZIP。文件校验、引擎帮助与离线配置测试属于安装验收，不能替代实际模型任务；引擎实测范围见[本版更新说明](RELEASE_NOTES.md)。
+
+[安装提示词](INSTALL_PROMPT.md) · [纠错文档](TROUBLESHOOTING.md) · [维护指南](DEPLOYMENT_AGENT_GUIDE.md)

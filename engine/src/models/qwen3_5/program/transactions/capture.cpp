@@ -2,6 +2,7 @@
 #include "models/qwen3_5/program/program_impl.h"
 #include "models/qwen3_5/program/context_work.h"
 #include "models/qwen3_5/program/planning/pressure_planner.h"
+#include "models/qwen3_5/frontend/rolling_anchor.h"
 
 #include <algorithm>
 #include <array>
@@ -189,8 +190,28 @@ ProgramImpl::inspect_capture(const CaptureOffer& offer, const SharedPrefixHandle
         group.long_anchor && anchor_limit != 0 && sequence.long_anchors.size() == anchor_limit;
     const LongAnchorCheckpoint* selected_anchor_replacement = nullptr;
     if (anchor_replacement_required) {
+        const bool automatic = rolling_long_anchor_enabled() &&
+            std::any_of(prefill.prompt.context_cache.opportunities.begin(),
+                        prefill.prompt.context_cache.opportunities.end(),
+                        [&](const PreparedCacheOpportunity& opportunity) {
+                            return opportunity.frontier == group.frontier &&
+                                   is_automatic_long_anchor(opportunity);
+                        });
+        const auto latest = std::max_element(
+            sequence.long_anchors.begin(), sequence.long_anchors.end(),
+            [](const auto& a, const auto& b) { return a.frontier < b.frontier; });
+        std::optional<std::uint32_t> protected_seed_ordinal;
+        if (protect_automatic_anchor_seed(automatic, sequence.long_anchors.size(),
+                                        latest->frontier, group.frontier,
+                                        context_cache.long_anchor_min_spacing_tokens)) {
+            const auto seed = select_rolling_anchor_seed(
+                sequence.long_anchors.begin(), sequence.long_anchors.end(),
+                context_cache.long_anchor_min_spacing_tokens);
+            if (seed != sequence.long_anchors.end()) { protected_seed_ordinal = seed->ordinal; }
+        }
         assessment.private_replacement_candidates.reserve(sequence.long_anchors.size());
         for (const LongAnchorCheckpoint& anchor : sequence.long_anchors) {
+            if (protected_seed_ordinal && anchor.ordinal == *protected_seed_ordinal) { continue; }
             assessment.private_replacement_candidates.push_back(runtime::CheckpointRef{
                 .kind     = runtime::CheckpointKind::LongAnchor,
                 .frontier = anchor.frontier,

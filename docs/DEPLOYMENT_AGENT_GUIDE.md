@@ -1,12 +1,12 @@
 # 部署与维护交接手册：给使用者和 Agent
 
-适用：本仓库的 Windows / RTX 5070 Ti Laptop 12GB / Qwen3.8-27B GSQ-RCO IQ3_XXS + MTP 部署。版本与参数核对日期：**2026-10-21**。先读本文，再按需查阅专项文档；仓库更新后以当前脚本、清单和 lockfile 为准。
+适用：本仓库的 Windows / RTX 5070 Ti Laptop 12GB / Qwen3.8-27B GSQ-RCO IQ3_XXS + MTP 部署。版本与参数核对日期：**2026-10-24**。先读本文，再按需查阅专项文档；仓库更新后以当前脚本、清单和 lockfile 为准。
 
-**部署目标：保住已有模型质量、长上下文和缓存续接速度，先完成已验证的默认部署，再逐项优化。** 维护者已在这台 12GB 笔记本上稳定使用，并反馈 200K 上下文日常任务仍稳定、重复任务更快；满 256K 的整模型压力测试尚未完成。其他 RTX 50 系 12GB 以上设备欢迎验证，非 50 系需自行编译对应架构。
+**部署目标：保住已有模型质量、长上下文和缓存续接速度，先完成已验证的默认部署，再逐项优化。** 维护者已在这台 12GB 笔记本上稳定使用，并反馈 200K 上下文日常任务仍稳定、重复任务更快；满 256K 的整模型压力测试尚未完成。多位使用者反馈 RTX30系及以后、12GB以上可稳定运行，16GB可选更大IQ3_S模型；本次sm120a附件仍仅50系，30/40系须对应架构构建。
 
 **特别感谢 Bilibili [0xFFFF7](https://search.bilibili.com/upuser?keyword=0xFFFF7)：维护者使用的基础架构来自他分享的版本，此前死循环问题也由他解决。** 本仓库是在该基础上继续适配，完整归属见 [上下游与许可](UPSTREAM_DOWNSTREAM.md)。
 
-当前发布为v0.1.4：部署默认 `AnswerPenaltyScope=answer`，引擎自身默认carry-over；关闭策略可改为carry-over后正常重启。新增工具解析、采样边界、NVFP4分区、GDN舍入修复，验证范围及未解决问题见[更新说明](RELEASE_NOTES.md)。离线整合包见[安装入口](OFFLINE_BUNDLE.md)，可直接使用[安装提示词](INSTALL_PROMPT.md)和[纠错提示词](TROUBLESHOOTING.md)。下方历史v0.1.3性能记录按当时条件理解。
+当前发布为v0.1.5（v0.1.4 + C2.1）：部署默认 `AnswerPenaltyScope=answer`，引擎自身默认carry-over；关闭策略可改为carry-over后正常重启。新增滚动长锚点与batch32回迁，保留工具解析、采样边界、NVFP4分区、GDN舍入修复，验证范围及未解决问题见[更新说明](RELEASE_NOTES.md)。离线整合包见[安装入口](OFFLINE_BUNDLE.md)，可直接使用[安装提示词](INSTALL_PROMPT.md)和[纠错提示词](TROUBLESHOOTING.md)。下方历史v0.1.3性能记录按当时条件理解。
 
 显存处理顺序：优先混合显卡模式 → 对实际引擎关闭CUDA系统内存回退 → 关闭无关后台应用 → 仍不足优先RK4V4 → 再配套缩小页池/检索窗口。保留7GiB KVMem Host KV；离线包小档34560/1536未追加实模召回验收。
 
@@ -53,11 +53,11 @@ CUDA 驱动系统内存回退强烈建议仅对实际引擎 exe 禁用；保留 
 
 ## 2. 版本清单与实际来源
 
-**源码 `main` 与引擎 Release 是两层版本。** 当前安装器下载 `v0.1.4` 引擎，新增 NVFP4 prompt 调度及累计 Host 缓存压力修复，保留检索上下文、decode 历史索引和缓存问句保护；后续 dsh 模块、脚本和文档可由新的源码提交提供。报告问题时同时记录 `git rev-parse HEAD` 与引擎 SHA-256，不能只说“最新版”。
+**源码 `main` 与引擎 Release 是两层版本。** 当前安装器下载 `v0.1.5` 引擎，在 v0.1.4 上增加 C2.1 长锚点及批量冷页回迁，保留检索上下文、decode 历史索引和缓存问句保护；后续 dsh 模块、脚本和文档可由新的源码提交提供。报告问题时同时记录 `git rev-parse HEAD` 与引擎 SHA-256，不能只说“最新版”。
 
 | 组件 | 当前固定值 / 验证值 | 核对位置与说明 |
 |---|---|---|
-| 发布引擎 | `v0.1.4`，Windows x64 / `sm120a` | [下载清单](../config/downloads.json)；实际 exe 哈希见下方 |
+| 发布引擎 | `v0.1.5`，Windows x64 / `sm120a` | [下载清单](../config/downloads.json)；实际 exe 哈希见下方 |
 | 原源码链 | 分享包报告 `v0.11.0-rtx3090`，KVMem 参考 `65dbd4f2` | [来源记录](../SOURCE_PROVENANCE.json)；缺少原完整 Git 历史，不当作当前二进制版本 |
 | CUDA 构建工具链 | `13.0.48`；MSVC v143 `14.44.35207` | [源码编译](BUILD.md)；运行预编译包无需完整 CUDA Toolkit |
 | cuBLAS | `13.0.0.19`，`cublas64_13.dll` / `cublasLt64_13.dll` | NVIDIA 固定归档，安装器逐文件校验 |
@@ -76,10 +76,12 @@ CUDA 驱动系统内存回退强烈建议仅对实际引擎 exe 禁用；保留 
 本版引擎 `ninfer-serve.exe` 的 SHA-256：
 
 ```text
-8804cb04470214f68e01e38cb07004c90e748507a77134995335d1edbd768472
+38bc4d8c6be07afd6c74b902cc33403bf2ee139a2c50129d363d68d74a7609d6
 ```
 
-原版GSQ模型精确文件：`ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF` 的 **`Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf`**，转换成含 `text,mtp` 的 **v3 `.ninfer`**。Huihui Swift变体、模型 revision、tokenizer 来源与转换命令见 [MODELS.md](MODELS.md)。GitHub附件不包含权重，夸克整合包包含两个已转换模型；不能把 GGUF 路径直接传给服务器，也不能将不带 MTP 的文件套用这套启动参数。
+原版GSQ模型精确文件：`ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF` 的 **`Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf`**，转换成含 `text,mtp` 的 **v3 `.ninfer`**。Huihui Swift变体、模型 revision、tokenizer 来源与转换命令见 [MODELS.md](MODELS.md)。GitHub附件不包含权重，夸克包分无模型版和双文字模型加完整可选视觉制品版，默认都不启用视觉；不能把 GGUF 路径直接传给服务器，也不能将不带 MTP 的文件套用这套启动参数。
+
+v0.1.5 默认启用滚动/消费长锚点与batch32回迁：Host state slots=8、spacing=49152、每continuation最多2个，Device state slots=0。公开页池仍36864/3840。VisionCPU缺省false；完整版可显式切换CPU视觉，见[离线包说明](OFFLINE_BUNDLE.md)。构建与测试边界见[C2.1移植记录](C2P1_V014_PORT.md)。
 
 ## 3. 启动前：先留够显存和 RAM
 

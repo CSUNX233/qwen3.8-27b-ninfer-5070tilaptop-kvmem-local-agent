@@ -534,7 +534,8 @@ void ProgramImpl::prepare_consumed_source(MaterializationTransaction& transactio
                                   static_cast<std::ptrdiff_t>(index - 1U));
         release_if_unreferenced(state);
     }
-    if (details.reuse == ReusePath::PrivateEndpoint &&
+    if ((details.reuse == ReusePath::PrivateEndpoint ||
+         details.reuse == ReusePath::PrivateLongAnchor) &&
         details.rewrite_disposition != RewriteCheckpointDisposition::RetainExisting &&
         source.rewrite_state) {
         const StateImageHandle rewrite = *source.rewrite_state;

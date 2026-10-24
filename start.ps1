@@ -8,11 +8,19 @@ if ($kvDType -notin @('nvfp4', 'rk4v4')) { throw 'KVDType must be nvfp4 or rk4v4
 $penaltyScope = 'answer'
 if ($cfg.PSObject.Properties['AnswerPenaltyScope']) { $penaltyScope = [string]$cfg.AnswerPenaltyScope }
 if ($penaltyScope -notin @('answer', 'carry-over')) { throw 'AnswerPenaltyScope must be answer or carry-over. See docs/ANSWER_PENALTY_SCOPE.md.' }
+$visionCPU = $false
+if ($cfg.PSObject.Properties['VisionCPU']) {
+    if ($cfg.VisionCPU -isnot [bool]) { throw 'VisionCPU must be a JSON boolean.' }
+    $visionCPU = $cfg.VisionCPU
+}
 $engine = Resolve-ProjectPath $cfg.EnginePath
 $model = Resolve-ProjectPath $cfg.ModelPath
 if (-not (Test-Path -LiteralPath $engine) -or -not (Test-Path -LiteralPath $model)) { throw 'Engine/model missing. Run setup.ps1 first.' }
 $launchMutex = Enter-LaunchMutex
 $previousPenaltyScope = [Environment]::GetEnvironmentVariable('NINFER_POST_THINKING_PENALTY_SCOPE', 'Process')
+$anchorDefaults = @{ NINFER_C2_ROLLING_ANCHOR = '1'; NINFER_C2_CONSUME_ANCHOR = '1'; NINFER_KV_DEMOTE_BATCH = '32' }
+$previousAnchors = @{}
+foreach ($name in $anchorDefaults.Keys) { $previousAnchors[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
 try {
 $oldState = @(Get-DeploymentState | Where-Object { $_ -and (Test-OwnedProcess $_) })
 if ($oldState.Count) { throw 'This checkout already has running processes. Use stop.cmd before restarting.' }
@@ -34,13 +42,20 @@ try {
     # Qualified semantic-history repairs. Explicit 0 remains available for diagnosis.
     if (-not $env:NINFER_KVMEM_INDEX_DECODE) { $env:NINFER_KVMEM_INDEX_DECODE='1' }
     if (-not $env:NINFER_KVMEM_CACHE_QUERY) { $env:NINFER_KVMEM_CACHE_QUERY='1' }
+    foreach ($name in $anchorDefaults.Keys) {
+        if (-not [Environment]::GetEnvironmentVariable($name, 'Process')) {
+            [Environment]::SetEnvironmentVariable($name, $anchorDefaults[$name], 'Process')
+        }
+    }
     $engineArgs=@($model,'--model-id',$cfg.ModelId,'--chat-template',(Join-Path $PSScriptRoot 'templates/chat_template_qwen3.8-enhanced.jinja'),
         '--max-context',[string]$cfg.MaxContext,'--kv-capacity',[string]$cfg.DeviceKV,'--max-concurrency','1','--max-shared-prefixes','0',
         '--kv-dtype',$kvDType,'--host-kv-mib',[string]$cfg.HostKVMiB,'--cuda-graph-allowance-mib','64','--prefill-chunk','128',
         '--gdn-state-fp16','--spec','mtp','--draft-tokens','3','--default-max-tokens','0','--kv-lease-growth',
         '--default-reasoning-effort',$cfg.ReasoningEffort,'--presence-penalty','1.0','--post-thinking-sampler','temp=0.7,top_p=0.95,presence=1.0',
         '--recover-invariant-failures','--context-cache-policy','rolling','--release-diverged-checkpoints','--recency-eviction',
+        '--host-state-slots','8','--auto-long-anchors','--long-anchor-spacing','49152','--max-long-anchors-per-continuation','2',
         '--device-state-slots','0','--no-webui','--log-stats-interval-ms','5000','--host','127.0.0.1','--port',[string]$cfg.EnginePort)
+    if ($visionCPU) { $engineArgs += @('--vision-cpu','--vision-max-merged','256') }
     $records.Add((Start-OwnedProcess 'engine' $engine $engineArgs $model (Split-Path $engine -Parent)))
     Write-LocalJson (Join-Path $script:RuntimeRoot 'processes.json') @($records.ToArray())
     Write-Host 'Loading model and CUDA graphs ...'
@@ -95,6 +110,7 @@ try {
 }
 } finally {
     [Environment]::SetEnvironmentVariable('NINFER_POST_THINKING_PENALTY_SCOPE', $previousPenaltyScope, 'Process')
+    foreach ($name in $previousAnchors.Keys) { [Environment]::SetEnvironmentVariable($name, $previousAnchors[$name], 'Process') }
     $launchMutex.ReleaseMutex()
     $launchMutex.Dispose()
 }

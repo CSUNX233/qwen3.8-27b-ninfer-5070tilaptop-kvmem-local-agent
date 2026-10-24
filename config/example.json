@@ -14,5 +14,6 @@
   "RetrieveTokens": 3840,
   "ReasoningEffort": "xhigh",
   "AnswerPenaltyScope": "answer",
-  "ToolGroundedExecution": true
+  "ToolGroundedExecution": true,
+  "VisionCPU": false
 }

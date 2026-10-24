@@ -34,12 +34,12 @@ const settings = document(settingsFile, {});
 settings['llm-pi-ai'] ??= {};
 settings['llm-pi-ai'].providers ??= {};
 settings['llm-pi-ai'].providers['ninfer-local'] = {
-  displayName: 'NInfer · RTX 5070 Ti Laptop 12GB · KVMem', api: 'openai-completions',
+  displayName: 'NInfer · Local KVMem', api: 'openai-completions',
   baseURL: `http://127.0.0.1:${cfg.GuardPort}/v1`, apiKeyEnv: 'NINFER_LOCAL_KEY', streamIdleTimeoutMs: 1800000,
   compat: { supportsDeveloperRole: false, supportsReasoningEffort: true,
     maxTokensField: 'max_tokens', requiresReasoningContentOnAssistantMessages: true },
-  models: [{ id: cfg.ModelId, name: `${cfg.ModelId.includes('huihui') ? 'Huihui Swift-1.5' : 'Qwen3.8-27B GSQ-RCO'} IQ3_XXS · 256K KVMem`,
-    contextWindow: cfg.MaxContext, maxTokens: 73728, input: ['text'],
+  models: [{ id: cfg.ModelId, name: `${cfg.ModelId} · KVMem${cfg.VisionCPU === true ? ' · CPU Vision' : ''}`,
+    contextWindow: cfg.MaxContext, maxTokens: 73728, input: cfg.VisionCPU === true ? ['text', 'image'] : ['text'],
     reasoningEfforts: { low: 'low', medium: 'medium', xhigh: 'xhigh' } }],
 };
 settings['agent-default-model'] ??= { provider: 'ninfer-local', model: cfg.ModelId, reasoningEffort: cfg.ReasoningEffort };

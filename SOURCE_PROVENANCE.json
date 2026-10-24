@@ -3,7 +3,7 @@
   "upstream": "https://github.com/iamwavecut/ninfer-all",
   "upstream_base_reported_by_bundle": "v0.11.0-rtx3090; KVMem integration reference 65dbd4f2",
   "original_git_history_available": false,
-  "engine_binary_sha256": "8804cb04470214f68e01e38cb07004c90e748507a77134995335d1edbd768472",
+  "engine_binary_sha256": "38bc4d8c6be07afd6c74b902cc33403bf2ee139a2c50129d363d68d74a7609d6",
   "copy_count": 2407,
   "locally_recorded_modified_files": [
     "docs/serving.md",
@@ -86,11 +86,11 @@
     "contribution": "Provided the foundation distribution downloaded by the maintainer and resolved the reported infinite-loop issue.",
     "source": "Maintainer attribution supplied for this publication; not a claim of sole upstream authorship."
   },
-  "release_source_url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/tree/v0.1.4",
+  "release_source_url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/tree/v0.1.5",
   "previous_release": {
-    "version": "0.1.3",
-    "engine_binary_sha256": "444b88219b5d9c8b1052c2ff37bc48320ed87bbd082b1dbca50e8cf91aaccb8d",
-    "source_url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/tree/v0.1.3"
+    "version": "0.1.4",
+    "engine_binary_sha256": "8804cb04470214f68e01e38cb07004c90e748507a77134995335d1edbd768472",
+    "source_url": "https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/tree/v0.1.4"
   },
   "retrieval_context_patch": {
     "engine_sha256": "34fd593d76bd332c1b8470ce5ffe4fd9e7e9820229558cffd1cf9ddaa386224b",
@@ -421,5 +421,36 @@
         "Reduce pool and retrieval together if still insufficient"
       ]
     }
+  },
+  "release_0_1_5": {
+    "date": "2026-10-24",
+    "base_tag": "v0.1.4",
+    "base_commit": "4e4ee4262f333b75b4d94afdf41d31d2c1f4e500",
+    "engine_sha256": "38bc4d8c6be07afd6c74b902cc33403bf2ee139a2c50129d363d68d74a7609d6",
+    "qualification": "benchmarks/evidence/c2p1-v014-port/verification.json",
+    "scope": "C2.1 rolling message-boundary anchors, same-lineage anchor consumption and bounded Host KV demotion batches; retains v0.1.4 parser, sampling, NVFP4 reducer, FP16 GDN and answer-only penalty repairs.",
+    "build": "71 Host override translation units rebuilt from v0.1.4 plus C2.1; 11 verified CUDA objects and remaining original static archives reused. Incremental, not a clean full CUDA build.",
+    "launcher_defaults": {
+      "automatic_long_anchors": true,
+      "NINFER_C2_ROLLING_ANCHOR": "1",
+      "NINFER_C2_CONSUME_ANCHOR": "1",
+      "NINFER_KV_DEMOTE_BATCH": "32",
+      "host_state_slots": 8,
+      "long_anchor_spacing": 49152,
+      "max_long_anchors_per_continuation": 2,
+      "vision_cpu": false,
+      "device_kv": 36864,
+      "retrieve_tokens": 3840
+    },
+    "portable_variants": [
+      "no-models",
+      "full: two text+MTP models plus a complete Huihui text+vision+MTP artifact; CPU vision is opt-in"
+    ],
+    "hardware_scope": "Community reports: RTX 30 series and later with >=12GB, using architecture-matched builds; 16GB may use larger IQ3_S. This release asset targets Windows x64 sm120a only.",
+    "limitations": [
+      "12 targeted regressions, two greedy long-context synthetic fixtures (7 requests each) and 7 API smoke requests; not a general quality benchmark.",
+      "GPU peak sampled every 5 seconds; no matched original-v0.1.4 VRAM comparison.",
+      "No full-256K, full CTest or all-GPU qualification. Anchors use bounded Host memory and can be evicted."
+    ]
   }
 }

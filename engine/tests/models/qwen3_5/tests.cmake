@@ -70,9 +70,19 @@ ninfer_add_test(ninfer_qwen3_5_ring_host_pressure_test
   SOURCES "${CMAKE_CURRENT_LIST_DIR}/test_ring_host_pressure.cpp"
   LIBRARIES ninfer_engine ninfer_core)
 
+ninfer_add_test(ninfer_qwen3_5_rolling_long_anchor_test
+  SOURCES "${CMAKE_CURRENT_LIST_DIR}/../../test_rolling_long_anchor.cpp"
+  LIBRARIES ninfer_engine ninfer_core)
+
+ninfer_add_test(ninfer_qwen3_5_ring_demote_test
+  SOURCES "${CMAKE_CURRENT_LIST_DIR}/test_ring_demote.cpp"
+  LIBRARIES ninfer_engine ninfer_core
+  TEST_ARGS 32 batched)
+
 set_tests_properties(
   ninfer_qwen3_5_context_store_test
   ninfer_qwen3_5_ring_host_pressure_test
+  ninfer_qwen3_5_ring_demote_test
   PROPERTIES SKIP_RETURN_CODE 77)
 
 ninfer_add_test(ninfer_qwen3_5_prefix_real_test

@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('huihui','gsq')][string]$Model,
+    [ValidateSet('huihui','gsq','huihui-vision')][string]$Model,
     [ValidateSet('answer','carry-over')][string]$PenaltyScope,
     [ValidateSet('nvfp4','rk4v4')][string]$KVDType,
     [ValidateSet('default','small')][string]$PoolPreset
@@ -14,6 +14,7 @@ if ($Model) {
     $selected = @($manifest.models | Where-Object { $_.id -eq $Model })
     if ($selected.Count -ne 1 -or -not (Test-Path -LiteralPath (Resolve-ProjectPath $selected[0].path))) { throw 'Bundled model is missing.' }
     $config.ModelPath = $selected[0].path; $config.ModelId = $selected[0].model_id
+    $config | Add-Member -NotePropertyName VisionCPU -NotePropertyValue ($selected[0].vision_cpu -eq $true) -Force
 }
 if ($PenaltyScope) { $config | Add-Member -NotePropertyName AnswerPenaltyScope -NotePropertyValue $PenaltyScope -Force }
 if ($KVDType) { $config | Add-Member -NotePropertyName KVDType -NotePropertyValue $KVDType -Force }
