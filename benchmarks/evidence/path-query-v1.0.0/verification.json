@@ -1,0 +1,102 @@
+{
+  "version": "1.0.0",
+  "date": "2026-10-27",
+  "base_version": "0.1.5",
+  "base_commit": "b79bb9b6eafe9b81c36358adeac44dd51cd36d5d",
+  "engine_sha256": "71259a21f7b525ca7477193a292e4d3623cc58b9efd785005ee934cc29673507",
+  "rollback_engine_sha256": "38bc4d8c6be07afd6c74b902cc33403bf2ee139a2c50129d363d68d74a7609d6",
+  "model": "Qwen3.8-27B Huihui Swift 1.5 vision BF16 (IQ3_XXS + MTP3)",
+  "settings": {
+    "max_context": 262144,
+    "kv_capacity": 39168,
+    "retrieve": 6144,
+    "sink": 12288,
+    "window": 19456,
+    "kv_dtype": "nvfp4",
+    "speculative": "mtp3",
+    "reasoning_effort": "xhigh",
+    "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.95,
+      "presence_penalty": 1.0
+    }
+  },
+  "engine_switches": [
+    "NINFER_KVMEM_QUERY_MODE=related-tool-head",
+    "NINFER_KVMEM_SUFFIX_REFRESH=tail",
+    "NINFER_KVMEM_QUERY_ASSEMBLE=1"
+  ],
+  "agent_plugins": [
+    "integrations/dsh/local-agent/edit-guard.mjs",
+    "integrations/dsh/local-agent/task-ledger.mjs"
+  ],
+  "results": {
+    "long_fault_history_complete_path": {
+      "baseline": "1/4",
+      "v1_0_0_query_layer": "4/4",
+      "note": "latest-tool-head family; the installed profile uses related-tool-head + tail + assemble1"
+    },
+    "long_history_holdout_8_seeds": {
+      "baseline": "4/8",
+      "v1_0_0_query_layer": "8/8"
+    },
+    "causal_four_class_strict": {
+      "baseline": "8/8",
+      "v1_0_0": "8/8"
+    },
+    "delayed_stress_first_pass_strict": {
+      "baseline": "2/4",
+      "v1_0_0": "2/4"
+    },
+    "six_class_short_path_strict": {
+      "baseline": "10/12, 7/12",
+      "v1_0_0": "10/12, 7/12"
+    },
+    "structured_one_retry_recovery": {
+      "generic_feedback": "0/10",
+      "structured_feedback": "10/10",
+      "scope": "agent layer; recovery after one retry, not first-pass success"
+    },
+    "real_task_pilot_4": {
+      "baseline": {"complete": "4/4", "steps": 11},
+      "v1_0_0": {"complete": "4/4", "steps": 7}
+    },
+    "complex_tasks_2": {
+      "baseline": {"complete": "1/2", "steps": 8},
+      "v1_0_0_without_ledger": {"complete": "1/2", "steps": 7},
+      "v1_0_0_with_ledger": {"complete": "2/2", "steps": 5}
+    },
+    "long_output": {
+      "500_lines_max_32768": "complete 500/500, contiguous, no duplicates or malformed lines",
+      "1500_lines_max_65536": "complete 1500/1500, contiguous, no duplicates or malformed lines",
+      "500_lines_max_12288": "finish_reason=length, 186 lines; xhigh reasoning consumed 9902/12288 tokens"
+    }
+  },
+  "agent_tests": {
+    "repository": "14/14 (edit-guard 10, task-ledger 4)",
+    "local_full_suite": "37/37"
+  },
+  "build": {
+    "host_units_rebuilt": 71,
+    "cuda_objects_reused": 11,
+    "clean_full_build": false,
+    "test_programs_passed": [
+      "query-chunks",
+      "decode-query",
+      "score-schedule",
+      "complete frontend"
+    ]
+  },
+  "rejected_experiments": [
+    "H7 equal-weight dual query: holdout strict completion regressed",
+    "H8 bounded transaction anchors: no stable gain",
+    "H11 tool-head 128/256: selected tool messages already complete at 128; strict completion regressed"
+  ],
+  "limits": [
+    "No claim of universal superiority; causal and short tasks are flat and delayed-stress first pass is unchanged.",
+    "Real browser/game multi-step closure, 256K full context, other models/GPUs, independent peak VRAM and long-run stability are not validated.",
+    "Agent plugins are heuristic and can deny a legitimate call; they return exact evidence and never rewrite arguments.",
+    "The real dsh turn-stopping interaction for task-ledger still merits a separate acceptance run."
+  ],
+  "private_raw_data_uploaded": false
+}

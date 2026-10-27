@@ -1833,7 +1833,13 @@ void TextContext::kvmem_round_end() {
     if (kvmem_harvest_ == nullptr) { return; }
     auto* harvest = static_cast<ops::RawKShadowHarvest*>(kvmem_harvest_);
     kvmem_harvest_ = nullptr;   // the hook must not write into a finished round
-    ops::detail::kvmem_query_publish();
+    if (ops::detail::kvmem_query_publish()) {
+        // Final-fragment history is the common scoring domain for every captured query row.
+        // Never add probability scores normalized over different, growing histories.
+        const auto saved = ops::detail::kvmem_score_probe().query;
+        (void)ops::detail::kvmem_replay_query(saved, static_cast<std::int32_t>(kPagedKVPageSize),
+                                             ctx_.stream, "assembled_question");
+    }
     const std::int32_t layers = static_cast<std::int32_t>(batch_text_kv_->layers());
     const std::int32_t kv_heads =
         static_cast<std::int32_t>(dimension(config_.attention->num_key_value_heads));

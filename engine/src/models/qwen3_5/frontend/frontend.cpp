@@ -24,6 +24,8 @@
 #include <cctype>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
+#include <cstdio>
 #include <limits>
 #include <fstream>
 #include <memory>
@@ -1117,6 +1119,87 @@ PreparedPrompt Frontend::prepare(PromptInput input, const PreparationControl& co
         }
         result.query_span_begin = begin;
         result.query_span_end   = end;
+    }
+    // Experimental query-source controls. Unset/unknown keeps the legacy span exactly.
+    // Only select existing token rows: never rewrite the prompt, paths, positions or KV identity.
+    // Keep these opt-in until task continuation AND intentional directory changes are qualified.
+    if (const char* setting = std::getenv("NINFER_KVMEM_QUERY_MODE")) {
+        const std::string_view mode(setting);
+        constexpr std::int32_t budget = 64;
+        if (mode == "user-tail" && result.query_span_begin >= 0 &&
+            result.query_span_end > result.query_span_begin) {
+            result.query_span_begin =
+                std::max(result.query_span_begin, result.query_span_end - budget);
+        } else if (mode == "latest-tool-head" || mode == "related-tool-head") {
+            // A new user turn invalidates all older execution feedback as a query source.
+            std::optional<std::size_t> last_user;
+            for (std::size_t i = 0; i < message_roles.size(); ++i) {
+                if (message_roles[i] == ChatRole::User) { last_user = i; }
+            }
+            struct Candidate { std::int32_t begin, end; std::vector<TokenId> unique; };
+            std::vector<Candidate> candidates;
+            for (std::size_t i = last_user ? *last_user + 1 : message_roles.size();
+                 i < message_roles.size() && i + 1 < message_boundaries.size(); ++i) {
+                if (message_roles[i] != ChatRole::Tool ||
+                    (!message_boundaries[i] && i != 0) || !message_boundaries[i + 1]) {
+                    continue;
+                }
+                auto begin = static_cast<std::int32_t>(message_boundaries[i].value_or(0));
+                const auto end = static_cast<std::int32_t>(*message_boundaries[i + 1]);
+                if (begin < 0 || begin >= end ||
+                    end > static_cast<std::int32_t>(result.token_ids.size())) { continue; }
+                if (impl_->tokenizer->decode_token_bytes(result.token_ids[begin]) ==
+                    "<|im_start|>") {
+                    while (begin < end) {
+                        const auto bytes = impl_->tokenizer->decode_token_bytes(result.token_ids[begin++]);
+                        if (bytes.find('\n') != std::string_view::npos) { break; }
+                    }
+                }
+                if (begin < end) {
+                    if (mode == "latest-tool-head") {
+                        result.query_span_begin = begin;
+                        result.query_span_end = std::min(end, begin + budget);
+                    } else {
+                        // One source, existing rows only. Bounded lexical relevance is experimental.
+                        std::vector<TokenId> ids(result.token_ids.begin()+begin,
+                            result.token_ids.begin()+std::min(end,begin+512));
+                        std::sort(ids.begin(),ids.end());
+                        ids.erase(std::unique(ids.begin(),ids.end()),ids.end());
+                        candidates.push_back({begin,std::min(end,begin+budget),std::move(ids)});
+                    }
+                }
+            }
+            if (mode == "related-tool-head" && !candidates.empty() &&
+                result.query_span_begin >= 0 && result.query_span_end > result.query_span_begin) {
+                const auto user_begin = std::max(result.query_span_begin,result.query_span_end-256);
+                std::vector<TokenId> user(result.token_ids.begin()+user_begin,
+                                           result.token_ids.begin()+result.query_span_end);
+                std::sort(user.begin(),user.end());
+                user.erase(std::unique(user.begin(),user.end()),user.end());
+                std::vector<double> weights(user.size(),0.0);
+                for (std::size_t t=0;t<user.size();++t) {
+                    std::size_t df=0;
+                    for (const auto& c:candidates) {
+                        df += std::binary_search(c.unique.begin(),c.unique.end(),user[t]);
+                    }
+                    weights[t]=df ? 1.0/static_cast<double>(df) : 0.0;
+                }
+                double best=-1.0;
+                for (const auto& c:candidates) {
+                    double score=0.0;
+                    for (std::size_t t=0;t<user.size();++t) {
+                        if (std::binary_search(c.unique.begin(),c.unique.end(),user[t])) { score+=weights[t]; }
+                    }
+                    if (score >= best) {
+                        best=score;result.query_span_begin=c.begin;result.query_span_end=c.end;
+                    }
+                }
+            }
+        }
+        if (mode == "user-tail" || mode == "latest-tool-head" || mode == "related-tool-head") {
+            std::fprintf(stderr, "kvmem_query: mode=%s span=[%d,%d)\n", setting,
+                         result.query_span_begin, result.query_span_end);
+        }
     }
     // Publish unconditionally -- the -1 default included: a request that yields no user turn must CLEAR
     // a stale span instead of inheriting the previous request's. That inheritance is exactly how a

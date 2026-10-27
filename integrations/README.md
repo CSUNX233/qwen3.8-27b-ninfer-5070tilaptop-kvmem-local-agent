@@ -38,3 +38,17 @@ node --test integrations/tests/tool-grounded-execution.test.mjs
 安装不包含女娲或人物技能；生成的 AGENTS 明确仅在用户点名时才允许启用女娲。浏览器核显偏好由用户在 Windows 中配置，脚本不改全局代理或 GPU 设置。
 
 许可：dsh 及其派生 patch 文件为 MIT；新接入代码为 Apache-2.0；npm 依赖保留各自许可证。详情见根目录 NOTICE 与 `licenses/`。
+
+## 执行前校验与多动作账本（v1.0.0）
+
+`local-agent/edit-guard.mjs` 只在最新用户明确要求“单文件精确替换”（只改/只修改/唯一/only 等）且会话已有目标文件读取证据时介入：在工具执行前校验目标路径、动作、old/new 范围和新文件精确内容；不匹配则 deny 并返回目标/old/new/范围，不改写参数、不静默替换路径。多文件任务（2 个以上明确文件路径）自动让路；用户主动换目录、重命名、新文件以最新用户指令为准。执行后用保存内容做一次验收。诊断日志目录可用 `EDIT_GUARD_LOG_DIR` 指定，默认写入系统临时目录下的 `ninfer-edit-guard`。
+
+`local-agent/task-ledger.mjs` 解析最新用户指令里的 move/edit/write 动作，从成功工具结果标记完成项；在 `agent/turn-stopping` 时如果还有未完成动作，注入一条结构化“剩余动作”提醒。它不执行工具、不改写参数、不自动补写文件；plan mode 下不介入。
+
+两者都不额外发起模型请求、不分配 GPU buffer；解析是启发式的，可能误拦或误判，deny 会给出精确证据供模型/用户纠正。真实 dsh 交互仍需单独验收。
+
+```powershell
+node --test integrations/dsh/local-agent/tests/*.test.mjs
+```
+
+本轮仓库内 14/14 通过（edit-guard 10、task-ledger 4）。停用：从网页 profile 删除对应 `id: edit-guard` / `id: task-ledger` 项并重载；升级引擎的查询开关在启动前清除 `NINFER_KVMEM_QUERY_MODE`、`NINFER_KVMEM_SUFFIX_REFRESH`、`NINFER_KVMEM_QUERY_ASSEMBLE` 并重启。

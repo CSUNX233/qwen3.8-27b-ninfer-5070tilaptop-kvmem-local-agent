@@ -15,7 +15,18 @@
 
 短任务测速显式使用 temperature=0、seed=1234、reasoning=none，日常预设为 xhigh；功耗、任务、KV 格式和缓存命中都会影响速度。不同阶段记录不能拼成一次统一测试。[完整条件与历史实测](docs/BENCHMARKS.md) · [作品展示](docs/demo/README.md)
 
-## v0.1.5 更新
+## v1.0.0 更新
+
+**在 v0.1.5 的模型、NVFP4、39168/6144 页池、MTP3、xhigh、采样和回答惩罚设置不变的前提下，发布查询层与 agent 执行层升级。**
+
+- **查询层（引擎开关，默认 legacy，启动器可显式开启）**：`related-tool-head` 选择最后用户之后与用户末段词法最相关的最新工具头；`suffix refresh=tail` 在 KV 映射前刷新；`QUERY_ASSEMBLE=1` 跨块收集完整查询（上限 512 token）并在同一历史域重评分。真实 116,907-token 故障历史完整目标路径/合法 read-edit 由 **1/4 → 4/4**（latest-tool-head 系列），同历史留出 8 seeds 由 **4/8 → 8/8**；因果四类 **8/8**；旧延迟压力首轮仍 **2/4**；六类短续接路径/严格 **10/12、7/12** 持平。
+- **agent 执行层**：`edit-guard` 在单文件精确替换时执行前校验目标/动作/old-new，错误动作不执行、不静默改路径；`task-ledger` 在多动作任务想停时提醒剩余动作。结构化反馈后一次恢复 **10/10**（generic 0/10）；两个复杂任务由 **1/2 → 2/2**（三动作 move+edit+write 完成，0 额外改动）。
+- **长文本**：500 行 / 1500 行编号文本在足够 `max_tokens` 下 1..N 连续、无缺行/重复/坏行；500 行/12288 的失败是 xhigh reasoning 占用预算，不是序列 bug。
+- **边界**：不宣称“全面优于”。因果/短任务持平，旧压力首轮未提高；真实浏览器/游戏多步闭环、256K、其他显卡/模型未验收。H7 等权双查询、H8 固定事务页、H11 工具头扩展均已拒绝，不默认启用。私有原始请求/日志留在本机，公开汇总见[脱敏证据](benchmarks/evidence/path-query-v1.0.0/verification.json)和[路径查询实验](docs/PATH_QUERY_EXPERIMENT.md)。
+- **安装/回退**：验证引擎 SHA-256 `71259a21f7b525ca7477193a292e4d3623cc58b9efd785005ee934cc29673507`；v0.1.5 原引擎 `38bc4d8c6be07afd6c74b902cc33403bf2ee139a2c50129d363d68d74a7609d6` 作为回退。源码标签 `v1.0.0`；本轮没有上传 1.35GB 引擎附件，按 [BUILD.md](docs/BUILD.md) 构建或使用本机升级包。详细说明见 [Release Notes](docs/RELEASE_NOTES.md)。
+
+## v0.1.5 历史
+
 
 **在 v0.1.4 上移植 C2.1，改善长任务的缓存恢复和 KV 回迁。** 保留工具解析、采样、NVFP4、FP16 GDN 和回答独立惩罚计数修复，默认仍为纯文字 + MTP、xhigh，不启用视觉。[下载 v0.1.5](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.5) · [更新说明](docs/RELEASE_NOTES.md)
 
@@ -48,6 +59,8 @@
 两个长夹具各总耗时约 153/156 秒，thinking-off、greedy；上表的 1.93/2.77 秒仅为最后一次请求。14 个输出 token 序列与旧 C2.1 同夹具一致。整卡显存每 5 秒采样峰值约 11,176/11,174 MiB；**没有原版 v0.1.4 同条件峰值对照，不能声称显存零增量或普遍提速。** 锚点会使用有界 Host 内存，压力下可被回收。[完整记录与限制](docs/C2P1_V014_PORT.md) · [脱敏证据](benchmarks/evidence/c2p1-v014-port/verification.json)
 
 ## 下载方式
+
+**v1.0.0 为源码标签**：本轮未上传引擎附件；验证引擎 SHA-256 为 `71259a21f7b525ca7477193a292e4d3623cc58b9efd785005ee934cc29673507`。旧版 v0.1.5 附件继续保留。
 
 1. **GitHub：** [v0.1.5 Release](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.5) 提供引擎 ZIP、SHA-256 和源码。引擎附件不是整合包，不含模型、Node 或运行 DLL；配合源码安装器使用。
 2. **夸克网盘：** 链接见维护者的视频简介/置顶评论；上传后由维护者提供，不在此编造链接。两个整合包都含引擎、Node、dsh、运行 DLL、VC++ 安装器、安装与纠错文档，无需从 GitHub 获取部署文件。

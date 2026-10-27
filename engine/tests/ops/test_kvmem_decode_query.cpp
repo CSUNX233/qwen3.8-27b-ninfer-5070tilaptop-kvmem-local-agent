@@ -179,6 +179,26 @@ void cached_query_oracle() {
 }
 }
 int main() {
+    // Enumerate legal chunk frontiers independently: tail fires once; chunk fires
+    // at every frontier strictly beyond a complete query, never at partial/empty ones.
+    for (std::uint32_t total : {1U,127U,128U,129U,1024U}) {
+        for (int end : {-1,0,63,128,1024}) {
+            int tails=0;
+            for (std::uint32_t cursor=0;cursor<total;++cursor) {
+                const auto width=std::min(128U,total-cursor);
+                const bool valid=end>=0 && cursor>static_cast<std::uint32_t>(end);
+                require(kvmem_suffix_refresh_due("chunk",cursor,width,total,end)==valid,"chunk refresh crossed query boundary");
+                const bool tail=kvmem_suffix_refresh_due("tail",cursor,width,total,end);
+                require(!tail || (valid && cursor+width==total),"tail refresh before final frontier");
+                if(cursor%128==0 && tail) ++tails;
+                require(!kvmem_suffix_refresh_due("unknown",cursor,width,total,end),"unknown refresh mode active");
+                require(!kvmem_suffix_refresh_due("",cursor,width,total,end),"default refresh mode active");
+            }
+            require(tails<=1,"multiple tail refreshes in one chunk schedule");
+        }
+    }
+    require(!kvmem_suffix_refresh_due("chunk",128,129,256,64),"out of range chunk refresh accepted");
+    require(!kvmem_suffix_refresh_due("chunk",256,0,256,64),"zero suffix refresh accepted");
     env("NINFER_TERNARY_KVMEM","1"); env("NINFER_TERNARY_KVMEM_SCORE","1");
     env("NINFER_KVMEM_INDEX_HOST","1"); env("NINFER_KVMEM_CACHE_QUERY","1");
     env("NINFER_TERNARY_KVMEM_SCORE_BUDGET","128"); env("NINFER_TERNARY_KVMEM_SCORE_SINK","64");

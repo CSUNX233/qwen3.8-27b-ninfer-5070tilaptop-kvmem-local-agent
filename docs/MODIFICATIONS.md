@@ -1,5 +1,9 @@
 # 本发行版的修改范围
 
+v1.0.0（2026-10-27）在 v0.1.5 基线上发布查询层与 agent 执行层升级：[路径查询实验](PATH_QUERY_EXPERIMENT.md)的 `related-tool-head`、`suffix refresh=tail`、`QUERY_ASSEMBLE=1`，以及 [执行前校验/多动作账本](../integrations/README.md)。真实 116,907-token 故障历史完整路径 1/4→4/4、留出 4/8→8/8；因果 8/8、短续接 10/12 路径保持；旧延迟压力首轮仍 2/4。H7 等权双查询、H8 固定事务页、H11 工具头扩展拒绝并归档，不默认启用。引擎源码仍保留 legacy 默认，发布启动器显式设置三个开关；验证引擎 SHA-256 `71259a21f7b525ca7477193a292e4d3623cc58b9efd785005ee934cc29673507`，原 v0.1.5 引擎 `38bc4d8c6be07afd6c74b902cc33403bf2ee139a2c50129d363d68d74a7609d6` 作为回退。以下 H7/H8 段落是 v1.0.0 之前的实验历史。
+
+后续 H7 等权双查询另做 96 次请求，含 48 次 xhigh；探索改善在留出未稳定复现，长续接留出严格完成反而从 8/8 降为 4/8。该实验已独立归档，H7 代码从当前开发源码撤回，保留此前 H6 改动，不替换日常。具体指标与资源代价见同页 H7 记录。
+
 基础引擎和大多数内核来自上游及原分享包；本页描述后续本机工作。逐项 patch 和验证记录在 `benchmarks/evidence/`。继承的 Windows/TMA、KVMem-ring、头部保留、MTP 取消恢复、one-dot 检索等修复也随源码保留，不将其归为本轮原创。
 
 v0.1.5（2026-10-24）将 [C2.1 长锚点与批量回迁移植到 v0.1.4](C2P1_V014_PORT.md)，保留 v0.1.4 的采样、工具和 GDN 修复。12 项定向回归及两个多轮长上下文夹具通过；同一二进制现作为v0.1.5发布；保留增量构建边界。构建来源、正确性范围与代价见该记录。
@@ -16,6 +20,8 @@ v0.1.5（2026-10-24）将 [C2.1 长锚点与批量回迁移植到 v0.1.4](C2P1_V
 | 5070 Ti 小矩阵调度 | 只改变指定 IQ2_S / IQ3_XXS / Q2_K、T=1/4 的线程与行分组 | `engine/src/ops/linear/gguf/ggml_bridge_vec.cuh` |
 | v0.1.4：工具输出解析 | 代码中的工具示例保留为文本；自然结束的未闭合思考中，仅恢复完整且已声明的末尾调用；增加诊断 | `frontend/tool_call_parser.*`、`frontend/output_session.cpp`、`serve/*log*` |
 | dsh 接入与公开部署 | 相对路径、隔离 home、固定依赖和哈希、严格守卫、搜索/浏览器、收尾提醒、工具验证执行规则 | 根目录脚本、`scripts/`、`integrations/` |
+| v1.0.0：查询来源/完整捕获/时序 | 最后用户后相关工具头、跨块完整 Q、tail 刷新 | `frontend/frontend.cpp`、`ops/kvmem/kvmem_score.h`、`program/prefill.cpp`、`execution/text.cpp` |
+| v1.0.0：agent 执行校验与多动作账本 | 单文件精确替换执行前校验、多动作剩余提醒 | `integrations/dsh/local-agent/edit-guard.mjs`、`task-ledger.mjs` |
 
 既有小矩阵 CUDA 调度只匹配 compute capability 1200 且 46 SM 的设备以及实际验证过的形状，共 11 个路由；其他形状保留原调度。每行数学、量化解码、累加和归约顺序保持原样，无新增 GPU buffer。启动前设置 `NINFER_VEC5070_DISABLE=1` 可以关闭这项调度；必须重启，不能对已经捕获的 CUDA Graph 热切换。
 
@@ -65,3 +71,5 @@ v0.1.0–v0.1.2 的上述优化未改变权重、主模型量化、rk4v4、conte
 ## v0.1.4公开整理
 
 上述未发布阶段记录保留为历史证据；本次发布同一8804cb…引擎及正式修复源码。新增部署AnswerPenaltyScope配置、便携Node识别、离线文件校验与双模型选择，默认xhigh/量化/页预算保留。可选34560/1536小页池仅作配置容量核对，无新增实模资格结论。修复发布CI的JavaScript文件路径检查（git返回字符串而非FileInfo）。实测收益、代价及尚未解决问题统一见[本版更新](RELEASE_NOTES.md)。
+
+H8事务页保留实验：28次xhigh配对请求无总体严格收益（改善1对、退步1对），已归档并撤回实现，未部署。目标页可见性审计与边界见 [路径查询实验](PATH_QUERY_EXPERIMENT.md#h8有界事务页保留已归档不合入候选)。

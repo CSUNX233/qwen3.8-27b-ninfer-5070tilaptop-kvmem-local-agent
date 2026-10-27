@@ -1281,6 +1281,11 @@ runtime::PrefillStepResult ProgramImpl::advance_prefill(SequenceState& sequence,
                 // excluded. No-op when the pool covers the context.
                 {
                     const std::uint32_t chunk_end = staged.cursor + remaining;
+                    ops::detail::kvmem_refresh_suffix_query(
+                        staged.prompt.query_span_begin, staged.prompt.query_span_end,
+                        staged.cursor, remaining, staged.prompt_tokens,
+                        static_cast<std::int32_t>(kPagedKVPageSize), device.stream,
+                        staged.prompt.token_ids);
                     ensure_sequence_kv_mapped(sequence, chunk_end,
                                               backend_kv_cache() != nullptr ? chunk_end : 0U);
                 }

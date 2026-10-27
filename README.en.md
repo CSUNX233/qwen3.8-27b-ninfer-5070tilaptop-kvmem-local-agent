@@ -15,7 +15,18 @@ Hardware: **RTX 5070 Ti Laptop 12GB / i7-14650HX / 32GB RAM / Windows**. Model: 
 
 Short throughput fixtures explicitly used temperature=0, seed=1234 and reasoning=none; daily use defaults to xhigh. Power, workload, KV format and cache hits affect speed. Records from different stages are not a single combined benchmark. [Full conditions](docs/BENCHMARKS.md) · [Demo](docs/demo/README.md)
 
-## v0.1.5 update
+## v1.0.0 update
+
+**The model, NVFP4, 39168/6144 page pool, MTP3, xhigh, sampling and answer-penalty settings are unchanged from v0.1.5. v1.0.0 adds a query layer and an agent execution layer.**
+
+- **Query layer (engine switches, legacy by default; the upgrade launcher enables them):** `related-tool-head`, `suffix refresh=tail`, and cross-chunk `QUERY_ASSEMBLE=1`. On the real 116,907-token fault history, complete target path plus a valid read/edit improved from **1/4 to 4/4** (latest-tool-head family); the 8-seed holdout improved from **4/8 to 8/8**. Causal four-class remains **8/8**, delayed-stress first pass remains **2/4**, and six-class short continuation remains **10/12 path and 7/12 strict**.
+- **Agent layer:** `edit-guard` validates the target, action and exact old/new before a single-file replacement and does not silently rewrite arguments; `task-ledger` reminds the model of remaining actions on multi-action tasks. One structured retry recovered **10/10** recorded failures (generic feedback 0/10); two complex tasks improved from **1/2 to 2/2** (move + edit + write, zero unintended changes).
+- **Long output:** 500-line and 1500-line numbered outputs were complete and contiguous with sufficient `max_tokens`; the 500-line/12288 failure was reasoning-budget exhaustion, not a sequence bug.
+- **Boundaries:** no claim of universal superiority. Causal/short tasks are flat, delayed-stress first pass is unchanged, and real browser/game multi-step closure, 256K and other GPUs/models are not validated. H7 dual-query, H8 forced anchors and H11 tool-head expansion are rejected and not enabled. Private raw requests/logs stay local; public aggregates are in [evidence](benchmarks/evidence/path-query-v1.0.0/verification.json) and [the experiment record](docs/PATH_QUERY_EXPERIMENT.md).
+- **Install/rollback:** engine SHA-256 `71259a21f7b525ca7477193a292e4d3623cc58b9efd785005ee934cc29673507`; the v0.1.5 engine `38bc4d8c6be07afd6c74b902cc33403bf2ee139a2c50129d363d68d74a7609d6` remains the rollback. Source tag `v1.0.0`; no 1.35GB engine asset was uploaded in this pass. See [Release Notes](docs/RELEASE_NOTES.md).
+
+## v0.1.5 history
+
 
 **C2.1 is ported onto the explicit v0.1.4 baseline**, improving long-history cache restoration and Host KV demotion. It retains v0.1.4 parsing, sampling, NVFP4 reducer, FP16 GDN and answer-only penalty fixes. Text+MTP and xhigh remain the defaults; vision is off. [Release](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.5) · [Release notes](docs/RELEASE_NOTES.md)
 

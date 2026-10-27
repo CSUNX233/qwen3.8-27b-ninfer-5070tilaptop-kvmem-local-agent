@@ -21,6 +21,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <fstream>
 #include <future>
 #include <iostream>
@@ -1390,6 +1391,130 @@ int test_image_resize_rejection_policy() {
         failures += check(error.kind() == ninfer::RequestErrorKind::InvalidMedia,
                           "oversized_image=error used the wrong request-error classification");
     }
+    return failures;
+}
+
+int test_experimental_kvmem_query_sources() {
+    struct EnvGuard {
+        std::string previous;
+        bool existed = std::getenv("NINFER_KVMEM_QUERY_MODE") != nullptr;
+        EnvGuard() { if (existed) previous = std::getenv("NINFER_KVMEM_QUERY_MODE"); }
+        static void set(const char* value) {
+#ifdef _WIN32
+            _putenv_s("NINFER_KVMEM_QUERY_MODE", value);
+#else
+            if (*value) setenv("NINFER_KVMEM_QUERY_MODE", value, 1);
+            else unsetenv("NINFER_KVMEM_QUERY_MODE");
+#endif
+        }
+        ~EnvGuard() { set(existed ? previous.c_str() : ""); }
+    } guard;
+    const auto frontend = make_frontend(resources(), false);
+    struct Observation {
+        std::vector<ninfer::TokenId> tokens;
+        std::vector<std::int32_t> positions;
+        std::int32_t begin, end;
+        std::string query;
+    };
+    using Turn = std::pair<ninfer::ChatRole, std::string>;
+    const auto inspect = [&](const char* mode, const std::vector<Turn>& turns) {
+        EnvGuard::set(mode);
+        ninfer::PromptInput input;
+        for (const auto& [role, text] : turns) {
+            ninfer::ChatMessage message;
+            message.role = role;
+            message.parts.push_back({.text = text});
+            input.messages.push_back(std::move(message));
+        }
+        const auto prepared = frontend.prepare(std::move(input));
+        const auto& data = FrontendFactory::inspect(prepared);
+        const auto query = data.query_span_begin >= 0 && data.query_span_end > data.query_span_begin
+            ? fixture_tokenizer().decode(std::span(data.token_ids).subspan(
+                data.query_span_begin, data.query_span_end-data.query_span_begin)) : std::string{};
+        return Observation{data.token_ids, data.positions, data.query_span_begin, data.query_span_end, query};
+    };
+    const std::vector<Turn> turns{
+        {ninfer::ChatRole::User, std::string(320, 'q') + " continue the current project"},
+        {ninfer::ChatRole::Assistant, "inspecting"},
+        {ninfer::ChatRole::Tool, "D:/example/old-corner/index.html\nold result"},
+        {ninfer::ChatRole::Assistant, "inspecting again"},
+        {ninfer::ChatRole::Tool, "D:/example/new-corner/index.html\n" + std::string(300, 't')}};
+    const auto legacy = inspect("", turns);
+    const auto unknown = inspect("invalid", turns);
+    const auto user = inspect("user-tail", turns);
+    const auto tool = inspect("latest-tool-head", turns);
+    int failures = check(legacy.begin == unknown.begin && legacy.end == unknown.end,
+                         "unknown query mode changed legacy selection");
+    failures += check(user.begin == legacy.end-64 && user.end == legacy.end,
+                      "bounded user query lost its exact final token rows");
+    failures += check(tool.begin > legacy.end && tool.end-tool.begin == 64 &&
+                          tool.query.find("D:/example/new-corner/index.html") != std::string::npos,
+                      "latest execution query did not select the newest tool path header");
+    for (const auto* selected : {&unknown, &user, &tool}) {
+        failures += check(selected->tokens == legacy.tokens && selected->positions == legacy.positions,
+                          "query selection modified target tokens or positions");
+    }
+    auto switched = turns;
+    switched.emplace_back(ninfer::ChatRole::User, "Switch to D:/example/another-project/");
+    const auto new_user = inspect("", switched);
+    const auto after_switch = inspect("latest-tool-head", switched);
+    failures += check(new_user.begin == after_switch.begin && new_user.end == after_switch.end,
+                      "old tool feedback overrode an intentional new user directory");
+    auto renamed = switched;
+    renamed.emplace_back(ninfer::ChatRole::Assistant, "renamed");
+    renamed.emplace_back(ninfer::ChatRole::Tool, "D:/example/renamed-project/app.js\nrename succeeded");
+    const auto after_rename = inspect("latest-tool-head", renamed);
+    failures += check(after_rename.query.find("renamed-project/app.js") != std::string::npos,
+                      "a tool-confirmed rename was replaced with an older path");
+    auto adjacent = turns;
+    adjacent.emplace_back(ninfer::ChatRole::Tool, "D:/example/adjacent-project/main.js\nnext result");
+    const auto after_adjacent = inspect("latest-tool-head", adjacent);
+    failures += check(after_adjacent.query.find("adjacent-project/main.js") != std::string::npos,
+                      "adjacent tool message boundaries selected an older result");
+    const std::vector<Turn> relevant_turns{
+        {ninfer::ChatRole::User, "Replace UNIQUE_VOLUME_ANCHOR in the settings file"},
+        {ninfer::ChatRole::Assistant, "reading settings"},
+        {ninfer::ChatRole::Tool, "D:/35427/paper-lantern/settings.js\nUNIQUE_VOLUME_ANCHOR=0.35"},
+        {ninfer::ChatRole::Assistant, "checking build"},
+        {ninfer::ChatRole::Tool, "D:/archive/build.log\nmesh checksum status=ok"}};
+    const auto related=inspect("related-tool-head",relevant_turns);
+    const auto relevant_legacy=inspect("",relevant_turns);
+    failures += check(related.query.find("settings.js")!=std::string::npos,
+                      "unrelated latest log replaced related query source");
+    failures += check(related.tokens==relevant_legacy.tokens && related.positions==relevant_legacy.positions,
+                      "related query changed prompt or positions");
+    auto related_switch=relevant_turns;
+    related_switch.emplace_back(ninfer::ChatRole::User,"Switch to D:/39572/new-project/app.js");
+    const auto switched_related=inspect("related-tool-head",related_switch);
+    const auto switched_legacy=inspect("",related_switch);
+    failures += check(switched_related.begin==switched_legacy.begin && switched_related.end==switched_legacy.end,
+                      "related query inherited a tool before new user");
+    auto tied=relevant_turns;
+    tied.emplace_back(ninfer::ChatRole::Assistant,"reading new settings");
+    tied.emplace_back(ninfer::ChatRole::Tool,"D:/39572/new-lantern/settings.js\nUNIQUE_VOLUME_ANCHOR=0.35");
+    failures += check(inspect("related-tool-head",tied).query.find("new-lantern")!=std::string::npos,
+                      "equal related source scores did not prefer latest evidence");
+    for (const char* mode : {"", "user-tail", "latest-tool-head", "related-tool-head"}) {
+        // The official template rejects a system-only conversation before preparation.
+        // A permissive template lets this exercise stale-query clearing itself.
+        const auto permissive = make_frontend(resources(
+            "{% for m in messages %}{{ '<|im_start|>' + m.role + '\\n' + m.content + "
+            "'<|im_end|>\\n' }}{% endfor %}"), false);
+        EnvGuard::set(mode);
+        ninfer::PromptInput input;
+        ninfer::ChatMessage message;
+        message.role = ninfer::ChatRole::System;
+        message.parts.push_back({.text = "only policy"});
+        input.messages.push_back(std::move(message));
+        const auto prepared = permissive.prepare(std::move(input));
+        const auto& no_user = FrontendFactory::inspect(prepared);
+        failures += check(no_user.query_span_begin == -1 && no_user.query_span_end == -1,
+                          "a request without a user inherited a stale query span");
+    }
+    const auto short_legacy = inspect("", {{ninfer::ChatRole::User, "short"}});
+    const auto short_user = inspect("user-tail", {{ninfer::ChatRole::User, "short"}});
+    failures += check(short_legacy.begin == short_user.begin && short_legacy.end == short_user.end,
+                      "bounded query changed a short user span");
     return failures;
 }
 
@@ -3093,6 +3218,7 @@ int main() {
     failures += test_template_media_contract();
     failures += test_image_resize_rejection_policy();
     failures += test_explicit_leading_instruction_cache_boundary();
+    failures += test_experimental_kvmem_query_sources();
     failures += test_engine_automatic_long_anchor_opportunities();
     failures += test_engine_automatic_long_anchor_spacing();
     failures += test_engine_rolling_long_anchor_opportunities();

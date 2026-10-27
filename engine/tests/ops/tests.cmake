@@ -1,4 +1,5 @@
 set(ninfer_op_tests
+  kvmem_query_chunks
   kvmem_decode_query
   kvmem_score_schedule
   add_bias
