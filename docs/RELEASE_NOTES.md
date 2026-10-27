@@ -37,7 +37,7 @@ H11 的工具查询头扩展（64→128/256）已拒绝：两个夹具的工具�
 
 ## 升级与回退
 
-源码标签 `v1.0.0`。启用查询层时在启动前设置三个环境变量并重启引擎；清除变量并重启恢复 legacy。agent 插件通过 dsh profile 的 `edit-guard`/`task-ledger` 项加载，删除对应项即可停用。回退请成套恢复 v0.1.5 引擎和 profile，避免新/旧参数混用。
+引擎附件：[下载 ninfer-5070ti-win-x64-sm120a-v1.0.0.exe](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/download/v1.0.0/ninfer-5070ti-win-x64-sm120a-v1.0.0.exe)（SHA-256 `71259a21f7b525ca7477193a292e4d3623cc58b9efd785005ee934cc29673507`）。源码标签 `v1.0.0`。启用查询层时在启动前设置三个环境变量并重启引擎；清除变量并重启恢复 legacy。agent 插件通过 dsh profile 的 `edit-guard`/`task-ledger` 项加载，删除对应项即可停用。回退请成套恢复 v0.1.5 引擎和 profile，避免新/旧参数混用。
 
 
 # v0.1.5 — 长历史缓存恢复与批量 KV 回迁

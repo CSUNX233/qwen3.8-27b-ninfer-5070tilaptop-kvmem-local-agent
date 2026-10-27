@@ -23,7 +23,7 @@
 - **agent 执行层**：`edit-guard` 在单文件精确替换时执行前校验目标/动作/old-new，错误动作不执行、不静默改路径；`task-ledger` 在多动作任务想停时提醒剩余动作。结构化反馈后一次恢复 **10/10**（generic 0/10）；两个复杂任务由 **1/2 → 2/2**（三动作 move+edit+write 完成，0 额外改动）。
 - **长文本**：500 行 / 1500 行编号文本在足够 `max_tokens` 下 1..N 连续、无缺行/重复/坏行；500 行/12288 的失败是 xhigh reasoning 占用预算，不是序列 bug。
 - **边界**：不宣称“全面优于”。因果/短任务持平，旧压力首轮未提高；真实浏览器/游戏多步闭环、256K、其他显卡/模型未验收。H7 等权双查询、H8 固定事务页、H11 工具头扩展均已拒绝，不默认启用。私有原始请求/日志留在本机，公开汇总见[脱敏证据](benchmarks/evidence/path-query-v1.0.0/verification.json)和[路径查询实验](docs/PATH_QUERY_EXPERIMENT.md)。
-- **安装/回退**：验证引擎 SHA-256 `71259a21f7b525ca7477193a292e4d3623cc58b9efd785005ee934cc29673507`；v0.1.5 原引擎 `38bc4d8c6be07afd6c74b902cc33403bf2ee139a2c50129d363d68d74a7609d6` 作为回退。源码标签 `v1.0.0`；本轮没有上传 1.35GB 引擎附件，按 [BUILD.md](docs/BUILD.md) 构建或使用本机升级包。详细说明见 [Release Notes](docs/RELEASE_NOTES.md)。
+- **安装/回退**：验证引擎 SHA-256 `71259a21f7b525ca7477193a292e4d3623cc58b9efd785005ee934cc29673507`；v0.1.5 原引擎 `38bc4d8c6be07afd6c74b902cc33403bf2ee139a2c50129d363d68d74a7609d6` 作为回退。源码标签 `v1.0.0`；引擎附件：[下载 ninfer-5070ti-win-x64-sm120a-v1.0.0.exe](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/download/v1.0.0/ninfer-5070ti-win-x64-sm120a-v1.0.0.exe)（SHA-256 `71259a21f7b525ca7477193a292e4d3623cc58b9efd785005ee934cc29673507`）。详细说明见 [Release Notes](docs/RELEASE_NOTES.md)。
 
 ## v0.1.5 历史
 
@@ -60,7 +60,7 @@
 
 ## 下载方式
 
-**v1.0.0 为源码标签**：本轮未上传引擎附件；验证引擎 SHA-256 为 `71259a21f7b525ca7477193a292e4d3623cc58b9efd785005ee934cc29673507`。旧版 v0.1.5 附件继续保留。
+**v1.0.0 引擎附件**：[下载 ninfer-5070ti-win-x64-sm120a-v1.0.0.exe](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/download/v1.0.0/ninfer-5070ti-win-x64-sm120a-v1.0.0.exe)，SHA-256 `71259a21f7b525ca7477193a292e4d3623cc58b9efd785005ee934cc29673507`。源码标签 `v1.0.0`；旧版 v0.1.5 附件继续保留。
 
 1. **GitHub：** [v0.1.5 Release](https://github.com/CSUNX233/qwen3.8-27b-ninfer-5070tilaptop-kvmem-local-agent/releases/tag/v0.1.5) 提供引擎 ZIP、SHA-256 和源码。引擎附件不是整合包，不含模型、Node 或运行 DLL；配合源码安装器使用。
 2. **夸克网盘：** 链接见维护者的视频简介/置顶评论；上传后由维护者提供，不在此编造链接。两个整合包都含引擎、Node、dsh、运行 DLL、VC++ 安装器、安装与纠错文档，无需从 GitHub 获取部署文件。
