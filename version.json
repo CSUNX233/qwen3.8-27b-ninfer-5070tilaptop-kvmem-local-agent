@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "releaseDate": "2026-11-03",
+  "title": "Pmod v1.0.0 正式发布",
+  "changelog": [
+    "Pmod 本地大模型管理平台正式发布",
+    "深度适配 NVIDIA Blackwell / Ada 架构，原生支持 nvfp4 与 rk4v4 双模量化",
+    "分层 KV 调度 (KVMem) 协同，从容承载 256K 超长上下文长程思维",
+    "全应用深度深色模式 (Dark Mode) 与 Material Design 3 配色方案支持",
+    "提供官方交流群与技术支持"
+  ],
+  "downloadUrl": "https://qun.qq.com/universal-share/share?ac=1&authKey=O9lTkl%2B56Zf8U%2BMSk3UrLK7HmOIJZlhbfESHPi1PUSo2PBHzH6o003oDOf9UAJFg&busi_data=eyJncm91cENvZGUiOiIxMTI4MTMwMTk5IiwidG9rZW4iOiJ5a1M5T0dmeFBKVDg2bnRYaHJkcFhTYXh5NjJWcUtDdHlpNk1HZWdUT2FqZDJkTUMzci9EUFFPVU55b1ZCL01yIiwidWluIjoiNzg1MDI5NDk3In0%3D&data=qDBRJgG4lwWBURR5AYk5mFRku441wXmLM2AdJqE-E6ZIaL3X6ljAIp2woaaHgY6TQIqsfXnGPEhGUGW5m-KjXw&svctype=4&tempid=h5_group_info",
+  "notice": "欢迎加入官方交流群（1128130199）获取最新安装包与技术交流！"
+}
+

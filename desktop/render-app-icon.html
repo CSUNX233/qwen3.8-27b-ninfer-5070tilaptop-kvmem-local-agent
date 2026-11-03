@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    width: 1024px;
+    height: 1024px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+</style>
+</head>
+<body>
+  <svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- 背景曜石深空渐变 -->
+      <linearGradient id="bgGrad" x1="120" y1="80" x2="904" y2="944" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#1e293b"/>
+        <stop offset="40%" stop-color="#0f172a"/>
+        <stop offset="100%" stop-color="#020617"/>
+      </linearGradient>
+
+      <!-- 边框细腻微光渐变 -->
+      <linearGradient id="borderGrad" x1="100" y1="60" x2="924" y2="964" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+        <stop offset="30%" stop-color="#38bdf8" stop-opacity="0.5"/>
+        <stop offset="70%" stop-color="#818cf8" stop-opacity="0.25"/>
+        <stop offset="100%" stop-color="#0f172a" stop-opacity="0.1"/>
+      </linearGradient>
+
+      <!-- P 字母光流渐变 (冰川青蓝 -> 霓虹靛紫) -->
+      <linearGradient id="pFlow" x1="260" y1="200" x2="760" y2="820" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#38bdf8"/>
+        <stop offset="45%" stop-color="#60a5fa"/>
+        <stop offset="75%" stop-color="#6366f1"/>
+        <stop offset="100%" stop-color="#a855f7"/>
+      </linearGradient>
+
+      <!-- 核心模型晶体渐变 -->
+      <linearGradient id="coreDiamond" x1="430" y1="360" x2="590" y2="540" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="40%" stop-color="#e0f2fe"/>
+        <stop offset="100%" stop-color="#38bdf8"/>
+      </linearGradient>
+
+      <!-- 引力波弧线渐变 -->
+      <linearGradient id="arcGrad" x1="240" y1="860" x2="780" y2="860" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.1"/>
+        <stop offset="50%" stop-color="#38bdf8"/>
+        <stop offset="100%" stop-color="#818cf8" stop-opacity="0.1"/>
+      </linearGradient>
+
+      <!-- 柔和内发光微阴影 -->
+      <filter id="coreGlow" x="300" y="240" width="424" height="424" filterUnits="userSpaceOnUse">
+        <feGaussianBlur stdDeviation="16" result="blur"/>
+        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+      </filter>
+    </defs>
+
+    <!-- 1. 外层 Squircle 曜石黑底座 (带微透倒角与深空投影) -->
+    <rect x="72" y="72" width="880" height="880" rx="210" fill="url(#bgGrad)"/>
+    <rect x="74" y="74" width="876" height="876" rx="208" stroke="url(#borderGrad)" stroke-width="8"/>
+
+    <!-- 2. Pmod 专属大写字母 P 主体架构 -->
+    <!-- 组合路径：左垂直算力柱 + 右侧优雅扩展半圆环 -->
+    <path d="M260 250C260 227.91 277.91 210 300 210H490C639.12 210 760 330.88 760 480C760 629.12 639.12 750 490 750H390V770C390 792.09 372.09 810 350 810H300C277.91 810 260 792.09 260 770V250Z" fill="url(#pFlow)"/>
+
+    <!-- P 内部中空负空间 (深黑曜石微晶背景) -->
+    <path d="M390 340H490C567.32 340 630 402.68 630 480C630 557.32 567.32 620 490 620H390V340Z" fill="#090d16"/>
+
+    <!-- 3. 核心：本地大模型 (Model) 反重力悬浮奇点钻石晶体 -->
+    <g filter="url(#coreGlow)">
+      <!-- 外环反重力多面棱镜 -->
+      <path d="M510 380L585 480L510 580L435 480L510 380Z" fill="url(#coreDiamond)"/>
+      <!-- 中心超新星光核 -->
+      <circle cx="510" cy="480" r="18" fill="#ffffff"/>
+      <!-- 晶体内部立体折线 -->
+      <path d="M510 380V580M435 480H585" stroke="#0284c7" stroke-width="5" stroke-opacity="0.4"/>
+    </g>
+
+    <!-- 4. 底部反重力架构引力波微弧线 -->
+    <path d="M250 864C330 904 694 904 774 864" stroke="url(#arcGrad)" stroke-width="26" stroke-linecap="round"/>
+  </svg>
+</body>
+</html>
+
