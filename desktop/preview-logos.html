@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  body {
+    margin: 0;
+    padding: 40px;
+    background: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    display: flex;
+    gap: 30px;
+  }
+  .sidebar-preview {
+    width: 240px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    border: 1px solid #e2e8f0;
+  }
+  .preview-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 14px;
+  }
+  .brand-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .brand-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+  }
+  .brand-tag {
+    font-size: 10px;
+    color: #64748b;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .brand-tag-badge {
+    background: #f1f5f9;
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: #475569;
+    font-weight: 600;
+  }
+
+  /* Style 1: Obsidian Prism (黑曜石反重力棱镜) */
+  .logo-obsidian {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: linear-gradient(145deg, #1e293b 0%, #09090b 100%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 3px 8px rgba(15, 23, 42, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Style 2: Midnight Cyber Pulse (极夜科技电弧 - 与andsi同源青蓝光) */
+  .logo-cyber {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: linear-gradient(145deg, #0f172a 0%, #020617 100%);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 10px rgba(14, 165, 233, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Style 3: Minimalist Monolith (纯粹黑白极简无界 - DeepSeek/Linear同级) */
+  .logo-monolith {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: #000000;
+    border: 1px solid #27272a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-sample {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
+  }
+  .nav-item.active {
+    background: #f1f5f9;
+    color: #0f172a;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Variant 1: 黑曜石反重力棱镜 (Obsidian Antigravity Prism) -->
+  <div class="sidebar-preview">
+    <div class="preview-title">方案 1: 黑曜石反重力棱镜 (推荐)</div>
+    <div class="brand-box">
+      <div class="logo-obsidian">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <!-- 上浮反重力八面体 -->
+          <path d="M12 2.5L19 9.5L12 16.5L5 9.5L12 2.5Z" stroke="#f8fafc" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M12 6L16 10L12 14L8 10L12 6Z" fill="url(#prismGrad)"/>
+          <!-- 反重力引力场环 -->
+          <path d="M4 18.5C7 21 11 21.5 12 21.5C13 21.5 17 21 20 18.5" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="prismGrad" x1="8" y1="6" x2="16" y2="14" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#38bdf8"/>
+              <stop offset="100%" stop-color="#818cf8"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">Antigravity Studio</span>
+        <span class="brand-tag"><span class="brand-tag-badge">Qwen3.8</span> 27B</span>
+      </div>
+    </div>
+    <div class="nav-sample">
+      <div class="nav-item active">💬 智能对话</div>
+      <div class="nav-item">📊 显存管理</div>
+    </div>
+  </div>
+
+  <!-- Variant 2: 量子奇点 (Quantum Singularity) -->
+  <div class="sidebar-preview">
+    <div class="preview-title">方案 2: 量子奇点与超导星轨</div>
+    <div class="brand-box">
+      <div class="logo-cyber">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="8.5" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <path d="M12 4L14.5 9.5L20 12L14.5 14.5L12 20L9.5 14.5L4 12L9.5 9.5L12 4Z" fill="url(#starGrad)"/>
+          <circle cx="12" cy="12" r="2" fill="#ffffff"/>
+          <defs>
+            <linearGradient id="starGrad" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#60a5fa"/>
+              <stop offset="50%" stop-color="#38bdf8"/>
+              <stop offset="100%" stop-color="#0284c7"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">Antigravity Studio</span>
+        <span class="brand-tag"><span class="brand-tag-badge">Qwen3.8</span> 27B</span>
+      </div>
+    </div>
+    <div class="nav-sample">
+      <div class="nav-item active">💬 智能对话</div>
+      <div class="nav-item">📊 显存管理</div>
+    </div>
+  </div>
+
+  <!-- Variant 3: 极简纯粹黑白反重力羽翼 (Pure Monolith Wings) -->
+  <div class="sidebar-preview">
+    <div class="preview-title">方案 3: 纯粹极简黑曜羽翼 (Linear风)</div>
+    <div class="brand-box">
+      <div class="logo-monolith">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M12 3L20 11L17.5 13.5L12 8L6.5 13.5L4 11L12 3Z" fill="#ffffff"/>
+          <path d="M12 10.5L17.5 16L15.5 18L12 14.5L8.5 18L6.5 16L12 10.5Z" fill="#94a3b8"/>
+          <circle cx="12" cy="20.5" r="1.5" fill="#38bdf8"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">Antigravity Studio</span>
+        <span class="brand-tag"><span class="brand-tag-badge">Qwen3.8</span> 27B</span>
+      </div>
+    </div>
+    <div class="nav-sample">
+      <div class="nav-item active">💬 智能对话</div>
+      <div class="nav-item">📊 显存管理</div>
+    </div>
+  </div>
+
+</body>
+</html>
+

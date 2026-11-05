@@ -11,8 +11,78 @@ const dsh = path.join(root, 'integrations/dsh');
 const require = createRequire(path.join(dsh, 'package.json'));
 const yaml = require('js-yaml');
 const home = path.join(root, 'runtime/dsh-home');
+process.env.DSH_HOME = home;
 const profile = path.join(home, 'profiles/web');
 const cfg = JSON.parse(fs.readFileSync(path.join(root, 'config/local.json'), 'utf8'));
+
+// Apply version-checked DSH & Cordis patches first before importing any DSH modules
+const SUPPORTED_PATCH_VERSIONS = {
+  'cordis-plugin-loader': '1.0.3',
+  'dsh-app-boot': '0.1.5-rc.3',
+  'dsh-agent-presets': '0.1.5-rc.3',
+  'dsh-typert-loader': '0.1.5-rc.3',
+  'dsh-compaction-basic': '0.1.5-rc.3',
+  'dsh-compaction-tool-result-pruner': '0.1.5-rc.3',
+};
+for (const [pkg, expectedVersion] of Object.entries(SUPPORTED_PATCH_VERSIONS)) {
+  const folder = path.join(dsh, 'node_modules/@deepseek-ai', pkg);
+  const metadata = JSON.parse(fs.readFileSync(path.join(folder, 'package.json'), 'utf8'));
+  if (metadata.version !== expectedVersion) {
+    throw new Error(`Refusing to patch ${pkg} ${metadata.version}; supported: ${expectedVersion}`);
+  }
+  const target = path.join(folder, 'lib/index.js');
+  const patchSource = path.join(dsh, 'patches', pkg + '.js');
+  if (fs.existsSync(patchSource)) {
+    const patched = fs.readFileSync(patchSource, 'utf8');
+    if (fs.readFileSync(target, 'utf8') !== patched) {
+      const backup = target + '.ninfer-original';
+      if (!fs.existsSync(backup)) fs.copyFileSync(target, backup);
+      fs.writeFileSync(target, patched);
+    }
+  }
+}
+
+// Ensure frontend index.html has layout scope fix & autofocus enhancements
+const frontendIndexTarget = path.join(dsh, 'node_modules/@deepseek-ai/dsh-web-frontend/dist/index.html');
+const frontendIndexPatch = path.join(dsh, 'patches/dsh-web-frontend-index.html');
+if (fs.existsSync(frontendIndexPatch) && fs.existsSync(path.dirname(frontendIndexTarget))) {
+  const patchContent = fs.readFileSync(frontendIndexPatch, 'utf8');
+  if (!fs.existsSync(frontendIndexTarget) || fs.readFileSync(frontendIndexTarget, 'utf8') !== patchContent) {
+    fs.writeFileSync(frontendIndexTarget, patchContent);
+  }
+}
+
+// Clean up any legacy junctions or fallback symlink directories so readdirp/chokidar
+// never encounters Windows NTFS junction realpath (-4094 UNKNOWN) errors.
+function removeLegacyFallbackDir(targetPath) {
+  try {
+    const stat = fs.lstatSync(targetPath);
+    if (stat.isSymbolicLink()) {
+      try {
+        fs.unlinkSync(targetPath);
+      } catch {
+        fs.rmSync(targetPath, { recursive: true, force: true });
+      }
+      return;
+    }
+    if (stat.isDirectory()) {
+      fs.rmSync(targetPath, { recursive: true, force: true });
+    }
+  } catch {}
+}
+
+for (const legacyPath of [
+  path.join(root, 'runtime/node_modules'),
+  path.join(root, 'node_modules'),
+  path.join(home, 'node_modules'),
+  path.join(home, 'profiles/node_modules'),
+  path.join(profile, 'node_modules'),
+  path.join(profile, '.dsh-module-fallback'),
+]) {
+  removeLegacyFallbackDir(legacyPath);
+}
+
+
 function write(file, text) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== text) fs.writeFileSync(file, text);
@@ -53,11 +123,17 @@ const entries = [
   { id: 'web', config: { searchProvider: 'local-free', fetchProvider: 'local-http' } },
   { id: 'web-search-deepseek', disabled: true },
   { id: 'web-fetch-http', disabled: true },
+  { id: 'ui-trajectory', disabled: true },
+  { id: 'ui-model-selection', disabled: true },
   { insert: [
     { id: 'web-local', name: moduleURL('local-web/web-provider.mjs') },
     { id: 'todo-completion', name: moduleURL('local-agent/todo-completion.mjs') },
     { id: 'tool-grounded-execution', name: moduleURL('local-agent/tool-grounded-execution.mjs'),
       disabled: cfg.ToolGroundedExecution === false },
+    { id: 'edit-guard', name: moduleURL('local-agent/edit-guard.mjs'),
+      disabled: cfg.EditGuard === false },
+    { id: 'task-ledger', name: moduleURL('local-agent/task-ledger.mjs'),
+      disabled: cfg.TaskLedger === false },
     { id: 'mcp-browser', name: '@deepseek-ai/dsh-mcp-client', config: {
       serverName: 'browser', transport: 'stdio', command: process.execPath,
       args: [path.join(dsh, 'local-web/browser-server.mjs')], cwd: path.join(dsh, 'local-web'),
@@ -69,7 +145,7 @@ const entries = [
 // Preserve unrelated user patch entries; replace only entries owned by this installer.
 const patchFile = path.join(profile, 'cordis.patch.yml');
 const previous = document(patchFile, []);
-const owned = new Set(['web', 'web-search-deepseek', 'web-fetch-http', 'web-local', 'todo-completion', 'tool-grounded-execution', 'mcp-browser']);
+const owned = new Set(['web', 'web-search-deepseek', 'web-fetch-http', 'ui-trajectory', 'ui-model-selection', 'web-local', 'todo-completion', 'tool-grounded-execution', 'edit-guard', 'task-ledger', 'mcp-browser']);
 const keep = previous.flatMap(entry => {
   if (owned.has(entry.id)) return [];
   if (entry.insert) { const insert = entry.insert.filter(row => !owned.has(row.id)); return insert.length ? [{ ...entry, insert }] : []; }
@@ -88,16 +164,4 @@ if (!fs.existsSync(instructions)) write(instructions, [
   'Use browser_action reload for navigation, then read the page in a separate call.',
   '',
 ].join('\n'));
-for (const pkg of ['dsh-compaction-basic', 'dsh-compaction-tool-result-pruner']) {
-  const folder = path.join(dsh, 'node_modules/@deepseek-ai', pkg);
-  const metadata = JSON.parse(fs.readFileSync(path.join(folder, 'package.json'), 'utf8'));
-  if (metadata.version !== '0.1.5-rc.3') throw new Error(`Refusing to patch ${pkg} ${metadata.version}; supported: 0.1.5-rc.3`);
-  const target = path.join(folder, 'lib/index.js');
-  const patched = fs.readFileSync(path.join(dsh, 'patches', pkg + '.js'), 'utf8');
-  if (fs.readFileSync(target, 'utf8') !== patched) {
-    const backup = target + '.ninfer-original';
-    if (!fs.existsSync(backup)) fs.copyFileSync(target, backup);
-    fs.writeFileSync(target, patched);
-  }
-}
 console.log('Configured isolated dsh home and version-checked compaction patches.');

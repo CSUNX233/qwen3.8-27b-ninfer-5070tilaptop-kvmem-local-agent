@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>DeepSeek Harness</title>
+    <script type="module" crossorigin src="./assets/index-BKQ_L1z6.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/vendor-CCJJTK99.js">
+    <link rel="stylesheet" crossorigin href="./assets/vendor-BNsW4eBh.css">
+    <link rel="stylesheet" crossorigin href="./assets/index-DPX2bQLO.css">
+    <style>
+      /* 侧边栏内部所有容器自适应撑满，随拖拽同比例拉伸，杜绝任何遮挡裁切 */
+      [class*="sidebarCol"],
+      [class*="sidebarCol"] > div,
+      [class*="sidebarCol"] [class*="root"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+      }
+
+      /* 展开顶栏徽标行：左侧会话文本，右侧折叠按钮，两端弹性自适应对齐 */
+      [class*="logoRow"] {
+        padding-left: 14px !important;
+        padding-right: 12px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* 展开状态隐藏原本的 deepseek HARNESS 徽标，替换为优雅清晰的“会话”二字 */
+      [class*="brand"][class*="wide"] [class*="brandIdentity"] {
+        display: none !important;
+      }
+      [class*="brand"][class*="wide"]::after {
+        content: "会话";
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--dsw-alias-label-primary, #0f172a);
+        letter-spacing: -0.2px;
+        line-height: 28px;
+        display: inline-block;
+      }
+      [class*="brand"][class*="wide"] {
+        cursor: default;
+        flex: none !important;
+        width: auto !important;
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+      }
+      button[class*="_toggle"] {
+        flex-shrink: 0 !important;
+        margin-left: auto !important;
+      }
+
+      /* “+ 新会话”按钮：随宽度同比例自适应拉伸，撑满整行 */
+      [class*="newSession"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+
+      /* 会话列表区域：清除导致溢出的负 margin，确保工作区图标和时间戳无任何遮挡 */
+      [class*="regionArea"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 2px !important;
+        padding-right: 4px !important;
+        box-sizing: border-box !important;
+      }
+
+      /* 会话列表子元素防溢出 */
+      [class*="regionArea"] > * {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* 底部设置区域宽度自适应 */
+      [class*="footArea"],
+      [class*="settingsArea"] {
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* 侧边栏拖拽把手：确保高层级、流畅拖拽以及交互提示 */
+      div[data-side="sidebar"] {
+        z-index: 20 !important;
+        cursor: col-resize !important;
+      }
+      div[data-side="sidebar"]:hover,
+      div[data-side="sidebar"]:active {
+        background: rgba(59, 130, 246, 0.3) !important;
+      }
+
+      /* 隐藏侧边栏“工作区”栏目及操作按钮，直接呈现纯粹的历史会话列表 */
+      [class*="sectionHeader"],
+      [class*="sectionLabel"],
+      [class*="headerActions"] {
+        display: none !important;
+      }
+
+      /* 隐藏顶部模型切换与轨迹标签 */
+      [class*="modelSelect"],
+      [class*="ModelSelect"],
+      [class*="_7KE1Ra_root"],
+      [data-tab="trajectory"],
+      [class*="trajectory"],
+      [data-view="trajectory"] {
+        display: none !important;
+      }
+
+      /* 修复 DSH 内置设置面板中选项描述文字被纵向挤压折叠的官方排版 Bug（严格限定在 panel 弹窗内，杜绝污染输入框与工具栏） */
+      [class*="panel"] {
+        min-width: 680px !important;
+      }
+      [class*="panel"] [class*="content"] {
+        min-width: 460px !important;
+        flex: 1 1 auto !important;
+      }
+      [class*="panel"] [class*="options"] {
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+      [class*="panel"] [class*="rowText"],
+      [class*="panel"] div[class*="rowText"] {
+        flex: 1 1 auto !important;
+        min-width: 260px !important;
+        max-width: 65% !important;
+        word-break: normal !important;
+      }
+      [class*="panel"] [class*="rowText"] [class*="title"] {
+        white-space: nowrap !important;
+      }
+      [class*="panel"] [class*="rowText"] [class*="desc"],
+      [class*="panel"] [class*="rowText"] > div {
+        white-space: normal !important;
+        word-break: break-word !important;
+      }
+      [class*="panel"] [class*="_row"],
+      [class*="panel"] div[class*="row"] {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+      [class*="panel"] [class*="selector"],
+      [class*="panel"] button[class*="selector"] {
+        flex-shrink: 0 !important;
+        margin-left: auto !important;
+      }
+
+      /* 强化主对话输入框交互：保证始终为文本指针且获得光标 */
+      [data-composer-card] {
+        cursor: text !important;
+      }
+      [data-composer-input] {
+        cursor: text !important;
+        user-select: text !important;
+        -webkit-user-select: text !important;
+        outline: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      (function() {
+        let lastState = null;
+        let observer = null;
+
+        function getSidebar() {
+          return document.querySelector('[class*="sidebarCol"]');
+        }
+
+        function getToggleButton() {
+          return document.querySelector('button[class*="_toggle"]') ||
+                 document.querySelector('button[aria-label*="侧边栏"]') ||
+                 document.querySelector('button[aria-label*="sidebar" i]');
+        }
+
+        function check() {
+          const s = getSidebar();
+          if (!s) return;
+          const width = s.getBoundingClientRect().width;
+          const expanded = width > 120;
+          if (expanded !== lastState) {
+            lastState = expanded;
+            try {
+              window.parent.postMessage({ type: 'dsh-sidebar-state', expanded: expanded }, '*');
+            } catch (e) {}
+          }
+          if (!observer) {
+            try {
+              observer = new ResizeObserver(() => check());
+              observer.observe(s);
+            } catch (e) {}
+          }
+        }
+
+        const timer = setInterval(check, 100);
+        setTimeout(() => clearInterval(timer), 5000);
+        check();
+
+        window.addEventListener('message', function(e) {
+          if (!e.data || typeof e.data !== 'object') return;
+          if (e.data.type === 'set-dsh-sidebar') {
+            const s = getSidebar();
+            if (!s) return;
+            const currentExpanded = s.getBoundingClientRect().width > 120;
+            if (currentExpanded !== !!e.data.expand) {
+              const btn = getToggleButton();
+              if (btn) btn.click();
+            }
+          } else if (e.data.type === 'query-dsh-sidebar') {
+            check();
+            if (lastState !== null) {
+              try {
+                window.parent.postMessage({ type: 'dsh-sidebar-state', expanded: lastState }, '*');
+              } catch (e) {}
+            } else if (e.data.type === 'focus-composer') {
+              focusComposerInput();
+            }
+          }
+        });
+
+        // 增强主对话输入框自动聚焦与可编辑保障
+        function focusComposerInput() {
+          const input = document.querySelector('[data-composer-input]') ||
+                        document.querySelector('[contenteditable="true"]');
+          if (input) {
+            input.tabIndex = 0;
+            if (input.getAttribute('contenteditable') !== 'true') {
+              input.setAttribute('contenteditable', 'true');
+            }
+            input.focus();
+          }
+        }
+
+        // 点击输入卡片任何非按钮区域自动激活光标
+        document.addEventListener('pointerdown', function(e) {
+          const card = e.target.closest('[data-composer-card]');
+          if (card) {
+            if (e.target.closest('button') || e.target.closest('a') || e.target.closest('[role="button"]') || e.target.closest('svg')) {
+              return;
+            }
+            focusComposerInput();
+          }
+        }, true);
+
+        document.addEventListener('click', function(e) {
+          const card = e.target.closest('[data-composer-card]');
+          if (card) {
+            if (e.target.closest('button') || e.target.closest('a') || e.target.closest('[role="button"]') || e.target.closest('svg')) {
+              return;
+            }
+            focusComposerInput();
+          }
+        }, true);
+
+        // 窗口恢复焦点时自动就绪
+        window.addEventListener('focus', function() {
+          if (!document.activeElement || document.activeElement === document.body) {
+            focusComposerInput();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

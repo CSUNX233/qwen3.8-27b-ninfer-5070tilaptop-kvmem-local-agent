@@ -2,6 +2,21 @@
 
 在消费级显卡上运行 **Qwen3.8-27B 本地 Agent**，支持代码、文件与网页工具任务。NInfer 负责模型推理，KVMem 把历史 KV 保存在 RAM、按需调入 GPU，配合 MTP 推测解码、缓存守卫和可选 dsh 网页界面，减少长任务续接时的重复计算。逻辑上下文配置为 256K；不代表每步读取全部历史，也不代表已完成满 256K 验收。[English](README.en.md)
 
+---
+
+## 🖥️ Pmod 桌面端图形化管理平台 (Desktop GUI)
+
+本项目现已提供 **Pmod 桌面级一体化管理平台与图形化工作台**（源码位于 [`desktop/`](desktop/)，基于 Tauri 2.0 + Vue 3.5 构建）：
+
+- **现代化交互**：秒级冷启动，提供沉浸式智能对话、显卡驱动配置、模型参数二进制解析与推理性能遥测大屏；
+- **全自动离线安装包编译**：集成了 Inno Setup 自动化打包脚本 (`scripts/build-inno-installer.ps1`)，可一键编译生成独立分发的 Windows 安装包；
+- **多卡与显存智能调度**：精准嗅探 Windows 独显与核显进程，支持将各类后台占用进程一键迁移调度至核显，为 27B 模型释放最大物理显存；
+- **自适应模型加载与 API 网关**：原生支持 `.ninfer` 单文件容器，内置 OpenAI Compatible API 代理网关（默认 `:1236` 端口），可无缝对接 VS Code、Cursor 与 Claude Code 等生态。
+
+![Pmod 桌面端智能对话工作台](docs/images/02-chat.png)
+
+---
+
 ## RTX 5070 Ti Laptop 12GB 历史实测
 
 实测机器：**RTX 5070 Ti Laptop 12GB / i7-14650HX / 32GB RAM / Windows**；模型为 Qwen3.8-27B GSQ-RCO IQ3_XXS + MTP3。下表保留旧版 RK4V4 条件下的记录，**不是 v0.1.5 / NVFP4 重新测得的速度**。
